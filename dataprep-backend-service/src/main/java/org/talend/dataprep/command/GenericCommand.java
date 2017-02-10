@@ -159,6 +159,7 @@ public class GenericCommand<T> extends HystrixCommand<T> {
 
         final HttpResponse response;
         try {
+            LOGGER.trace("Requesting {} {}", request.getMethod(), request.getURI());
             response = client.execute(request);
         } catch (Exception e) {
             throw onError.apply(e);

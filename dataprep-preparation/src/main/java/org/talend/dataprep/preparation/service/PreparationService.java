@@ -123,7 +123,7 @@ public class PreparationService {
     private PreparationCleaner preparationCleaner;
 
     @Autowired
-    private StepDiffDelegate stepDiffDelegate;
+    private MetadataChangesOnActionsGenerator stepDiffDelegate;
 
     @Autowired
     private ReorderStepsUtils reorderStepsUtils;
@@ -593,7 +593,8 @@ public class PreparationService {
         log.debug("Adding action to preparation...");
         Preparation preparation = getPreparation(preparationId);
         List<Action> actions = getVersionedAction(preparationId, "head");
-        StepDiff actionCreatedColumns = stepDiffDelegate.getActionCreatedColumns(preparation.getRowMetadata(), buildActions(actions), buildActions(step.getActions()));
+        StepDiff actionCreatedColumns = stepDiffDelegate.computeCreatedColumns(preparation.getRowMetadata(),
+                buildActions(actions), buildActions(step.getActions()));
         step.setDiff(actionCreatedColumns);
         appendSteps(preparationId, Collections.singletonList(step));
         log.debug("Added action to preparation.");
