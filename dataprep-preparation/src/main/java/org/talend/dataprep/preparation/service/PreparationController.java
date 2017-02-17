@@ -88,6 +88,18 @@ public class PreparationController {
     }
 
     /**
+     * List all preparation summaries.
+     *
+     * @return the preparation summaries, sorted by descending last modification date.
+     */
+    @RequestMapping(value = "/preparations/summaries", method = GET)
+    @ApiOperation(value = "List all preparations", notes = "Returns the list of preparations summaries the current user is allowed to see. Creation date is always displayed in UTC time zone.")
+    @Timed
+    public Collection<PreparationSummary> listSummary() {
+        return preparationService.listSummary();
+    }
+
+    /**
      * <p>
      * Search preparation entry point.
      * </p>

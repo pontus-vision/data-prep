@@ -14,6 +14,8 @@ package org.talend.dataprep.preparation.service;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -29,6 +31,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -204,6 +207,19 @@ public class PreparationService {
                 .collect(toList());
         log.info("found {} preparation(s) in total", details.size());
         return details;
+    }
+
+    /**
+     * List all preparation summaries.
+     *
+     * @return the preparation summaries, sorted by descending last modification date.
+     */
+    public Collection<PreparationSummary> listSummary() {
+        log.debug("Get list of preparations (summary).");
+        return preparationRepository.list(Preparation.class) //
+                .map(p -> beanConversionService.convert(p, PreparationSummary.class)) //
+                .sorted(comparing(PreparationSummary::getLastModificationDate, reverseOrder())) //
+                .collect(Collectors.toList());
     }
 
     /**
