@@ -34,7 +34,6 @@ import org.talend.dataprep.folder.store.FolderRepository;
 import org.talend.dataprep.lock.store.LockedResourceRepository;
 import org.talend.dataprep.preparation.store.PreparationRepository;
 
-import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
 
@@ -65,7 +64,6 @@ public abstract class BasePreparationTest extends ServiceBaseTests {
 
     @Before
     public void setUp() {
-        RestAssured.port = port;
         home = folderRepository.getHome();
     }
 

@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -81,8 +80,6 @@ public abstract class ApiServiceTestBase extends ServiceBaseTests {
                 .withProperty("dataset.service.url", "http://localhost:" + port)
                 .withProperty("transformation.service.url", "http://localhost:" + port)
                 .withProperty("preparation.service.url", "http://localhost:" + port);
-
-        environment.getPropertySources().addFirst(connectionInformation);
 
         transformationUrlUpdater.setUp();
         home = folderRepository.getHome();
