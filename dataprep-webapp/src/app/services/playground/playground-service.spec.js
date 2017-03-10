@@ -1344,18 +1344,15 @@ describe('Playground Service', () => {
 
 				// then
 				const expectedParams = {
-					cell_value: {
-						token: 'Ronald',
-						operator: 'equals',
-					},
-					replace_value: 'Donald',
+					original_value: 'Ronald',
+					new_value: 'Donald',
 					scope: 'cell',
 					row_id: 58,
 					column_id: '0001',
 					column_name: 'firstname',
 				};
 
-				const actions = [{ action: 'replace_on_value', parameters: expectedParams }];
+				const actions = [{ action: 'replace_cell_value', parameters: expectedParams }];
 				expect(PlaygroundService.appendStep).toHaveBeenCalledWith(actions);
 			}));
 

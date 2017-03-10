@@ -687,15 +687,28 @@ export default function PlaygroundService($state, $rootScope, $q, $translate, $t
 	 * @description Perform a cell or a column edition
 	 */
 	function editCell(rowItem, column, newValue, updateAllCellWithValue) {
-		const action = { name: 'replace_on_value' };
-		const scope = updateAllCellWithValue ? 'column' : 'cell';
-		const params = {
-			cell_value: {
-				token: rowItem[column.id],
-				operator: 'equals',
-			},
-			replace_value: newValue,
-		};
+
+        let action, scope, params;
+
+        if (updateAllCellWithValue) {
+            action = { name: 'replace_on_value' };
+            scope = 'column';
+            params = {
+                cell_value: {
+                    token: rowItem[column.id],
+                    operator: 'equals',
+                },
+                replace_value: newValue,
+            };
+        }
+        else {
+            action = { name: 'replace_cell_value' };
+            scope =  'cell';
+            params = {
+                original_value: rowItem[column.id],
+                new_value: newValue
+            };
+        }
 
 		return service.completeParamsAndAppend(action, scope, params);
 	}
