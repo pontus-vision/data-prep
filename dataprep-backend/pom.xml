@@ -33,7 +33,7 @@
         <tika.version>1.12</tika.version>
         <org.talend.daikon.version>0.16.0-SNAPSHOT</org.talend.daikon.version>
         <org.talend.dataquality.common.version>1.5.7</org.talend.dataquality.common.version>
-        <org.talend.dataquality.semantic.version>1.5.7</org.talend.dataquality.semantic.version>
+        <org.talend.dataquality.semantic.version>1.5.8-SNAPSHOT</org.talend.dataquality.semantic.version>
         <org.talend.dataquality.statistics.version>1.5.7</org.talend.dataquality.statistics.version>
         <org.talend.dataquality.record.linkage.version>3.2.7</org.talend.dataquality.record.linkage.version>
         <org.talend.dataquality.sampling.version>2.3.7</org.talend.dataquality.sampling.version>
