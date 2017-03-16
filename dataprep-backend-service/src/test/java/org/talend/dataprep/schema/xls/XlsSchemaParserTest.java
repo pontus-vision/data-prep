@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
+import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.schema.AbstractSchemaTestUtils;
 import org.talend.dataprep.schema.Schema;
 import org.talend.dataprep.schema.SchemaParser;
@@ -97,6 +98,15 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
             Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(2);
         }
 
+    }
+
+    @Test(expected = TDPException.class)
+    public void read_xls_TDP_() throws Exception {
+        String fileName = "many column.xlsx";
+
+        try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
+            parser.parse(getRequest(inputStream, "#852")).getSheetContents().get(0).getColumnMetadatas();
+        }
     }
 
     @Test
