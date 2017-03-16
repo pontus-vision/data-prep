@@ -78,6 +78,7 @@ import 'sunchoke';
 
 // ngReact
 import 'react';
+import 'react-dom';
 import 'ngreact';
 
 // Babel

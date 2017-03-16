@@ -19,6 +19,7 @@ import static org.apache.http.HttpHeaders.AUTHORIZATION;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -102,6 +103,7 @@ public class GenericCommand<T> extends HystrixCommand<T> {
     protected String preparationServiceUrl;
 
     private String authenticationToken;
+    private final Map<String, String> headers = new HashMap<>();
 
     private Supplier<HttpRequestBase> httpCall;
 
@@ -117,8 +119,14 @@ public class GenericCommand<T> extends HystrixCommand<T> {
      *
      * @param group the command group.
      */
-    protected GenericCommand(HystrixCommandGroupKey group) {
+    protected GenericCommand(final HystrixCommandGroupKey group) {
         super(group);
+    }
+
+    protected GenericCommand(final HystrixCommandGroupKey group, final Map<String, String> headers) {
+        this(group);
+        this.headers.putAll(headers);
+
     }
 
     @PostConstruct
@@ -158,6 +166,10 @@ public class GenericCommand<T> extends HystrixCommand<T> {
     protected T run() throws Exception {
         final HttpRequestBase request = httpCall.get();
 
+        // insert all the provided headers in the request
+        if (headers.size() > 0) {
+            headers.entrySet().forEach(entry -> request.addHeader(entry.getKey(), entry.getValue()));
+        }
         // update request header with security token
         if (StringUtils.isNotBlank(authenticationToken)) {
             request.addHeader(AUTHORIZATION, authenticationToken);
