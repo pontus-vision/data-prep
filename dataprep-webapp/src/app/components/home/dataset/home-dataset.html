@@ -43,6 +43,7 @@
             ng-file-change="$ctrl.ImportService.import($ctrl.ImportService.currentInputType)"/>
 </form>
 <talend-modal
+        class="import-modal"
         fullscreen="false"
         state="$ctrl.state.import.visible"
         ng-if="$ctrl.state.import.visible"
