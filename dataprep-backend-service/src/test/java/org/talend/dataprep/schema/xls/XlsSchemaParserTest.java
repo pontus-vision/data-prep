@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -13,6 +12,7 @@
 
 package org.talend.dataprep.schema.xls;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -82,7 +82,7 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
             List<ColumnMetadata> columnMetadatas = parser.parse(getRequest(inputStream, "#852")).getSheetContents().get(0)
                     .getColumnMetadatas();
-            Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(17);
+            assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(17);
         }
 
     }
@@ -95,7 +95,7 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
             List<ColumnMetadata> columnMetadatas = parser.parse(getRequest(inputStream, "#852")).getSheetContents().get(0)
                     .getColumnMetadatas();
-            Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(2);
+            assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(2);
         }
 
     }
@@ -327,7 +327,7 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
         List<ColumnMetadata> columns = result.getSheetContents().get(0).getColumnMetadatas();
         final List<String> actual = columns.stream().map(ColumnMetadata::getName).collect(Collectors.toList());
 
-        Assertions.assertThat(actual).containsExactly(expectedColsName);
+        assertThat(actual).containsExactly(expectedColsName);
     }
 
 }
