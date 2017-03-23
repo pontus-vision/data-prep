@@ -414,7 +414,8 @@ public class GenericCommand<T> extends HystrixCommand<T> {
             if (req instanceof HttpEntityEnclosingRequestBase) {
                 try {
                     builder.append("load:")
-                            .append(IOUtils.toString(((HttpEntityEnclosingRequestBase) req).getEntity().getContent(), UTF_8))
+                            .append(IOUtils.toString(((HttpEntityEnclosingRequestBase) req).getEntity().getContent(),
+                                    UTF_8))
                             .append(",\n");
                 } catch (IOException e) {
                     // We ignore the field

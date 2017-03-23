@@ -136,7 +136,7 @@ public class UpgradeAPI extends APIService {
 
             post.setRequestEntity(new StringRequestEntity(content.toString(), MediaType.APPLICATION_JSON.getType(), UTF_8.name()));
             client.executeMethod(post);
-            response = IOUtils.toString(post.getResponseBodyAsStream());
+            response = IOUtils.toString(post.getResponseBodyAsStream(), UTF_8);
         } finally {
             post.releaseConnection();
         }
