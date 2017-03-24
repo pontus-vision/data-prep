@@ -54,6 +54,7 @@ public class Async {
                 // Add authentication
                 final AsyncListenableTaskExecutor authenticated = AuthenticatedTaskExecutor.authenticated(asyncTaskExecutor);
                 handlerAdapter.setTaskExecutor(authenticated);
+                handlerAdapter.setAsyncRequestTimeout(120000);
                 return handlerAdapter;
             }
             return bean;
