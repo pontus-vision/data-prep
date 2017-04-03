@@ -48,6 +48,10 @@ A preparation is a succession of steps. In each step, there are actions (upper c
 A preparation starts from a data set. To create a preparation:
 ```
 POST http://localhost:8888/api/preparations
+{
+  "name":"Finance report Preparation",
+  "dataSetId":"c88b6a58-b91b-49ff-8d62-82c2630b1792"
+}
 ```
 The body of the POST must contain the id of the data set. For example, if you supplied "1234" as data set id for the preparation the id of the preparation
 will be "948bed0012a5f13cd1ab93d51992f8952cbbd03b". The preparation id is built on a hash function that combines data set id and author.
@@ -91,6 +95,7 @@ Adding actions to a preparation is a "step". A step is *at least* an action on t
     {
       "action": "uppercase",
       "parameters": {
+        "scope":"column",
         "column_name": "firstname"
       }
     }
