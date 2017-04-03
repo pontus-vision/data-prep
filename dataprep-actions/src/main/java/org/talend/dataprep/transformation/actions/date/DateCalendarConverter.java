@@ -100,31 +100,31 @@ public class DateCalendarConverter extends AbstractDate implements ColumnAction 
         //@formatter:off
         parameters.add(Builder.builder()
                 .name(FROM_CALENDER_TYPE_PARAMETER)
-                .item(ChronologyUnit.ISO.name(), ChronologyUnit.ISO.toString()) 
-                .item(ChronologyUnit.Hijrah.name(), ChronologyUnit.Hijrah.toString()) 
-                .item(ChronologyUnit.Japanese.name(), ChronologyUnit.Japanese.toString()) 
-                .item(ChronologyUnit.Minguo.name(), ChronologyUnit.Minguo.toString()) 
-                .item(ChronologyUnit.ThaiBuddhist.name(), ChronologyUnit.ThaiBuddhist.toString()) 
-                .defaultValue(ChronologyUnit.ISO.name()) 
+                .item(ChronologyUnit.ISO.name(), ChronologyUnit.ISO.toString())
+                .item(ChronologyUnit.Hijri.name(), ChronologyUnit.Hijri.toString())
+                .item(ChronologyUnit.Japanese.name(), ChronologyUnit.Japanese.toString())
+                .item(ChronologyUnit.Minguo.name(), ChronologyUnit.Minguo.toString())
+                .item(ChronologyUnit.ThaiBuddhist.name(), ChronologyUnit.ThaiBuddhist.toString())
+                .defaultValue(ChronologyUnit.ISO.name())
                 .build());
-        
+
         parameters.add(Builder.builder()
                 .name(FROM_MODE)
                 .item(FROM_MODE_BEST_GUESS, FROM_MODE_BEST_GUESS)
                 .item(FROM_MODE_CUSTOM, FROM_MODE_CUSTOM, new Parameter(FROM_CUSTOM_PATTERN, ParameterType.STRING, EMPTY, false, false))
                 .defaultValue(FROM_MODE_BEST_GUESS)
                 .build());
-        
+
         parameters.add(Builder.builder()
                 .name(TO_CALENDER_TYPE_PARAMETER)
-                .item(ChronologyUnit.ISO.name(), ChronologyUnit.ISO.toString()) 
-                .item(ChronologyUnit.Hijrah.name(), ChronologyUnit.Hijrah.toString()) 
-                .item(ChronologyUnit.Japanese.name(), ChronologyUnit.Japanese.toString()) 
-                .item(ChronologyUnit.Minguo.name(), ChronologyUnit.Minguo.toString()) 
-                .item(ChronologyUnit.ThaiBuddhist.name(), ChronologyUnit.ThaiBuddhist.toString()) 
-                .defaultValue(ChronologyUnit.Hijrah.name()) 
+                .item(ChronologyUnit.ISO.name(), ChronologyUnit.ISO.toString())
+                .item(ChronologyUnit.Hijri.name(), ChronologyUnit.Hijri.toString())
+                .item(ChronologyUnit.Japanese.name(), ChronologyUnit.Japanese.toString())
+                .item(ChronologyUnit.Minguo.name(), ChronologyUnit.Minguo.toString())
+                .item(ChronologyUnit.ThaiBuddhist.name(), ChronologyUnit.ThaiBuddhist.toString())
+                .defaultValue(ChronologyUnit.Minguo.name())
                 .build());
-        
+
         parameters.add(Builder.builder()
                 .name(NEW_PATTERN)
                 .item("yyyy-MM-dd", "datePatternISO")
@@ -238,7 +238,7 @@ public class DateCalendarConverter extends AbstractDate implements ColumnAction 
      */
     public enum ChronologyUnit {
         ISO("IsoChronology", IsoChronology.INSTANCE),
-        Hijrah("HijrahChronology", HijrahChronology.INSTANCE),
+        Hijri("HijrahChronology", HijrahChronology.INSTANCE),
         Japanese("JapaneseChronology", JapaneseChronology.INSTANCE),
         Minguo("MinguoChronology", MinguoChronology.INSTANCE),
         ThaiBuddhist("ThaiBuddhistChronology", ThaiBuddhistChronology.INSTANCE);

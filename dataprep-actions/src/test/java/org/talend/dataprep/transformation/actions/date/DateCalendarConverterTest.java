@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -118,7 +117,7 @@ public class DateCalendarConverterTest extends BaseDateTest {
     @Test
     public void testConversion_all_custom_patterns() {
         testConversion(IsoStr, DateCalendarConverter.ChronologyUnit.ISO, pattern, true, HijrahStr,
-                DateCalendarConverter.ChronologyUnit.Hijrah, pattern, true);
+                DateCalendarConverter.ChronologyUnit.Hijri, pattern, true);
         testConversion(IsoStr, DateCalendarConverter.ChronologyUnit.ISO, pattern, true, JapaneseStr,
                 DateCalendarConverter.ChronologyUnit.Japanese, pattern, true);
         testConversion(IsoStr1, DateCalendarConverter.ChronologyUnit.ISO, pattern1, true, MinguoStr1,
@@ -132,18 +131,18 @@ public class DateCalendarConverterTest extends BaseDateTest {
     @Test
     public void testConversion_only_input_custom() {
         testConversion(IsoStr, DateCalendarConverter.ChronologyUnit.ISO, pattern, true, HijrahStr,
-                DateCalendarConverter.ChronologyUnit.Hijrah, pattern, false);
+                DateCalendarConverter.ChronologyUnit.Hijri, pattern, false);
         testConversion(JapaneseStr1, DateCalendarConverter.ChronologyUnit.Japanese, pattern1, true, HijrahStr,
-                DateCalendarConverter.ChronologyUnit.Hijrah, pattern, false);
+                DateCalendarConverter.ChronologyUnit.Hijri, pattern, false);
         testConversion(MinguoStr1, DateCalendarConverter.ChronologyUnit.Minguo, pattern1, true, HijrahStr,
-                DateCalendarConverter.ChronologyUnit.Hijrah, pattern, false);
+                DateCalendarConverter.ChronologyUnit.Hijri, pattern, false);
         testConversion(ThaiBuddhistStr1, DateCalendarConverter.ChronologyUnit.ThaiBuddhist, pattern1, true, HijrahStr,
-                DateCalendarConverter.ChronologyUnit.Hijrah, pattern, false);
+                DateCalendarConverter.ChronologyUnit.Hijri, pattern, false);
 
         testConversion(MinguoStr, DateCalendarConverter.ChronologyUnit.Minguo, pattern, true, HijrahStr,
-                DateCalendarConverter.ChronologyUnit.Hijrah, pattern, false);
+                DateCalendarConverter.ChronologyUnit.Hijri, pattern, false);
         testConversion(ThaiBuddhistStr, DateCalendarConverter.ChronologyUnit.ThaiBuddhist, pattern, true, HijrahStr,
-                DateCalendarConverter.ChronologyUnit.Hijrah, pattern, false);
+                DateCalendarConverter.ChronologyUnit.Hijri, pattern, false);
     }
 
     @Test
@@ -160,7 +159,7 @@ public class DateCalendarConverterTest extends BaseDateTest {
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "column");
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0001");
         parameters.put(DateCalendarConverter.FROM_CALENDER_TYPE_PARAMETER, DateCalendarConverter.ChronologyUnit.ISO.name());
-        parameters.put(DateCalendarConverter.TO_CALENDER_TYPE_PARAMETER, DateCalendarConverter.ChronologyUnit.Hijrah.name());
+        parameters.put(DateCalendarConverter.TO_CALENDER_TYPE_PARAMETER, DateCalendarConverter.ChronologyUnit.Hijri.name());
         parameters.put(DateCalendarConverter.FROM_MODE, DateCalendarConverter.FROM_MODE_BEST_GUESS);
         parameters.put(DateCalendarConverter.NEW_PATTERN, pattern1);
 

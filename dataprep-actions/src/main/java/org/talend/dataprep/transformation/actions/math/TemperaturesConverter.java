@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -33,6 +32,7 @@ import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.SelectParameter;
+import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataprep.units.TemperatureImpl;
@@ -99,7 +99,7 @@ public class TemperaturesConverter extends AbstractMathNoParameterAction {
 
     @Override
     public String getCategory() {
-        return "Conversions";
+        return ActionCategory.CONVERSIONS.getDisplayName();
     }
 
     @Override
