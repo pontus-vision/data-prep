@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -31,7 +30,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
-import org.talend.dataquality.converters.StringConverter;
+import org.talend.dataquality.converters.StringTrimmer;
 
 /**
  * Trim leading and trailing characters.
@@ -83,7 +82,7 @@ public class Trim extends AbstractActionMetadata implements ColumnAction {
         parameters.add(SelectParameter.Builder.builder()
                 .name(PADDING_CHAR_PARAMETER)
                 .item(WHITESPACE)
-                .item(CUSTOM, CUSTOM, new Parameter(CUSTOM_PADDING_CHAR_PARAMETER, ParameterType.STRING, StringUtils.EMPTY)) 
+                .item(CUSTOM, CUSTOM, new Parameter(CUSTOM_PADDING_CHAR_PARAMETER, ParameterType.STRING, StringUtils.EMPTY))
                 .canBeBlank(true)
                 .defaultValue(WHITESPACE)
                 .build());
@@ -95,7 +94,7 @@ public class Trim extends AbstractActionMetadata implements ColumnAction {
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
         if (actionContext.getActionStatus() == ActionContext.ActionStatus.OK) {
-            actionContext.get(STRING_CONVERTER, p -> new StringConverter());
+            actionContext.get(STRING_CONVERTER, p -> new StringTrimmer());
         }
     }
 
@@ -108,7 +107,7 @@ public class Trim extends AbstractActionMetadata implements ColumnAction {
         final String toTrim = row.get(columnId);
         if (toTrim != null) {
             final Map<String, String> parameters = context.getParameters();
-            final StringConverter stringConverter = context.get(STRING_CONVERTER);
+            final StringTrimmer stringConverter = context.get(STRING_CONVERTER);
             if (CUSTOM.equals(parameters.get(PADDING_CHAR_PARAMETER))) {
                 row.set(columnId, stringConverter.removeTrailingAndLeading(toTrim, parameters.get(CUSTOM_PADDING_CHAR_PARAMETER)));
             } else {
