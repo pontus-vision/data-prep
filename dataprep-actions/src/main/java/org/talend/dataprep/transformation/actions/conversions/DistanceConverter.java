@@ -132,7 +132,7 @@ public class DistanceConverter extends AbstractActionMetadata implements ColumnA
             try {
                 final org.talend.dataquality.converters.DistanceConverter converter = context.get(ACTION_NAME);
                 BigDecimal valueFrom = BigDecimalParser.toBigDecimal(columnValue);
-                if (Double.MAX_VALUE == valueFrom.doubleValue() || Double.MIN_VALUE == valueFrom.doubleValue()) {
+                if (Double.POSITIVE_INFINITY == valueFrom.doubleValue() || Double.NEGATIVE_INFINITY == valueFrom.doubleValue()) {
                     valueToString = columnValue;
                 } else {
                     double valueTo = converter.convert(valueFrom.doubleValue());
