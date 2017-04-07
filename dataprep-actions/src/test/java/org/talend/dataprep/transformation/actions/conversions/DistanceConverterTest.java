@@ -24,6 +24,7 @@ import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 import org.talend.dataquality.converters.DistanceEnum;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -133,7 +134,22 @@ public class DistanceConverterTest extends AbstractMetadataBaseTest {
     public void testMaxValue() { testConversion(String.valueOf(Double.MAX_VALUE) , DistanceEnum.METER, String.valueOf(Double.MAX_VALUE), DistanceEnum.YARD, "1"); }
 
     @Test
-    public void testMinValue() { testConversion(String.valueOf(Double.MIN_VALUE) , DistanceEnum.METER, String.valueOf(Double.MIN_VALUE), DistanceEnum.YARD, "1"); }
+    public void testPositiveInfinityValue() {
+        BigDecimal simple_max = BigDecimal.valueOf(Double.MAX_VALUE);
+        BigDecimal double_max = simple_max.add(simple_max);
+        testConversion(double_max.toPlainString() , DistanceEnum.METER, double_max.toPlainString(), DistanceEnum.YARD, "1");
+    }
+
+    @Test
+    public void testNegativeInfinityValue() {
+        BigDecimal simple_max = BigDecimal.valueOf(Double.MAX_VALUE);
+        BigDecimal double_max = simple_max.add(simple_max);
+        BigDecimal neg_double_max = double_max.negate();
+        testConversion(neg_double_max.toPlainString() , DistanceEnum.METER, neg_double_max.toPlainString(), DistanceEnum.YARD, "1");
+    }
+
+    @Test
+    public void testMinValue() { testConversion(String.valueOf(Double.MIN_VALUE) , DistanceEnum.METER, String.valueOf(0.0), DistanceEnum.YARD, "1"); }
 
     @Test
     public void testNegativeNumber() { testConversion("-1", DistanceEnum.METER, "-1.093613298", DistanceEnum.YARD, "9"); }
