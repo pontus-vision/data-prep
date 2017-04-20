@@ -20,8 +20,8 @@ import org.talend.dataprep.api.dataset.DataSetLocation;
  * Any component extending this will be identified as {@link DataSetLocation} supplier and will be able to provide
  * additional {@link DataSetLocation} in {@link DataSetLocationService}.
  */
-public interface DatasetLocationsSupplier<T extends DataSetLocation> {
+public interface DatasetLocationsSupplier {
 
-    Collection<T> getAvailableLocations();
+    Collection<DataSetLocation> getAvailableLocations();
 
 }
