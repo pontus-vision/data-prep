@@ -12,26 +12,36 @@
 
 package org.talend.dataprep.transformation.actions.delete;
 
-import org.talend.dataprep.api.action.Action;
+import static org.talend.dataprep.transformation.actions.category.ActionCategory.FILTERED;
+
+import java.util.EnumSet;
+import java.util.Set;
+
+import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + KeepOnly.KEEP_ONLY_ACTION_NAME)
-public class KeepOnly extends AbstractFilteringAction {
-
-    static final String KEEP_ONLY_ACTION_NAME = "keep_only";
+public abstract class AbstractFilteringAction extends AbstractActionMetadata implements ColumnAction {
 
     @Override
-    public String getName() {
-        return KEEP_ONLY_ACTION_NAME;
+    public boolean acceptField(ColumnMetadata column) {
+        return true;
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        if (!context.getFilter().test(row)) {
-            row.setDeleted(true);
-        }
+    public boolean implicitFilter() {
+        return false;
     }
 
+    @Override
+    public Set<Behavior> getBehavior() {
+        return EnumSet.of(Behavior.VALUES_ALL);
+    }
+
+    @Override
+    public String getCategory() {
+        return FILTERED.getDisplayName();
+    }
 }
