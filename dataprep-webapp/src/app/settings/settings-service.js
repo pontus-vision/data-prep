@@ -10,6 +10,7 @@
 export const appSettings = {
 	actions: [],
 	views: [],
+	uris: [],
 };
 
 export function SettingsService($http, RestURLs) {
@@ -35,5 +36,6 @@ export function SettingsService($http, RestURLs) {
 	function clearSettings() {
 		appSettings.views = [];
 		appSettings.actions = [];
+		appSettings.uris = [];
 	}
 }

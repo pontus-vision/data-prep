@@ -35,11 +35,23 @@ public class AppSettings {
      */
     private final Map<String, ActionSettings> actions = new HashMap<>();
 
+    /**
+     * The actions settings dictionary
+     */
+    private final Map<String, String> uris = new HashMap<>();
+
+    /**
+     * Getters
+     */
     public Map<String, ViewSettings> getViews() {
         return views;
     }
 
     public Map<String, ActionSettings> getActions() {
         return actions;
+    }
+
+    public Map<String, String> getUris() {
+        return uris;
     }
 }
