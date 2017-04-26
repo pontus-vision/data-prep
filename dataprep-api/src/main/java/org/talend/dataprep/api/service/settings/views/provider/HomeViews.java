@@ -1,15 +1,14 @@
-//  ============================================================================
+// ============================================================================
+// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
-//
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.api.service.settings.views.provider;
 
@@ -46,10 +45,10 @@ public interface HomeViews {
                             .onChange(SEARCH_ALL.getId())
                             .onKeyDown(SEARCH_FOCUS.getId())
                             .onToggle(SEARCH_TOGGLE.getId())
-                            .onSelect("dataset", DATASET_OPEN.getId())
                             .onSelect("documentation", EXTERNAL_DOCUMENTATION.getId())
-                            .onSelect("folder", MENU_FOLDERS.getId())
                             .onSelect("preparation", MENU_PLAYGROUND_PREPARATION.getId())
+                            .onSelect("folder", MENU_FOLDERS.getId())
+                            .onSelect("dataset", DATASET_OPEN.getId())
                             .placeholder("Search Talend Data Preparation and Documentation")
                             .build()
             )

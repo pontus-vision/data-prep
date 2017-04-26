@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -15,7 +14,7 @@ package org.talend.dataprep.api.service.settings.views.api.appheaderbar;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -147,7 +146,7 @@ public class SearchSettings {
 
         private String onToggle;
 
-        private Map<String, String> onSelect = new HashMap<>();
+        private Map<String, String> onSelect = new LinkedHashMap<>();
 
         public Builder debounceTimeout(final int debounceTimeout) {
             this.debounceTimeout = debounceTimeout;
