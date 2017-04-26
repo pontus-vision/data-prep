@@ -15,13 +15,14 @@ const NAV_ITEM = 'navItem';
 const DROPDOWN = 'dropdown';
 
 export default class AppHeaderBarCtrl {
-	constructor($element, $translate, appSettings, SettingsActionsService) {
+	constructor($element, $translate, state, appSettings, SettingsActionsService) {
 		'ngInject';
 
 		this.$element = $element;
 		this.$translate = $translate;
 		this.appSettings = appSettings;
 		this.settingsActionsService = SettingsActionsService;
+		this.state = state;
 	}
 
 	$onInit() {
@@ -127,7 +128,7 @@ export default class AppHeaderBarCtrl {
 			const onSelectAction = this.appSettings.actions[onSelectActionBy[type]];
 			if (onSelectAction) {
 				this.searchAvailableInventoryTypes.push({
-					title: type,
+					type,
 					iconName: onSelectAction.icon,
 					iconTitle: onSelectAction.name,
 				});
@@ -191,14 +192,16 @@ export default class AppHeaderBarCtrl {
 
 	_adaptSearchResults(searchResults) {
 		return this.searchAvailableInventoryTypes
-			.filter(inventoryType => searchResults.some(result => result.inventoryType === inventoryType.title))
+			.filter(inventoryType => searchResults.some(result => result.inventoryType === inventoryType.type))
 			.map((inventoryType) => {
-				const suggestions = searchResults.filter(result => result.inventoryType === inventoryType.title);
+				const suggestions = searchResults.filter(result => result.inventoryType === inventoryType.type);
+				const label = this.state.search.searchCategories && this.state.search.searchCategories.find((category) => category.type === inventoryType.type) ?
+					this.state.search.searchCategories.find((category) => category.type === inventoryType.type).label : inventoryType.type;
 				return {
-					title: inventoryType.title,
+					title: label,
 					icon: {
 						name: inventoryType.iconName,
-						title: inventoryType.title,
+						title: label,
 					},
 					suggestions: suggestions.map((result) => {
 						return {

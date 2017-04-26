@@ -255,4 +255,5 @@ public class OrderedBeans<T> implements Stream<T> {
     public void append(T item) {
         beans.add(item);
     }
+
 }
