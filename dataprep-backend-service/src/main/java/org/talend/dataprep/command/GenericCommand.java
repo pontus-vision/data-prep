@@ -40,9 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.talend.daikon.exception.error.ErrorCode;
 import org.talend.daikon.exception.json.JsonErrorCode;
 import org.talend.dataprep.api.preparation.Action;
@@ -222,6 +220,7 @@ public class GenericCommand<T> extends HystrixCommand<T> {
 
         // handle response's HTTP status
         if (status.is4xxClientError() || status.is5xxServerError()) {
+            LOGGER.trace("request {} {} : response on error {}", request.getMethod(), request.getURI(), response.getStatusLine());
             // Http status >= 400 so apply onError behavior
             return callOnError(onError).apply(request, response);
         } else {
