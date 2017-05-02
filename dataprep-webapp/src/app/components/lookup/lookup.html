@@ -29,9 +29,9 @@
 
         <div id="lookup-right">
             <div class="lookup-description">
-                <strong ng-if="!lookupCtrl.state.playground.lookup.step"><span
+                <strong ng-if="!lookupCtrl.state.playground.stepInEditionMode"><span
                         translate-once="LOOKUP_DESC_TITLE"></span></strong>
-                <strong ng-if="lookupCtrl.state.playground.lookup.step"><span
+                <strong ng-if="lookupCtrl.state.playground.stepInEditionMode"><span
                         translate-once="LOOKUP_UPDATE_DESC_TITLE"></span></strong>
                 <br>
 
@@ -59,7 +59,7 @@
 
     <navigation-list class="lookup-footer"
                      list="lookupCtrl.state.playground.lookup.addedActions"
-                     on-click="lookupCtrl.loadFromAction(item)"
+                     on-click="lookupCtrl.load(item)"
                      selected-item="lookupCtrl.state.playground.lookup.dataset"
                      get-label="lookupCtrl.getDsName(item)"
                      on-add-item="lookupCtrl.openAddLookupDatasetModal()">

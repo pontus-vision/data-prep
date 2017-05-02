@@ -19,6 +19,7 @@ export const playgroundState = {
 	preparationName: '',
 	sampleType: 'HEAD',
 	isReadOnly: false,
+	stepInEditionMode: null,
 };
 
 export function PlaygroundStateService(RecipeStateService, recipeState,
@@ -53,6 +54,7 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		updateDatasetStatistics,
 		setSampleType,
 		setReadOnlyMode,
+		setStepInEditionMode,
 
         // parameters
 		toggleDatasetParameters,
@@ -82,9 +84,11 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		setLookupActions: LookupStateService.setActions,
 		setLookupAddedActions: LookupStateService.setAddedActions,
 		setLookupDatasets: LookupStateService.setDatasets,
+		setLookupDataset: LookupStateService.setDataset,
 		setLookupAddMode: LookupStateService.setAddMode,
 		setLookupSelectedColumn: LookupStateService.setSelectedColumn,
 		setLookupUpdateMode: LookupStateService.setUpdateMode,
+		setLookupData: LookupStateService.setData,
 		setLookupVisibility,
 		updateLookupColumnsToAdd: LookupStateService.updateColumnsToAdd,
 		setLookupDatasetsSort: LookupStateService.setSort,
@@ -184,6 +188,10 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		}
 		LookupStateService.setVisibility(value);
 	}
+
+	function setStepInEditionMode(step) {
+		playgroundState.stepInEditionMode = step;
+	}
     //--------------------------------------------------------------------------------------------------------------
     // -------------------------------------------------PARAMETERS---------------------------------------------------
     //--------------------------------------------------------------------------------------------------------------
@@ -247,6 +255,7 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		playgroundState.preparation = null;
 		playgroundState.sampleType = 'HEAD';
 		playgroundState.isReadOnly = false;
+		playgroundState.stepInEditionMode = null;
 
 		RecipeStateService.reset();
 		FilterStateService.reset();

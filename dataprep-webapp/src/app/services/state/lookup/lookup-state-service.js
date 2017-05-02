@@ -32,7 +32,6 @@ export const lookupState = {
 	dataView: new Slick.Data.DataView({ inlineFilters: false }),  // grid view that hold the dataset data
 	selectedColumn: null,                                       // selected column
 	visibility: false,                                          // visibility flag
-	step: null,                                                  // lookup step
 	sort: sortList[1],
 	order: orderList[1],
 	sortList,
@@ -61,9 +60,9 @@ export function LookupStateService() {
 		setActions,
 		setAddedActions,
 		setDatasets,
+		setDataset,
+		setData,
 
-		setAddMode,
-		setUpdateMode,
 		setSort,
 		setOrder,
 	};
@@ -158,14 +157,14 @@ export function LookupStateService() {
 	 * @param {object} data The data
 	 * @description Set data to display in the grid and reset the column checkboxes
 	 */
-	function setData(data) {
+	function setData(data, currentStep) {
 		lookupState.dataView.beginUpdate();
 		lookupState.dataView.setItems(data.records, 'tdpId');
 		lookupState.dataView.endUpdate();
 
 		lookupState.data = data;
 		lookupState.columnsToAdd = [];
-		createColumnsCheckboxes(data);
+		createColumnsCheckboxes(data, currentStep);
 	}
 
 	/**
@@ -184,14 +183,28 @@ export function LookupStateService() {
 
 	/**
 	 * @ngdoc method
+	 * @name _getDsId
+	 * @methodOf data-prep.services.state.service:LookupStateService
+	 * @private
+	 * @param {object} lookupDataset lookup dataset
+	 * @return {string} lookup dataset id
+	 * @description extracts the lookup dataset id from the parameters
+	 */
+	function _getDsId(lookup) {
+		return lookup.parameters.find(param => param.name === 'lookup_ds_id').default;
+	}
+
+	/**
+	 * @ngdoc method
 	 * @name createColumnsCheckboxes
 	 * @methodOf data-prep.services.state.service:LookupStateService
 	 * @param {object} data The data
 	 * @description Create the checkboxes definition for each column
 	 */
-	function createColumnsCheckboxes(data) {
-		const addedColIds = lookupState.step ?
-			_.map(lookupState.step.actionParameters.parameters.lookup_selected_cols, 'id') :
+	function createColumnsCheckboxes(data, currentStep) {
+		const addedColIds = currentStep &&
+			currentStep.actionParameters.parameters.lookup_ds_id === _getDsId(lookupState.dataset) ?
+			currentStep.actionParameters.parameters.lookup_selected_cols.map(col => col.id) :
 			[];
 		lookupState.columnCheckboxes = _.map(data.metadata.columns, function (col) {
 			return {
@@ -233,38 +246,6 @@ export function LookupStateService() {
 
 	/**
 	 * @ngdoc method
-	 * @name setAddMode
-	 * @methodOf data-prep.services.state.service:LookupStateService
-	 * @param {object} lookupAction the lookup action
-	 * @param {object} data The selected lookup dataset data
-	 * @description Set parameters for add mode
-	 */
-	function setAddMode(lookupAction, data) {
-		lookupState.step = null;
-		setDataset(lookupAction);
-		setData(data); // this updates the checkboxes
-		setSelectedColumn(data.metadata.columns[0]); // this update the columns to add
-	}
-
-	/**
-	 * @ngdoc method
-	 * @name setUpdateMode
-	 * @methodOf data-prep.services.state.service:LookupStateService
-	 * @param {object} lookupAction the lookup action
-	 * @param {object} data The selected lookup dataset data
-	 * @param {object} step The step to update
-	 * @description Set parameters for update mode
-	 */
-	function setUpdateMode(lookupAction, data, step) {
-		const selectedColumn = _.find(data.metadata.columns, { id: step.actionParameters.parameters.lookup_join_on });
-		lookupState.step = step;
-		setDataset(lookupAction);
-		setData(data); // this updates the checkboxes
-		setSelectedColumn(selectedColumn); // this update the columns to add
-	}
-
-	/**
-	 * @ngdoc method
 	 * @name reset
 	 * @methodOf data-prep.services.state.service:LookupStateService
 	 * @description Reset the lookup internal state
@@ -279,7 +260,6 @@ export function LookupStateService() {
 		lookupState.data = null;
 		lookupState.selectedColumn = null;
 		lookupState.visibility = false;
-		lookupState.step = null;
 		lookupState.searchDatasetString = '';
 		lookupState.showTooltip = false;
 		lookupState.tooltip = {};
