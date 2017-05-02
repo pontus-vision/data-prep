@@ -142,7 +142,7 @@ class StepNodeTransformation extends Visitor {
 
                 // Check if Step has actual metadata
                 if (nextStep.getRowMetadata() == null) {
-                    LOGGER.warn("Previous execution for step #{} saved no metadata.");
+                    LOGGER.warn("Previous execution for step '{}' saved no metadata.", nextStep);
                     newState = DEFAULT;
                 } else {
                     ofNullable(previous).ifPresent(n -> n.setLink(null));
