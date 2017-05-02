@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -31,6 +30,7 @@ public enum Type implements Serializable {
     STRING("string", ANY, "STRING"), //$NON-NLS-1$
     BOOLEAN("boolean", STRING, "BOOLEAN"), //$NON-NLS-1$
     DATE("date", STRING, "DATE"), //$NON-NLS-1$
+    UTC_DATETIME("utc_datetime", STRING, "UTC_DATETIME"), //$NON-NLS-1$
     NUMERIC("numeric", STRING, "NUMERIC"), //$NON-NLS-1$
     DOUBLE("double", NUMERIC, "DOUBLE"), //$NON-NLS-1$
     INTEGER("integer", NUMERIC, "INTEGER"), //$NON-NLS-1$
@@ -53,7 +53,7 @@ public enum Type implements Serializable {
 
     /**
      * Create a root type without any super type.
-     * 
+     *
      * @param name the type name.
      * @param labelKey the label.
      */
@@ -79,7 +79,7 @@ public enum Type implements Serializable {
 
     /**
      * Add the given type as a subtype.
-     * 
+     *
      * @param type the sub type to add.
      */
     void declareSubType(Type type) {
@@ -112,7 +112,7 @@ public enum Type implements Serializable {
     /**
      * Returns the type hierarchy starting from this type. Calling this method on {@link Type#ANY} returns all supported
      * types.
-     * 
+     *
      * @return The list of types assignable from this type, including this type (i.e. . Returned list is never empty
      * since it at least <code>this</code>.
      */
@@ -133,7 +133,7 @@ public enum Type implements Serializable {
 
     /**
      * Returns whether <code>type</code> is contained in the list of subtypes from {@link Type#list()}.
-     * 
+     *
      * @param type The type to test
      * @return true is <code>type</code> is contained in all subtypes including this type or false otherwise.
      */
@@ -143,7 +143,7 @@ public enum Type implements Serializable {
 
     /**
      * Returns whether <code>type</code> is contained in the list of subtypes from {@link Type#list()}.
-     * 
+     *
      * @param type The type name to test
      * @return true is <code>type</code> is contained in all subtypes including this type or false otherwise.
      */
@@ -153,7 +153,7 @@ public enum Type implements Serializable {
 
     /**
      * Returns the type accessible from {@link Type#ANY} with <code>name</code>.
-     * 
+     *
      * @param name A non-null type name.
      * @return The {@link Type} type corresponding to <code>name</code>.
      * @throws IllegalArgumentException If <code>name</code> is <code>null</code> or if type does not exist.
@@ -176,7 +176,7 @@ public enum Type implements Serializable {
 
     /**
      * Allows to test existence of a type by name.
-     * 
+     *
      * @param name A non-null type name.
      * @return <code>true</code> if type exists, <code>false</code> otherwise.
      * @see #get(String)
