@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -37,6 +36,10 @@ public enum ParameterType {
      * A date parameter (expected to show a date picker in UI).
      */
     DATE,
+    /**
+     * A date time parameter (expected always contain an UTC datetime).
+     */
+    UTC_DATETIME,
     /**
      * A boolean parameter (true/false) parameter.
      */
