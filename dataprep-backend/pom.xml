@@ -22,6 +22,8 @@
     <packaging>pom</packaging>
     <name>dataprep-backend</name>
     <properties>
+        <dataprep.core.dependency.version>2.0.1-SNAPSHOT</dataprep.core.dependency.version>
+        <dataprep.core.build.version>2.0.1-SNAPSHOT</dataprep.core.build.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4j.version>1.7.12</slf4j.version>
         <log4j.version>2.6.1</log4j.version>
@@ -157,7 +159,7 @@
             <dependency>
                 <groupId>org.talend.dataprep</groupId>
                 <artifactId>dataprep-actions</artifactId>
-                <version>${project.version}</version>
+                <version>${dataprep.core.dependency.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.talend.dataprep</groupId>
@@ -186,7 +188,7 @@
             <dependency>
                 <groupId>org.talend.dataprep</groupId>
                 <artifactId>dataprep-backend-common</artifactId>
-                <version>${project.version}</version>
+                <version>${dataprep.core.dependency.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.talend.daikon</groupId>
@@ -485,7 +487,7 @@
             <dependency>
                 <groupId>org.talend.dataprep</groupId>
                 <artifactId>dataprep-backend-common</artifactId>
-                <version>${project.version}</version>
+                <version>${dataprep.core.dependency.version}</version>
                 <type>test-jar</type>
             </dependency>
             <dependency>

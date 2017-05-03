@@ -3,16 +3,16 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>dataprep-actions</artifactId>
-    <version>2.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
-
     <parent>
         <groupId>org.talend.dataprep</groupId>
         <artifactId>dataprep-backend</artifactId>
         <version>2.0.1-SNAPSHOT</version>
         <relativePath>../dataprep-backend/pom.xml</relativePath>
     </parent>
+
+    <artifactId>dataprep-actions</artifactId>
+    <version>${dataprep.core.build.version}</version>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
