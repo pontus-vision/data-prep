@@ -12,6 +12,7 @@
 
 package org.talend.dataprep;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -21,11 +22,11 @@ import org.talend.dataquality.semantic.broadcast.BroadcastDocumentObject;
 
 public class StandalonePreparation extends PreparationMessage {
 
-    private List<BroadcastDocumentObject> dictionary;
+    private List<BroadcastDocumentObject> dictionary = Collections.emptyList();
 
-    private List<BroadcastDocumentObject> keyword;
+    private List<BroadcastDocumentObject> keyword = Collections.emptyList();
 
-    private Map<String, LightweightExportableDataSet> lookupDataSets;
+    private Map<String, LightweightExportableDataSet> lookupDataSets = Collections.emptyMap();
 
     private String filterOut;
 
