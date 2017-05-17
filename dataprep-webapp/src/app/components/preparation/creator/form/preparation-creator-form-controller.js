@@ -29,7 +29,6 @@ export default class PreparationCreatorFormCtrl {
 		this.filteredDatasets = [];
 		this.baseDataset = null;
 		this.userHasTypedName = false;
-		this.uploadingDatasets = [];
 		this.importDisabled = false;
 		this.isFetchingDatasets = false;
 		this.preparationSuffix = $translate.instant('PREPARATION');
@@ -101,7 +100,7 @@ export default class PreparationCreatorFormCtrl {
 		};
 
 		const dataset = this.datasetService.createDatasetInfo(file, name);
-		this.uploadingDatasets.push(dataset);
+		this.stateService.startUploadingDataset(dataset);
 
 		return this.datasetService.create(params, 'text/plain', file)
 			.progress((event) => {
@@ -110,7 +109,6 @@ export default class PreparationCreatorFormCtrl {
 			.then((event) => {
 				return this.datasetService.getDatasetById(event.data)
 					.then((dataset) => {
-						this.uploadingDatasets = [];
 						this.baseDataset = dataset;
 						if (!this.userHasTypedName) {
 							this._getUniquePrepName();
@@ -121,6 +119,9 @@ export default class PreparationCreatorFormCtrl {
 			})
 			.catch(() => {
 				dataset.error = true;
+			})
+			.finally(() => {
+				this.stateService.finishUploadingDataset();
 			});
 	}
 

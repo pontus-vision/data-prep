@@ -25,7 +25,8 @@ const HomeComponent = {
 		<preparation-copy-move></preparation-copy-move>
 		<preparation-creator></preparation-creator>
 		<insertion-home></insertion-home>
-		<dataset-progress></dataset-progress>
+		<dataset-progress ng-if="!$ctrl.state.home.preparations.creator.isVisible">
+		</dataset-progress>
 	`,
 	controller: HomeCtrl,
 };
