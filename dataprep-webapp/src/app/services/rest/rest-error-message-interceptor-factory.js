@@ -20,6 +20,8 @@ const specialClientErrorCodes = [403, 404];
  * @requires data-prep.services.utils.service:MessageService
  */
 export default function RestErrorMessageHandler($q, MessageService) {
+	'ngInject';
+
 	/**
 	 * Dedicated pages instead of toast for certain error codes
 	 * @param errorCode http error code to test
