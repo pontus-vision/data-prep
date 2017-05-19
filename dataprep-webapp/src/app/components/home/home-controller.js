@@ -11,6 +11,10 @@
 
  ============================================================================*/
 
+import {
+	HOME_403_ROUTE,
+} from '../../index-route';
+
 export default class HomeCtrl {
 	constructor($state, $timeout, OnboardingService, StateService, StorageService, state) {
 		'ngInject';
@@ -35,9 +39,12 @@ export default class HomeCtrl {
 	startOnboarding() {
 		const tourId = 'preparation';
 
-		if (this.$state.params.prepid ||
+		if (
+			this.$state.current.name === HOME_403_ROUTE ||
+			this.$state.params.prepid ||
 			this.$state.params.datasetid ||
-			!this.OnboardingService.shouldStartTour(tourId)) {
+			!this.OnboardingService.shouldStartTour(tourId)
+		) {
 			return;
 		}
 

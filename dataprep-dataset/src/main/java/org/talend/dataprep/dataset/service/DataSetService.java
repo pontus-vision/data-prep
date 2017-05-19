@@ -643,23 +643,25 @@ public class DataSetService extends BaseDataSetService {
     public void updateDataSet(
             @PathVariable(value = "id") @ApiParam(name = "id", value = "Id of the data set to update") String dataSetId,
             @RequestBody DataSetMetadata dataSetMetadata) {
+
         final DistributedLock lock = dataSetMetadataRepository.createDatasetMetadataLock(dataSetId);
         lock.lock();
         try {
+
+            DataSetMetadata metadataForUpdate = dataSetMetadataRepository.get(dataSetId);
+            if (metadataForUpdate == null) {
+                // No need to silently create the data set metadata: associated content will most likely not exist.
+                throw new TDPException(DataSetErrorCodes.DATASET_DOES_NOT_EXIST, build().put("id", dataSetId));
+            }
+
             LOG.debug("updateDataSet: {}", dataSetMetadata);
             publisher.publishEvent(new DataSetMetadataBeforeUpdateEvent(dataSetMetadata));
 
             //
             // Only part of the metadata can be updated, so the original dataset metadata is loaded and updated
             //
-            DataSetMetadata metadataForUpdate = dataSetMetadataRepository.get(dataSetId);
+
             DataSetMetadata original = metadataBuilder.metadata().copy(metadataForUpdate).build();
-
-            if (metadataForUpdate == null) {
-                // No need to silently create the data set metadata: associated content will most likely not exist.
-                throw new TDPException(DataSetErrorCodes.DATASET_DOES_NOT_EXIST, build().put("id", dataSetId));
-            }
-
             try {
                 // update the name
                 metadataForUpdate.setName(dataSetMetadata.getName());
