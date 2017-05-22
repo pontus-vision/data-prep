@@ -1,15 +1,14 @@
-//  ============================================================================
+// ============================================================================
+// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
-//
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.api.service;
 
@@ -19,7 +18,9 @@ import static org.talend.dataprep.api.service.command.error.ErrorList.ServiceTyp
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,7 +53,7 @@ public class CommonAPI extends APIService {
 
     /**
      * Describe the supported error codes.
-     * 
+     *
      * @param output the http response.
      */
     @RequestMapping(value = "/api/errors", method = RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
@@ -98,14 +99,16 @@ public class CommonAPI extends APIService {
 
     /**
      * Describe the supported Types
-     *
      */
     @RequestMapping(value = "/api/types", method = RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get all types.")
     @Timed
-    public Type[] listTypes() throws IOException {
+    public Type[] listTypes() {
         LOG.debug("Listing supported types");
-        return Type.values();
+        return Arrays.stream(Type.values()) //
+                .filter(type -> type != Type.UTC_DATETIME) //
+                .collect(Collectors.toList()) //
+                .toArray(new Type[0]);
     }
 
     /**
