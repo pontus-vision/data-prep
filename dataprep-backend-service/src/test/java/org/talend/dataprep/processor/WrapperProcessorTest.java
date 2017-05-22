@@ -16,9 +16,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.talend.ServiceBaseTest;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class WrapperProcessorTest extends ServiceBaseTest {
 
@@ -32,6 +35,16 @@ public class WrapperProcessorTest extends ServiceBaseTest {
         assertFalse(NotToBeProcessed.processed);
     }
 
+    @Test
+    public void shouldReportInvalidWrapper() throws Exception {
+        assertFalse(WrapperProcessor.isValidWrapper(new InvalidWrapper()));
+    }
+
+    @Test
+    public void shouldReportValidWrapperForNull() throws Exception {
+        assertTrue(WrapperProcessor.isValidWrapper(null));
+    }
+
     @Component
     public static class ToBeProcessed {
 
@@ -42,6 +55,22 @@ public class WrapperProcessorTest extends ServiceBaseTest {
     public static class NotToBeProcessed {
 
         static boolean processed = false;
+    }
+
+    public static class InvalidWrapper implements Wrapper<Object> { // No @Component to prevent context load error.
+
+        @Autowired
+        private ObjectMapper onPurposeWrongField; // @Autowired fields are forbidden.
+
+        @Override
+        public Class<Object> wrapped() {
+            return Object.class;
+        }
+
+        @Override
+        public Object doWith(Object instance, String beanName, ApplicationContext applicationContext) {
+            return instance;
+        }
     }
 
     @Component
