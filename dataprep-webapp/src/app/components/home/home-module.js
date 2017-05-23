@@ -29,6 +29,7 @@ import WIDGETS_CONTAINERS_MODULE from '../widgets-containers/widgets-containers-
 import HomeComponent from './home-component';
 import HomeDatasetComponent from './dataset/home-dataset-container';
 import HomePreparationComponent from './preparation/home-preparation-container';
+import NameModalComponent from './name-modal/name-modal-component';
 
 const MODULE_NAME = 'data-prep.home';
 
@@ -68,4 +69,5 @@ angular.module(MODULE_NAME,
 	])
 	.component('home', HomeComponent)
 	.component('homeDataset', HomeDatasetComponent)
-	.component('homePreparation', HomePreparationComponent);
+	.component('homePreparation', HomePreparationComponent)
+	.component('nameModal', NameModalComponent);

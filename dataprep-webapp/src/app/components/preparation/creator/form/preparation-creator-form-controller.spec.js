@@ -161,10 +161,9 @@ describe('Preparation Creator Form Controller', () => {
 		describe('dataset name is NOT available', () => {
 			beforeEach(inject(($q, DatasetService) => {
 				spyOn(DatasetService, 'checkNameAvailability').and.returnValue($q.reject());
-				spyOn(DatasetService, 'getUniqueName').and.returnValue($q.when('unique_dataset_name'));
 			}));
 
-			it('should call create dataset function', inject(($q, DatasetService) => {
+			it('should prompt for a new name', inject(($q, ImportService) => {
 				//given
 				const file = { name: 'my Dataset name (1).csv' };
 				const ctrl = createController();
@@ -175,38 +174,16 @@ describe('Preparation Creator Form Controller', () => {
 				scope.$digest();
 
 				//then
-				expect(DatasetService.getUniqueName).toHaveBeenCalledWith('my Dataset name (1)');
-				expect(DatasetService.createDatasetInfo).toHaveBeenCalled();
-				expect(DatasetService.create).toHaveBeenCalledWith(
-					{
-						datasetFile: '',
-						type: 'local',
-						name: 'unique_dataset_name'
-					},
-					'text/plain',
-					file
-				);
+				expect(ImportService.datasetNameModal).toBeTruthy();
 			}));
 		});
 
 		describe('dataset name is available', () => {
-			beforeEach(inject(($q, DatasetService) => {
-				spyOn(DatasetService, 'checkNameAvailability').and.returnValue($q.when(true));
+			beforeEach(inject(($q, ImportService) => {
+				spyOn(ImportService, 'import').and.returnValue($q.when(true));
 			}));
 
-			it('should check the dataset name availability', inject(($q, DatasetService) => {
-				//given
-				const ctrl = createController();
-				ctrl.datasetFile = [{ name: 'my Dataset name (1).csv' }];
-
-				//when
-				ctrl.import();
-
-				//then
-				expect(DatasetService.checkNameAvailability).toHaveBeenCalledWith('my Dataset name (1)');
-			}));
-
-			it('should call create dataset function', inject(($q, DatasetService) => {
+			it('should call import dataset function', inject(($q, ImportService) => {
 				//given
 				const file = { name: 'my Dataset name (1).csv' };
 				const ctrl = createController();
@@ -217,16 +194,7 @@ describe('Preparation Creator Form Controller', () => {
 				scope.$digest();
 
 				//then
-				expect(DatasetService.createDatasetInfo).toHaveBeenCalled();
-				expect(DatasetService.create).toHaveBeenCalledWith(
-					{
-						datasetFile: '',
-						type: 'local',
-						name: 'my Dataset name (1)'
-					},
-					'text/plain',
-					file
-				);
+				expect(ImportService.import).toHaveBeenCalled();
 			}));
 		});
 	});

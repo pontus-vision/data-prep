@@ -14,7 +14,6 @@
  * @requires data-prep.services.import.service:ImportService
  */
 export default class ImportService {
-
 	constructor($document, $rootScope, state, DatasetService, ImportRestService, StateService, TalendConfirmService, UploadWorkflowService, UpdateWorkflowService) {
 		'ngInject';
 
@@ -205,19 +204,23 @@ export default class ImportService {
 	 * @param {object} importType The import parameters
 	 */
 	importDataset(file, name, importType) {
-		const params = this.DatasetService.getLocationParamIteration({}, importType.parameters);
-		params.type = importType.locationType;
-		params.name = name;
+		const params = {
+			...this.DatasetService.getLocationParamIteration({}, importType.parameters),
+			type: importType.locationType,
+			name,
+		};
 
 		const dataset = this.DatasetService.createDatasetInfo(file, name);
 		this.StateService.startUploadingDataset(dataset);
-
 		return this.DatasetService.create(params, importType.contentType, file)
 			.progress((event) => {
 				dataset.progress = parseInt((100.0 * event.loaded) / event.total, 10);
 			})
 			.then((event) => {
-				this.DatasetService.getDatasetById(event.data).then(this.UploadWorkflowService.openDataset);
+				return this.DatasetService.getDatasetById(event.data);
+			})
+			.then((data) => {
+				return this.currentPostImportAction ? this.currentPostImportAction(data) : this.UploadWorkflowService.openDataset(data);
 			})
 			.catch(() => {
 				dataset.error = true;
@@ -235,7 +238,7 @@ export default class ImportService {
 	 * If so : the dataset is created
 	 * If not : the new name modal is shown
 	 */
-	import(importType) {
+	import(importType, postImportAction) {
 		const file = this.importDatasetFile ? this.importDatasetFile[0] : null;
 		const datasetName = file ?
 			file.name :
@@ -243,12 +246,13 @@ export default class ImportService {
 
 		// remove file extension and ask final name
 		const name = datasetName.replace(/\.[^/.]+$/, '');
+		this.currentPostImportAction = postImportAction;
 
 		return this.DatasetService
 			.checkNameAvailability(name)
 			// name available: we create the dataset
 			.then(() => {
-				this.importDataset(file, name, importType);
+				return this.importDataset(file, name, importType);
 			})
 			// name is not available, we ask for a new name
 			.catch(() => {

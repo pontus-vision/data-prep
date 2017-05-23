@@ -12,22 +12,10 @@
  ============================================================================*/
 
 import HomeCtrl from './home-controller';
+import template from './home.html';
 
 const HomeComponent = {
-	template: `
-		<layout>
-			<ui-view name="home-content"></ui-view>
-		</layout>
-
-		<about></about>
-		<dataset-xls-preview></dataset-xls-preview>
-		<folder-creator></folder-creator>
-		<preparation-copy-move></preparation-copy-move>
-		<preparation-creator></preparation-creator>
-		<insertion-home></insertion-home>
-		<dataset-progress ng-if="!$ctrl.state.home.preparations.creator.isVisible">
-		</dataset-progress>
-	`,
+	templateUrl: template,
 	controller: HomeCtrl,
 };
 
