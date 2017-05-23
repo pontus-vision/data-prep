@@ -759,12 +759,15 @@ public class PreparationService {
      * @return the list of actions.
      */
     public List<Action> getVersionedAction(final String id, final String version) {
-        LOGGER.debug("Get list of actions of preparations #{} at version {}.", id, version);
+        LOGGER.debug("Get list of actions of preparation #{} at version {}.", id, version);
 
         final Preparation preparation = preparationRepository.get(id, Preparation.class);
         if (preparation != null) {
             final String stepId = getStepId(version, preparation);
             final Step step = getStep(stepId);
+            if (step == null) {
+                LOGGER.warn("Step '{}' no longer exist for preparation #{} at version '{}'", stepId, preparation.getId(), version);
+            }
             return getActions(step);
         } else {
             throw new TDPException(PREPARATION_DOES_NOT_EXIST, build().put("id", id));
@@ -857,6 +860,10 @@ public class PreparationService {
      * @return The list of actions
      */
     protected List<Action> getActions(final Step step) {
+        if (step == null) {
+            // TDP-3893: Make code more resilient to deleted steps
+            return Collections.emptyList();
+        }
         return new ArrayList<>(preparationRepository.get(step.getContent().id(), PreparationActions.class).getActions());
     }
 
@@ -864,7 +871,8 @@ public class PreparationService {
      * Get the step from id
      *
      * @param stepId The step id
-     * @return Le step with the provided id
+     * @return The step with the provided id, might return <code>null</code> is step does not exist.
+     * @see PreparationRepository#get(String, Class)
      */
     public Step getStep(final String stepId) {
         return preparationRepository.get(stepId, Step.class);

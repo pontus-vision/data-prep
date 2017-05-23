@@ -53,12 +53,12 @@ public interface PreparationRepository {
     void add(Identifiable object);
 
     /**
-     * Returns the Identifiable that matches the id and the class or null if none match.
+     * Returns the Identifiable that matches the id and the class or <code>null</code> if none match.
      *
      * @param id the wanted Identifiable id.
      * @param clazz the wanted Identifiable class.
      * @param <T> the type of Identifiable.
-     * @return the Identifiable that matches the id and the class or null if none match.
+     * @return the Identifiable that matches the id and the class or <code>null</code> if none match.
      */
     <T extends Identifiable> T get(String id, Class<T> clazz);
 
