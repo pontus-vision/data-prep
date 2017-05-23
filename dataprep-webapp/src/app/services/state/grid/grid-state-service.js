@@ -16,6 +16,7 @@ import { chain, find, map, sortBy } from 'lodash';
 
 export const gridState = {
 	dataView: new Slick.Data.DataView({ inlineFilters: false }),
+	dataModel: null, // new Slick.Data.RemoteModel(),
 	numericColumns: [],
 	columns: [],
 	selectedColumns: [],
@@ -42,6 +43,7 @@ export function GridStateService() {
 		setSemanticDomains,
 		setPrimitiveTypes,
 		setData,
+		setDataModel,
 		setFilter,
 		setGridSelection,
 		toggleColumnSelection,
@@ -186,6 +188,10 @@ export function GridStateService() {
 		updateFilteredRecords();
 		updateColumns(data);
 		updateNumericColumns(data);
+	}
+
+	function setDataModel(model) {
+		gridState.dataModel = model;
 	}
 
 	/**

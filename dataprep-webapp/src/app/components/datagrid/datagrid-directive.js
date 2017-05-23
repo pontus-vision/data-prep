@@ -179,11 +179,19 @@ export default function Datagrid($timeout, state, DatagridGridService, DatagridC
              * @methodOf data-prep.datagrid.directive:Datagrid
              * @description Refresh cell styles and scroll to top
              */
-			const onFiltersChange = function onFiltersChange() {
+			const onFiltersChange = function onFiltersChange(filterConfig) {
 				if (grid) {
 					DatagridStyleService.resetCellStyles();
 					grid.scrollRowToTop(0);
 					DatagridExternalService.updateGridRangeIndex();
+
+					const [filters, enabled] = filterConfig;
+					const dataModel = state.playground.grid.dataModel;
+					dataModel.setFilters(
+						enabled ? filters : null
+					);
+					dataModel.setLength(10000); // TODO JSO how to pass the length
+
 					// resize grid
 					$timeout(grid.resizeCanvas, 500, false);
 				}
@@ -244,7 +252,7 @@ export default function Datagrid($timeout, state, DatagridGridService, DatagridC
 						const stateSelectedColumn = getSelectedColumns()[0];
 						$timeout.cancel(cellHighlightTimeout);
 						if (stateSelectedLine && stateSelectedColumn) {
-							const lineIndex = state.playground.grid.dataView.getRowById(stateSelectedLine.tdpId);
+							const lineIndex = state.playground.grid.dataModel.getIndexByItem(stateSelectedLine);
 							const columnIndex = grid.getColumnIndex(stateSelectedColumn.id);
 							grid.setActiveCell(lineIndex, columnIndex);
 						}

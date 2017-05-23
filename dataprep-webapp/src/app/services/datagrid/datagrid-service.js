@@ -12,6 +12,8 @@
  ============================================================================*/
 
 import _ from 'lodash';
+import RemoteModel from '../../components/datagrid/plugins/remote-model-plugin';
+import SingleColumnResizePlugin from '../../components/datagrid/plugins/single-column-resize-plugin';
 
 /**
  * @ngdoc service
@@ -24,7 +26,10 @@ import _ from 'lodash';
  * @requires data-prep.services.utils.service:ConverterService
  * @requires data-prep.services.utils.service:TextFormatService
  */
-export default function DatagridService(state, StateService, ConverterService, TextFormatService) {
+export default function DatagridService(
+	state, StateService,
+	DatasetService, PreparationService,
+	ConverterService, TextFormatService) {
 	'ngInject';
 
 	const DELETE = 'DELETE';
@@ -33,6 +38,10 @@ export default function DatagridService(state, StateService, ConverterService, T
 
 	const service = {
 		focusedColumn: null, // TODO JSO : put this in state
+
+		// grid model loader
+		createLazyDataLoader,
+		createLazyGrid,
 
         // grid data
 		updateData, // updata data in the current dataset
@@ -45,9 +54,63 @@ export default function DatagridService(state, StateService, ConverterService, T
 	};
 	return service;
 
-    //------------------------------------------------------------------------------------------------------
-    // ---------------------------------------------------DATA-----------------------------------------------
-    //------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------
+    // -------------------------------------------LOADER--------------------------------------------
+    //----------------------------------------------------------------------------------------------
+	function getData({ pageSize, fromPage, toPage, filters }) {
+		console.log('GET DATA', pageSize, fromPage, toPage, filters);
+		const { preparation, dataset } = state.playground;
+
+		const getContent = preparation ?
+			PreparationService.getContent(preparation.id, 'head', `HEAD&fromPage=${fromPage}&toPage=${toPage}`) :
+			DatasetService.getContent(dataset.id, false);
+
+		return getContent
+			.then(data => data.records)
+			.then(data => data.slice(fromPage * pageSize, (toPage + 1) * pageSize));
+	}
+
+	function createLazyDataLoader(pageSize = 50, length = 10000) {
+		return new RemoteModel({
+			pageSize,
+			getData,
+			data: { length },
+			idKey: 'tdpId',
+		});
+	}
+
+	function createLazyGrid(elementId, options) {
+		// create model loader
+		const model = createLazyDataLoader(/* TODO JSO how to pass length */);
+		StateService.setDataModel(model);
+
+		// create grid
+		const grid = new Slick.Grid(elementId, model.data, [{ id: 'tdpId' }], options);
+		grid.registerPlugin(new Slick.AutoColumnSize());
+		grid.registerPlugin(SingleColumnResizePlugin);
+
+		// invalidate rows on new data lazy loaded
+		model.onDataLoaded.subscribe((e, args) => {
+			for (let i = args.from; i <= args.to; i++) {
+				grid.invalidateRow(i);
+			}
+			grid.updateRowCount();
+			grid.render();
+			// loadingIndicator.fadeOut();
+		});
+
+		// fetch data on scroll
+		grid.onViewportChanged.subscribe(() => {
+			const vp = grid.getViewport();
+			model.ensureData(vp.top, vp.bottom);
+		});
+
+		return grid;
+	}
+
+    //----------------------------------------------------------------------------------------------
+    // --------------------------------------------DATA---------------------------------------------
+    //----------------------------------------------------------------------------------------------
     /**
      * @ngdoc method
      * @name getLastNewColumnId

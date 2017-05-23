@@ -12,7 +12,6 @@
  ============================================================================*/
 
 import angular from 'angular';
-import SingleColumnResizePlugin from '../plugins/single-column-resize-plugin';
 import { COLUMN_INDEX_ID } from './datagrid-column-service';
 
 /**
@@ -50,23 +49,6 @@ export default class DatagridGridService {
 			DatagridExternalService,
 			DatagridTooltipService,
 		];
-	}
-
-    /**
-     * @ngdoc method
-     * @name attachLongTableListeners
-     * @methodOf data-prep.datagrid.service:DatagridGridService
-     * @description Attaches listeners for data update to reRender the grid
-     */
-	attachLongTableListeners(grid) {
-		grid.dataView.onRowCountChanged.subscribe(() => {
-			this.grid.updateRowCount();
-			this.grid.render();
-		});
-		grid.dataView.onRowsChanged.subscribe((e, args) => {
-			this.grid.invalidateRows(args.rows);
-			this.grid.render();
-		});
 	}
 
     /**
@@ -142,9 +124,7 @@ export default class DatagridGridService {
      * @description Init other grid services with the new created grid
      */
 	_initGridServices() {
-		_.forEach(this.gridServices, (service) => {
-			service.init(this.grid, this.state.playground.grid);
-		});
+		this.gridServices.forEach(service => service.init(this.grid, this.state.playground.grid));
 	}
 
     /**
@@ -169,13 +149,14 @@ export default class DatagridGridService {
 			asyncEditorLoading: true,
 			asyncEditorLoadDelay: 150,
 		};
-		this.grid = new Slick.Grid(elementId, this.state.playground.grid.dataView, [{ id: 'tdpId' }], options);
-		this.grid.registerPlugin(new Slick.AutoColumnSize());
-		SingleColumnResizePlugin.patch(this.grid);
+
+		this.grid = this.DatagridService.createLazyGrid(elementId, options);
 
         // listeners
-		this.attachLongTableListeners(this.state.playground.grid);
 		this._attachGridStateListeners();
+
+		// fetch data
+		this.grid.onViewportChanged.notify();
 
         // init other services
 		this._initGridServices();

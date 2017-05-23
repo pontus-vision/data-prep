@@ -65,7 +65,7 @@ export default function DatagridTooltipService($timeout, state, TextFormatServic
 			}
 
 			const row = cell.row;
-			const item = gridState.dataView.getItem(row);
+			const item = gridState.dataModel.getItemByIndex(row);
 
 			const column = grid.getColumns()[cell.cell];
 			const value = item[column.id] + '';
