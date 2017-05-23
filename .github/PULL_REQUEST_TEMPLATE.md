@@ -1,5 +1,5 @@
 **Link to the JIRA issue**
-e.g. https://jira.talendforge.org/browse/TDP-XXXX
+https://jira.talendforge.org/browse/TDP-XXXX
 
 **Please check if the PR fulfills these requirements**
 - [ ] The commit(s) message(s) follows our [guidelines](https://github.com/talend/tools/blob/master/tools-root-github/CONTRIBUTING.md#commit-message-format)
