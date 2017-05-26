@@ -9,7 +9,7 @@ const autoprefixer = require('autoprefixer');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-// const SassLintPlugin = require('sasslint-webpack-plugin');
+const SassLintPlugin = require('sasslint-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const extractCSS = new ExtractTextPlugin({ filename: 'styles/[name]-[hash].css' });
@@ -51,11 +51,7 @@ function getDefaultConfig(options) {
 					use: isTestMode ? { loader: 'null-loader' } : extractCSS.extract(getSassLoaders(true)),
 					include: /react-talend-/,
 				},
-				{
-					test: /\.(png|jpg|jpeg|gif)$/,
-					loader: isTestMode ? 'null-loader' : 'url-loader',
-					options: { mimetype: 'image/png' }
-				},
+				{ test: /\.(png|jpg|jpeg|gif)$/, loader: isTestMode ? 'null-loader' : 'url-loader', options: { mimetype: 'image/png' } },
 				{
 					test: /\.html$/,
 					use: [
@@ -64,16 +60,8 @@ function getDefaultConfig(options) {
 					],
 					exclude: INDEX_TEMPLATE_PATH,
 				},
-				{
-					test: /\.woff(2)?(\?v=\d+\.\d+\.\d+)?$/,
-					loader: isTestMode ? 'null-loader' : 'url-loader',
-					options: { name: '/assets/fonts/[name].[ext]', limit: 10000, mimetype: 'application/font-woff' }
-				},
-				{
-					test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-					loader: isTestMode ? 'null-loader' : 'url-loader',
-					options: { name: '/assets/fonts/[name].[ext]', limit: 10000, mimetype: 'image/svg+xml' }
-				},
+				{ test: /\.woff(2)?(\?v=\d+\.\d+\.\d+)?$/, loader: isTestMode ? 'null-loader' : 'url-loader', options: { name: '/assets/fonts/[name].[ext]', limit: 10000, mimetype: 'application/font-woff' } },
+				{ test: /\.svg(\?v=\d+\.\d+\.\d+)?$/, loader: isTestMode ? 'null-loader' : 'url-loader', options: { name: '/assets/fonts/[name].[ext]', limit: 10000, mimetype: 'image/svg+xml' } },
 			]
 		},
 		plugins: [
@@ -110,10 +98,7 @@ function getCommonStyleLoaders(enableModules) {
 }
 
 function getSassLoaders(enableModules) {
-	return getCommonStyleLoaders(enableModules).concat({
-		loader: 'sass-loader',
-		options: { sourceMap: true, data: SASS_DATA }
-	});
+	return getCommonStyleLoaders(enableModules).concat({ loader: 'sass-loader', options: { sourceMap: true, data: SASS_DATA } });
 }
 
 function addDashboardPlugin(config) {
@@ -159,10 +144,7 @@ function addDevServerConfig(config) {
 
 function addFilesConfig(config) {
 	config.entry = {
-		vendor: [
-			'babel-polyfill',
-			VENDOR_PATH,
-		],
+		vendor: VENDOR_PATH,
 		style: STYLE_PATH,
 		app: INDEX_PATH,
 	};
@@ -182,8 +164,7 @@ function addPlugins(config, options) {
 		 * See: https://www.npmjs.com/package/copy-webpack-plugin
 		 */
 		new CopyWebpackPlugin([
-			{ from: 'src/assets/images', to: 'assets/images' },
-			{ from: 'src/assets/config/config.json', to: 'src/assets/config' },
+			{ from: 'src/assets', to: 'assets' },
 			{
 				from: 'src/assets/config/config.mine.json',
 				to: 'assets/config/config.json',

@@ -13,21 +13,38 @@
 
 import angular from 'angular';
 
-const configPath = '/assets/config/config.json';
-const settingsPath = '/api/settings';
-
-function getHelper(url) {
+function getConfig(url, middleware) {
 	const initInjector = angular.injector(['ng']);
 	const $http = initInjector.get('$http');
+	if (middleware) {
+		middleware($http);
+	}
 	return $http.get(url).then(response => response.data);
 }
 
 function getAppConfig() {
-	return getHelper(configPath);
+	const url = '/assets/config/config.json';
+	return getConfig(url);
 }
 
-function getAppSettings({ serverUrl }) {
-	return getHelper(serverUrl + settingsPath);
+function getAppSettings(config) {
+	const url = `${config.serverUrl}/api/settings`;
+	const middleware = ($http) => {
+		const loginUrl = config.loginUrl;
+		if (loginUrl) {
+			$http.defaults.transformResponse = [
+				// Same role as a HTTP interceptor
+				(data, headersGetter, status) => {
+					if (status === 401) {
+						window.location.href = loginUrl;
+						return;
+					}
+					return data;
+				},
+			].concat($http.defaults.transformResponse);
+		}
+	};
+	return getConfig(url, middleware);
 }
 
 export default function getAppConfiguration() {
