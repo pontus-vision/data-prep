@@ -18,13 +18,13 @@ import static org.junit.Assert.*;
 import java.io.InputStream;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.talend.dataprep.format.export.ExportFormat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
 
@@ -103,7 +103,7 @@ public class ExportAPITest extends ApiServiceTestBase {
     @Test
     public void checkUTF8() throws Exception {
         // given
-        final String datasetId = testClient.createDataset("export/_UTF-8 住所.csv", "_UTF-8 住所", "text/csv");
+        final String datasetId = createDataset("export/_UTF-8 住所.csv", "_UTF-8 住所", "text/csv");
 
         // when
         final Response response = given() //
