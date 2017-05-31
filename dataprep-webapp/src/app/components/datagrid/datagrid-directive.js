@@ -190,7 +190,6 @@ export default function Datagrid($timeout, state, DatagridGridService, DatagridC
 					dataModel.setFilters(
 						enabled ? filters : null
 					);
-					dataModel.setLength(10000); // TODO JSO how to pass the length
 
 					// resize grid
 					$timeout(grid.resizeCanvas, 500, false);

@@ -57,6 +57,7 @@ function RemoteModel(options) {
 			return;
 		}
 
+		onDataLoading.notify({ from, to });
 		if (reqTimer) {
 			clearTimeout(reqTimer);
 		}
@@ -74,12 +75,14 @@ function RemoteModel(options) {
 						data[i * pageSize] = undefined;
 					}
 				});
-		}, 100);
+		}, 3000);
+		// }, 100);
 	}
 
-	function onSuccess(resp, from) {
-		for (let i = 0; i < resp.length; i++) {
-			const item = resp[i];
+	function onSuccess({ length, records }, from) {
+		data.length = length;
+		for (let i = 0; i < records.length; i++) {
+			const item = records[i];
 			const index = from + i;
 			data[index] = item;
 			indexById[item[idKey]] = index;

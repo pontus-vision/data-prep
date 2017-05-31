@@ -11,6 +11,7 @@
 
  ============================================================================*/
 
+import $ from 'jquery';
 import _ from 'lodash';
 import RemoteModel from '../../components/datagrid/plugins/remote-model-plugin';
 import SingleColumnResizePlugin from '../../components/datagrid/plugins/single-column-resize-plugin';
@@ -67,27 +68,43 @@ export default function DatagridService(
 
 		return getContent
 			.then(data => data.records)
-			.then(data => data.slice(fromPage * pageSize, (toPage + 1) * pageSize));
+			.then(records => ({
+				length: records.length, // TODO backend need to pass the data records length
+				records: records.slice(fromPage * pageSize, (toPage + 1) * pageSize),
+			}));
 	}
 
-	function createLazyDataLoader(pageSize = 50, length = 10000) {
+	function createLazyDataLoader() {
 		return new RemoteModel({
-			pageSize,
 			getData,
-			data: { length },
 			idKey: 'tdpId',
 		});
 	}
 
 	function createLazyGrid(elementId, options) {
 		// create model loader
-		const model = createLazyDataLoader(/* TODO JSO how to pass length */);
+		const model = createLazyDataLoader();
 		StateService.setDataModel(model);
 
 		// create grid
 		const grid = new Slick.Grid(elementId, model.data, [{ id: 'tdpId' }], options);
 		grid.registerPlugin(new Slick.AutoColumnSize());
 		grid.registerPlugin(SingleColumnResizePlugin);
+
+		// set loading indicator
+		model.onDataLoading.subscribe(() => {
+			// setTimeout(() => {
+			// 	if (!loadingIndicator) {
+			// 		loadingIndicator = $("<span class='loading-indicator'><label>Buffering...</label></span>").appendTo(document.body);
+			// 		const $g = $(elementId);
+			// 		loadingIndicator
+			// 			.css('position', 'absolute')
+			// 			.css('top', $g.position().top + ($g.height() / 2) - (loadingIndicator.height() / 2))
+			// 			.css('left', $g.position().left + ($g.width() / 2) - (loadingIndicator.width() / 2));
+			// 	}
+			// 	loadingIndicator.show();
+			// }, 500);
+		});
 
 		// invalidate rows on new data lazy loaded
 		model.onDataLoaded.subscribe((e, args) => {
