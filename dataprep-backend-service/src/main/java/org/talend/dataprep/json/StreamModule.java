@@ -66,6 +66,8 @@ public class StreamModule extends SimpleModule {
                         }
                         if (next != null && (objectWriter == null || !previous.getClass().equals(next.getClass()))) {
                             objectWriter = mapper.writerFor(next.getClass());
+                        }
+                        if (objectWriter != null && next != null) {
                             objectWriter.writeValue(jsonGenerator, next);
                         }
                         previous = next;

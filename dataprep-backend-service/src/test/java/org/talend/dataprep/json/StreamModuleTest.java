@@ -91,6 +91,19 @@ public class StreamModuleTest extends ServiceBaseTest {
     }
 
     @Test
+    public void null_value_works() throws Exception {
+        // Given
+        final Stream<String> stringStream = Stream.of(null, "string1", "string2");
+
+        // When
+        final StringWriter writer = new StringWriter();
+        mapper.writeValue(writer, stringStream);
+
+        // Then
+        assertThat(writer.toString(), sameJSONAs("[\"string1\",\"string2\"]"));
+    }
+
+    @Test
     public void shouldHaveCorrectJSONWhenFailure() throws Exception {
         // Given
         Iterator<String> failedIterator = new Iterator<String>() {
