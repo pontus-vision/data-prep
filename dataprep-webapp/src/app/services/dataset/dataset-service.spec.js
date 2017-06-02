@@ -46,7 +46,7 @@ describe('Dataset Service', () => {
         $provide.constant('state', stateMock);
     }));
 
-    beforeEach(inject(($q, DatasetListService, DatasetRestService, StateService) => {
+        beforeEach(inject(($q, DatasetListService, DatasetRestService, StateService) => {
         promiseWithProgress = $q.when();
 
         spyOn(DatasetListService, 'create').and.returnValue(promiseWithProgress);
@@ -182,7 +182,11 @@ describe('Dataset Service', () => {
                 DatasetService.getFilteredDatasets(filter, 'toto');
 
                 // then
-                expect(DatasetRestService.getFilteredDatasets).toHaveBeenCalledWith('sort=MODIF&limit=true&name=toto' );
+                expect(DatasetRestService.getFilteredDatasets).toHaveBeenCalledWith({
+					sort: 'lastModificationDate',
+					limit: true,
+					name: 'toto',
+				});
             }));
 
             it('should fetch favorite datasets', inject((DatasetService, DatasetRestService) => {
@@ -194,8 +198,11 @@ describe('Dataset Service', () => {
                 DatasetService.getFilteredDatasets(filter, 'toto');
 
                 // then
-                expect(DatasetRestService.getFilteredDatasets).toHaveBeenCalledWith('favorite=true&name=toto');
-            }));
+                expect(DatasetRestService.getFilteredDatasets).toHaveBeenCalledWith({
+					favorite: true,
+					name: 'toto',
+				});
+		    }));
 
             it('should fetch all datasets', inject((DatasetService, DatasetRestService) => {
                 // given
@@ -206,7 +213,7 @@ describe('Dataset Service', () => {
                 DatasetService.getFilteredDatasets(filter, 'toto');
 
                 // then
-                expect(DatasetRestService.getFilteredDatasets).toHaveBeenCalledWith('name=toto');
+                expect(DatasetRestService.getFilteredDatasets).toHaveBeenCalledWith({name: 'toto'});
             }));
         });
 
