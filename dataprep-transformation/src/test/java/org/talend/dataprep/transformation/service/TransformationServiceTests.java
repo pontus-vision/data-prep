@@ -14,6 +14,7 @@ package org.talend.dataprep.transformation.service;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
+import static java.util.Collections.emptyMap;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.talend.dataprep.api.export.ExportParameters.SourceType.FILTER;
@@ -225,7 +226,7 @@ public class TransformationServiceTests extends TransformationServiceBaseTests {
                 .preparationId(preparationId)
                 .stepId("step1")
                 .format(JSON)
-                .parameters("")
+                .parameters(emptyMap())
                 .sourceType(FILTER)
                 .build();
         try (final OutputStream entry = contentCache.put(metadataKey, PERMANENT)) {
