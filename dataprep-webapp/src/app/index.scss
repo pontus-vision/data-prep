@@ -102,3 +102,7 @@ $navbar-margin-bottom: 0;
 @import "components/widgets-containers/app-header-bar/app-header-bar.scss";
 @import "components/widgets-containers/layout/layout.scss";
 @import "components/about/about.scss";
+
+use {
+	pointer-events: none;
+}
