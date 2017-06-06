@@ -36,6 +36,7 @@ import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -141,6 +142,12 @@ public class PreparationAPITest extends ApiServiceTestBase {
         assertThat(longFormat.getString("author"), is(security.getUserId()));
         assertThat(longFormat.getString("id"), is(preparationId));
         assertThat(longFormat.getList("actions").size(), is(0));
+
+        assertNotNull(longFormat.getMap("rowMetadata"));
+        assertNotNull(longFormat.getMap("rowMetadata").get("columns"));
+        ArrayList rowMetaData = (ArrayList) longFormat.getMap("rowMetadata").get("columns");
+        assertThat(rowMetaData.size(), is(6));
+
         assertThat(longFormat.getString("allowFullRun"), is("false"));
         final List<String> steps = longFormat.getList("steps"); // make sure the "steps" node is a string array
         assertThat(steps.size(), is(1));
