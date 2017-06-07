@@ -22,11 +22,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,6 +128,7 @@ public class FileSystemContentCache implements ContentCache {
         final Path path = computeEntryPath(key, null);
         final File[] files = path.getParent().toFile().listFiles();
         if (files != null) {
+            Arrays.sort(files, LastModifiedFileComparator.LASTMODIFIED_REVERSE);
             for (File file : files) {
                 if (!StringUtils.startsWith(file.getName(), key.getKey())) {
                     LOGGER.trace("file {} does not match key {}", file.getName(), key.getKey());
