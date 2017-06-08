@@ -82,15 +82,16 @@ public class FileSystemContentCacheTest {
 
     @Test
     public void testGetLast() throws Exception {
-        ContentCacheKey key = new DummyCacheKey("tata");
+        ContentCacheKey key = new DummyCacheKey("getLast");
         String content = "yet another content...";
         // Put a content in cache...
         addCacheEntry(key, content, ContentCache.TimeToLive.DEFAULT);
         String newContent = "a new content...";
         // wait 1 millis to be sure timestamp is different
-        Thread.sleep(5);
+        Thread.sleep(500);
         // Put a content in cache...
         addCacheEntry(key, newContent, ContentCache.TimeToLive.DEFAULT);
+        Thread.sleep(500);
         // ... get() should return this content back.
         final String actual = IOUtils.toString(cache.get(key));
         Assert.assertThat(actual, is(newContent));
