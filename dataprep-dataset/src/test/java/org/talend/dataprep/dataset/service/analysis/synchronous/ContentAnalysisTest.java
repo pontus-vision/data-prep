@@ -82,7 +82,7 @@ public class ContentAnalysisTest extends DataSetBaseTest {
                 Arrays.asList("id", "first_name", "last_name", "email", "gender", "ip_address"));
         metadataBuilder.metadata().id("3548").build();
         createCsvDataSet(metadata, "100_lines.csv");
-q
+
         final Long newLimit = 16L;
         final Long originalLimit = (Long) ReflectionTestUtils.getField(contentAnalysis, ContentAnalysis.class, "sizeLimit");
         ReflectionTestUtils.setField(contentAnalysis, "sizeLimit", newLimit);
