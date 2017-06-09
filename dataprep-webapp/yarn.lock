@@ -899,16 +899,16 @@ babel-register@^6.18.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.2"
 
-babel-runtime@^6.0.0, babel-runtime@^6.11.6, babel-runtime@^6.20.0, babel-runtime@^6.9.0:
-  version "6.20.0"
-  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.20.0.tgz#87300bdcf4cd770f09bf0048c64204e17806d16f"
+babel-runtime@^6.0.0, babel-runtime@^6.18.0, babel-runtime@^6.22.0:
+  version "6.23.0"
+  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.23.0.tgz#0a9489f144de70efb3ce4300accdb329e2fc543b"
   dependencies:
     core-js "^2.4.0"
     regenerator-runtime "^0.10.0"
 
-babel-runtime@^6.18.0, babel-runtime@^6.22.0:
-  version "6.23.0"
-  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.23.0.tgz#0a9489f144de70efb3ce4300accdb329e2fc543b"
+babel-runtime@^6.11.6, babel-runtime@^6.20.0, babel-runtime@^6.9.0:
+  version "6.20.0"
+  resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.20.0.tgz#87300bdcf4cd770f09bf0048c64204e17806d16f"
   dependencies:
     core-js "^2.4.0"
     regenerator-runtime "^0.10.0"
@@ -1106,9 +1106,9 @@ bootstrap-sass@^3.3.7:
   version "3.3.7"
   resolved "https://registry.yarnpkg.com/bootstrap-sass/-/bootstrap-sass-3.3.7.tgz#6596c7ab40f6637393323ab0bc80d064fc630498"
 
-bootstrap-talend-theme@0.77.0:
-  version "0.77.0"
-  resolved "https://registry.yarnpkg.com/bootstrap-talend-theme/-/bootstrap-talend-theme-0.77.0.tgz#b16bcd8690c8b5a960d9a18a5c8f60c7f0f9fff4"
+bootstrap-talend-theme@0.80.0:
+  version "0.80.0"
+  resolved "https://registry.yarnpkg.com/bootstrap-talend-theme/-/bootstrap-talend-theme-0.80.0.tgz#612a3c2c69c4cc3e4cdd8aed08035306787f9c42"
   dependencies:
     bootstrap-sass "^3.3.7"
 
@@ -5788,18 +5788,18 @@ react-prop-types@^0.4.0:
   dependencies:
     warning "^3.0.0"
 
-react-talend-components@0.77.0:
-  version "0.77.0"
-  resolved "https://registry.yarnpkg.com/react-talend-components/-/react-talend-components-0.77.0.tgz#e5575d8eb360aed50ecbc0d57979bde644e8ee22"
+react-talend-components@0.80.0:
+  version "0.80.0"
+  resolved "https://registry.yarnpkg.com/react-talend-components/-/react-talend-components-0.80.0.tgz#22b0109d8476b9e544956e671e346f41225c102e"
   dependencies:
     lodash "^4.17.4"
     react-autowhatever "^7.0.0"
     react-debounce-input "^2.4.2"
-    react-virtualized "^9.1.0"
+    react-virtualized "^9.3.0"
 
-react-talend-forms@0.77.0:
-  version "0.77.0"
-  resolved "https://registry.yarnpkg.com/react-talend-forms/-/react-talend-forms-0.77.0.tgz#d39641de9d4c65092641dbeabc2fe46216483928"
+react-talend-forms@0.80.0:
+  version "0.80.0"
+  resolved "https://registry.yarnpkg.com/react-talend-forms/-/react-talend-forms-0.80.0.tgz#f64385758e7e67f1bc90b8aa3a41adbabe28292c"
   dependencies:
     classnames "^2.2.5"
     keycode "^2.1.8"
@@ -5821,9 +5821,9 @@ react-transition-group@^1.0.0:
     prop-types "^15.5.6"
     warning "^3.0.0"
 
-react-virtualized@^9.1.0:
-  version "9.7.3"
-  resolved "https://registry.yarnpkg.com/react-virtualized/-/react-virtualized-9.7.3.tgz#5be2bbc0316151ee1c00d133f7a5f9727874f756"
+react-virtualized@^9.3.0:
+  version "9.7.6"
+  resolved "https://registry.yarnpkg.com/react-virtualized/-/react-virtualized-9.7.6.tgz#6be9e7ae8b214a848116f1ebd48ff1aac26fcc2f"
   dependencies:
     babel-runtime "^6.11.6"
     classnames "^2.2.3"
@@ -6797,9 +6797,9 @@ table@^3.7.8:
     slice-ansi "0.0.4"
     string-width "^2.0.0"
 
-talend-icons@0.77.0:
-  version "0.77.0"
-  resolved "https://registry.yarnpkg.com/talend-icons/-/talend-icons-0.77.0.tgz#1427ef3fbba74a26c25a139b9af06632cc00e610"
+talend-icons@0.80.0:
+  version "0.80.0"
+  resolved "https://registry.yarnpkg.com/talend-icons/-/talend-icons-0.80.0.tgz#0a32f9b6bbd100bd409fb50e4c08402d7df3be03"
 
 tapable@^0.2.5, tapable@~0.2.5:
   version "0.2.6"
