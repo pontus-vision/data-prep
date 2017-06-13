@@ -25,10 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.api.preparation.Preparation;
-import org.talend.dataprep.api.preparation.PreparationActions;
-import org.talend.dataprep.api.preparation.PreparationUtils;
-import org.talend.dataprep.api.preparation.Step;
+import org.talend.dataprep.api.preparation.*;
 import org.talend.dataprep.preparation.store.PersistentStep;
 import org.talend.dataprep.preparation.store.PreparationRepository;
 import org.talend.dataprep.security.SecurityProxy;
@@ -97,6 +94,11 @@ public class PreparationCleaner {
                 final PreparationActions preparationActionsToRemove = new PreparationActions();
                 preparationActionsToRemove.setId(step.getContent());
                 repository.remove(preparationActionsToRemove);
+
+                // Remove metadata linked to step
+                final StepRowMetadata stepRowMetadataToRemove = new StepRowMetadata();
+                stepRowMetadataToRemove.setId(stepToRemove.getRowMetadata());
+                repository.remove(stepRowMetadataToRemove);
             });
         } finally {
             securityProxy.releaseIdentity();

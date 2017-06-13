@@ -134,11 +134,11 @@ public class PreparationRepositoryConfiguration {
                                  */
                                 final PreparationUtils preparationUtils = applicationContext.getBean(PreparationUtils.class);
                                 final PreparationRepository repository = applicationContext.getBean(PreparationRepository.class);
-
-                                final List<String> storageSteps = preparationUtils.listStepsIds(preparation.getHeadId(),
-                                        repository);
-                                persistentPreparation.setSteps(storageSteps);
-
+                                if (preparation.getHeadId() != null) {
+                                    final List<String> storageSteps = preparationUtils.listStepsIds(preparation.getHeadId(),
+                                            repository);
+                                    persistentPreparation.setSteps(storageSteps);
+                                }
                             }
                             return persistentPreparation;
                         }) //

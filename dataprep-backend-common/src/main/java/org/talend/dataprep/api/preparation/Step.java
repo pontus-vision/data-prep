@@ -18,8 +18,6 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.talend.dataprep.api.dataset.RowMetadata;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -46,7 +44,7 @@ public class Step extends Identifiable implements Serializable {
     private StepDiff diff;
 
     /** The step row metadata. */
-    private RowMetadata rowMetadata;
+    private String rowMetadata;
 
     /**
      * Default empty constructor;
@@ -137,7 +135,7 @@ public class Step extends Identifiable implements Serializable {
     /**
      * @return The row metadata linked to this step. Might be <code>null</code> to indicate no row metadata is present.
      */
-    public RowMetadata getRowMetadata() {
+    public String getRowMetadata() {
         return rowMetadata;
     }
 
@@ -146,7 +144,7 @@ public class Step extends Identifiable implements Serializable {
      *
      * @param rowMetadata The row metadata to set for this step.
      */
-    public void setRowMetadata(RowMetadata rowMetadata) {
+    public void setRowMetadata(String rowMetadata) {
         this.rowMetadata = rowMetadata;
     }
 

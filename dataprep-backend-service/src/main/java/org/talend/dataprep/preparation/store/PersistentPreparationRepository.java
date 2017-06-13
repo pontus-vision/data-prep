@@ -62,24 +62,22 @@ public class PersistentPreparationRepository implements PreparationRepository {
 
     @Override
     public <T extends Identifiable> Stream<T> list(Class<T> clazz) {
-        final Class<T> targetClass = (Class<T>) selectPersistentClass(clazz);
-        return delegate.list(targetClass) //
-                .map(i -> beanConversionService.convert(delegate.get(i.getId(), targetClass), clazz));
+        final Class<T> persistentClass = (Class<T>) selectPersistentClass(clazz);
+        return delegate.list(persistentClass).map(i -> beanConversionService.convert(i, clazz));
     }
 
     @Override
     public <T extends Identifiable> Stream<T> list(Class<T> clazz, String filter) {
-        final Class<T> targetClass = (Class<T>) selectPersistentClass(clazz);
-        return delegate.list(targetClass, filter) //
-                .map(i -> beanConversionService.convert(delegate.get(i.getId(), targetClass), clazz));
+        final Class<T> persistentClass = (Class<T>) selectPersistentClass(clazz);
+        return delegate.list(persistentClass, filter).map(i -> beanConversionService.convert(i, clazz));
     }
 
     @Override
     public void add(Identifiable object) {
         final Collection<Identifiable> identifiableList = PreparationUtils.scatter(object);
         for (Identifiable identifiable : identifiableList) {
-            final Class<? extends Identifiable> targetClass = selectPersistentClass(identifiable.getClass());
-            final Identifiable storedIdentifiable = beanConversionService.convert(identifiable, targetClass);
+            final Class<? extends Identifiable> persistentClass = selectPersistentClass(identifiable.getClass());
+            final Identifiable storedIdentifiable = beanConversionService.convert(identifiable, persistentClass);
             delegate.add(storedIdentifiable);
         }
     }

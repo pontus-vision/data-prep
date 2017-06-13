@@ -46,6 +46,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.folder.Folder;
 import org.talend.dataprep.api.folder.FolderEntry;
 import org.talend.dataprep.api.preparation.*;
@@ -496,35 +497,6 @@ public class PreparationService {
         log.info("Preparation {} updated -> {}", id, updated);
 
         return updated.id();
-    }
-
-    /**
-     * Update a preparation steps.
-     *
-     * @param preparationId the preparation id.
-     * @param steps the steps to update.
-     */
-    public void updatePreparationSteps(final String preparationId, final List<Step> steps) {
-
-        log.debug("update preparation #{}'s steps", preparationId);
-
-        int updatedSteps = 0;
-        for (Step toUpdate : steps) {
-            if (!preparationRepository.exist(Step.class, "id='" + toUpdate.getId() + "'")) {
-                continue;
-            }
-            toUpdate.setRowMetadata(toUpdate.getRowMetadata());
-            toUpdate.setContent(toUpdate.getContent());
-            toUpdate.setDiff(toUpdate.getDiff());
-            toUpdate.setParent(toUpdate.getParent());
-
-            log.debug("{} updated", toUpdate);
-            preparationRepository.add(toUpdate);
-
-            updatedSteps++;
-        }
-
-        log.info("{} steps for preparation #{} were updated", updatedSteps, preparationId);
     }
 
     /**
@@ -1287,4 +1259,30 @@ public class PreparationService {
         }
     }
 
+    public void updatePreparationStep(String stepId, RowMetadata rowMetadata) {
+        final Step step = preparationRepository.get(stepId, Step.class);
+
+        if (step.getRowMetadata() != null) {
+            // Delete previous one...
+            final StepRowMetadata previousStepRowMetadata = new StepRowMetadata();
+            previousStepRowMetadata.setId(step.getRowMetadata());
+            preparationRepository.remove(previousStepRowMetadata);
+        }
+        // ...and create new one for step
+        final StepRowMetadata stepRowMetadata = new StepRowMetadata(rowMetadata);
+        preparationRepository.add(stepRowMetadata);
+        step.setRowMetadata(stepRowMetadata.id());
+        preparationRepository.add(step);
+    }
+
+    public RowMetadata getPreparationStep(String stepId) {
+        final Step step = preparationRepository.get(stepId, Step.class);
+        if (step != null) {
+            final StepRowMetadata stepRowMetadata = preparationRepository.get(step.getRowMetadata(), StepRowMetadata.class);
+            if (stepRowMetadata != null) {
+                return stepRowMetadata.getRowMetadata();
+            }
+        }
+        return null;
+    }
 }

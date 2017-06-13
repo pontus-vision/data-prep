@@ -15,8 +15,8 @@ package org.talend.dataprep.transformation.api.transformer.json;
 import static org.talend.dataprep.cache.ContentCache.TimeToLive.DEFAULT;
 import static org.talend.dataprep.transformation.api.transformer.configuration.Configuration.Volume.SMALL;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ import org.talend.dataprep.transformation.pipeline.Pipeline;
 import org.talend.dataprep.transformation.pipeline.Visitor;
 import org.talend.dataprep.transformation.pipeline.model.WriterNode;
 import org.talend.dataprep.transformation.pipeline.node.StepNode;
-import org.talend.dataprep.transformation.service.PreparationUpdater;
+import org.talend.dataprep.transformation.service.StepMetadataRepository;
 import org.talend.dataprep.transformation.service.TransformationRowMetadataUtils;
 
 @Component
@@ -75,7 +75,7 @@ public class PipelineTransformer implements Transformer {
     private TransformationRowMetadataUtils transformationRowMetadataUtils;
 
     @Autowired
-    private PreparationUpdater preparationUpdater;
+    private StepMetadataRepository preparationUpdater;
 
     @Override
     public void transform(DataSet input, Configuration configuration) {
@@ -90,6 +90,9 @@ public class PipelineTransformer implements Transformer {
         final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator.generateMetadataKey(configuration.getPreparationId(),
                 configuration.stepId(), configuration.getSourceType());
         final PreparationMessage preparation = configuration.getPreparation();
+        final Function<Step, RowMetadata> rowMetadataSupplier = s -> Optional.ofNullable(s.getRowMetadata()) //
+                .map(id -> preparationUpdater.get(id)) //
+                .orElse(null);
         final Pipeline pipeline = Pipeline.Builder.builder().withAnalyzerService(analyzerService) //
                 .withActionRegistry(actionRegistry) //
                 .withPreparation(preparation) //
@@ -100,6 +103,7 @@ public class PipelineTransformer implements Transformer {
                 .withFilterOut(configuration.getOutFilter()) //
                 .withOutput(() -> new WriterNode(writer, metadataWriter, metadataKey, fallBackRowMetadata)) //
                 .withStatisticsAdapter(adapter) //
+                .withStepMetadataSupplier(rowMetadataSupplier) //
                 .withGlobalStatistics(configuration.isGlobalStatistics()) //
                 .allowMetadataChange(configuration.isAllowMetadataChange()) //
                 .build();
@@ -110,19 +114,13 @@ public class PipelineTransformer implements Transformer {
             LOGGER.debug("After transformation: {}", pipeline);
         }
 
-        if (preparation != null) {
-            List<Step> stepsToUpdate = new ArrayList<>();
-            pipeline.accept(new Visitor() {
-                @Override
-                public void visitStepNode(StepNode stepNode) {
-                    stepsToUpdate.add(stepNode.getStep());
-                    super.visitStepNode(stepNode);
-                }
-            });
-
-            preparation.setSteps(stepsToUpdate);
-            preparationUpdater.update(preparation.getId(), preparation.getSteps());
-        }
+        pipeline.accept(new Visitor() {
+            @Override
+            public void visitStepNode(StepNode stepNode) {
+                preparationUpdater.update(stepNode.getStep().id(), stepNode.getRowMetadata());
+                super.visitStepNode(stepNode);
+            }
+        });
     }
 
     @Override
