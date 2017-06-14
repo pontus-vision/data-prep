@@ -1,0 +1,11 @@
+{
+  "serverUrl": "http://10.42.10.99:8888",
+  "serverSignUrl": "http://10.42.10.99:8888",
+  "serverKeepAliveUrl": "",
+  "enableDebug": false,
+  "version": "2.1.0",
+  "copyRights": "© 2017 Talend. All Rights Reserved",
+  "documentationSearchURL" : "https://www.talendforge.org/find/api/THC.php",
+  "documentationSearchVersion": "2.0",
+  "documentationSearchLanguage": "en"
+}
