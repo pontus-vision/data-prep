@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.talend.dataprep.ServiceBaseTest;
+import org.talend.dataprep.ServiceBaseTests;
 import org.talend.dataprep.api.export.ExportParameters;
 import org.talend.dataprep.api.preparation.Preparation;
 import org.talend.dataprep.cache.ContentCache;
@@ -29,7 +29,7 @@ import org.talend.dataprep.preparation.store.PreparationRepository;
 import org.talend.dataprep.transformation.cache.CacheKeyGenerator;
 import org.talend.dataprep.transformation.cache.TransformationCacheKey;
 
-public class CachedExportStrategyTest extends ServiceBaseTest {
+public class CachedExportStrategyTest extends ServiceBaseTests {
 
     @Autowired
     ContentCache cache;

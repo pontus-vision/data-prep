@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.mock.env.MockPropertySource;
 import org.talend.dataprep.ServiceBaseTests;
 import org.talend.dataprep.api.folder.Folder;
 import org.talend.dataprep.cache.ContentCache;
@@ -75,12 +74,7 @@ public abstract class ApiServiceTestBase extends ServiceBaseTests {
 
     @Before
     public void setUp() {
-        // Overrides connection information with random port value
-        MockPropertySource connectionInformation = new MockPropertySource("tac properties")
-                .withProperty("dataset.service.url", "http://localhost:" + port)
-                .withProperty("transformation.service.url", "http://localhost:" + port)
-                .withProperty("preparation.service.url", "http://localhost:" + port);
-
+        super.setUp();
         transformationUrlUpdater.setUp();
         home = folderRepository.getHome();
     }

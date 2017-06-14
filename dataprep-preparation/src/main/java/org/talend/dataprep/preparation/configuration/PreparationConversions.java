@@ -130,29 +130,31 @@ public class PreparationConversions {
                 final Step head = preparationRepository.get(headId, Step.class);
                 if (head != null) {
                     final PreparationActions prepActions = preparationRepository.get(head.getContent(), PreparationActions.class);
-                    final List<Action> actions = prepActions.getActions();
-                    target.setActions(prepActions.getActions());
+                    if (prepActions != null) {
+                        final List<Action> actions = prepActions.getActions();
+                        target.setActions(prepActions.getActions());
 
-                    // Allow distributed run
-                    boolean allowDistributedRun = true;
-                    for (Action action : actions) {
-                        final ActionDefinition actionDefinition = actionRegistry.get(action.getName());
-                        if (actionDefinition.getBehavior().contains(ActionDefinition.Behavior.FORBID_DISTRIBUTED)) {
-                            allowDistributedRun = false;
-                            break;
+                        // Allow distributed run
+                        boolean allowDistributedRun = true;
+                        for (Action action : actions) {
+                            final ActionDefinition actionDefinition = actionRegistry.get(action.getName());
+                            if (actionDefinition.getBehavior().contains(ActionDefinition.Behavior.FORBID_DISTRIBUTED)) {
+                                allowDistributedRun = false;
+                                break;
+                            }
                         }
-                    }
-                    target.setAllowDistributedRun(allowDistributedRun);
+                        target.setAllowDistributedRun(allowDistributedRun);
 
-                    // Actions metadata
-                    if (actionRegistry == null) {
-                        LOGGER.debug("No action metadata available, unable to serialize action metadata for preparation {}.",
-                                source.id());
-                    } else {
-                        List<ActionDefinition> actionDefinitions = actions.stream() //
-                                .map(a -> actionRegistry.get(a.getName())) //
-                                .collect(Collectors.toList());
-                        target.setMetadata(actionDefinitions);
+                        // Actions metadata
+                        if (actionRegistry == null) {
+                            LOGGER.debug("No action metadata available, unable to serialize action metadata for preparation {}.",
+                                    source.id());
+                        } else {
+                            List<ActionDefinition> actionDefinitions = actions.stream() //
+                                    .map(a -> actionRegistry.get(a.getName())) //
+                                    .collect(Collectors.toList());
+                            target.setMetadata(actionDefinitions);
+                        }
                     }
                 } else {
                     LOGGER.warn("Head step #{} for preparation #{} does not exist.", headId, source.id());
