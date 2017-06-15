@@ -12,6 +12,8 @@
 
 package org.talend.dataprep.transformation.service.export;
 
+import java.io.InputStream;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +64,11 @@ public class CachedExportStrategy extends BaseSampleExportStrategy {
     public StreamingResponseBody execute(ExportParameters parameters) {
         final TransformationCacheKey contentKey = getCacheKey(parameters);
         ExportUtils.setExportHeaders(parameters.getExportName(), getFormat(parameters.getExportType()));
-        return outputStream -> IOUtils.copy(contentCache.get(contentKey), outputStream);
+        return outputStream -> {
+            try (InputStream cachedContent = contentCache.get(contentKey)) {
+                IOUtils.copy(cachedContent, outputStream);
+            }
+        };
     }
 
     private TransformationCacheKey getCacheKey(ExportParameters parameters) {
