@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Resource;
 
 import org.hamcrest.core.Is;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.ServiceBaseTest;
@@ -49,6 +50,13 @@ public class PreparationTest extends ServiceBaseTest {
     /** The default root content. */
     @Resource(name = "rootContent")
     private PreparationActions rootContent;
+
+    @Override
+    @Before
+    public void setUp() {
+        super.setUp();
+        repository.clear();
+    }
 
     @Test
     public void testDefaultPreparation() throws Exception {
