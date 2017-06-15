@@ -34,13 +34,6 @@ public class PersistentPreparationRepository implements PreparationRepository {
     public PersistentPreparationRepository(PreparationRepository delegate, BeanConversionService beanConversionService) {
         this.delegate = delegate;
         this.beanConversionService = beanConversionService;
-        initContent();
-    }
-
-    // Populate underlying repository with expected initial content (root step & root content).
-    private void initContent() {
-        add(Step.ROOT_STEP);
-        add(PreparationActions.ROOT_ACTIONS);
     }
 
     private static Class<? extends Identifiable> selectPersistentClass(Class<? extends Identifiable> identifiableClass) {
@@ -78,6 +71,17 @@ public class PersistentPreparationRepository implements PreparationRepository {
     public void add(Identifiable object) {
         final Collection<Identifiable> identifiableList = PreparationUtils.scatter(object);
         for (Identifiable identifiable : identifiableList) {
+            if(identifiable instanceof Step) {
+                final Step parent = ((Step) identifiable).getParent();
+                if (parent != null && parent.equals(Step.ROOT_STEP)) {
+                    // Ensure root step is present
+                    delegate.add(Step.ROOT_STEP);
+                }
+            }
+            if(identifiable instanceof PreparationActions) {
+                delegate.add(PreparationActions.ROOT_ACTIONS);
+            }
+
             final Class<? extends Identifiable> targetClass = selectPersistentClass(identifiable.getClass());
             final Identifiable storedIdentifiable = beanConversionService.convert(identifiable, targetClass);
             delegate.add(storedIdentifiable);
@@ -93,7 +97,8 @@ public class PersistentPreparationRepository implements PreparationRepository {
     @Override
     public void clear() {
         delegate.clear();
-        initContent();
+        add(Step.ROOT_STEP);
+        add(PreparationActions.ROOT_ACTIONS);
     }
 
     @Override

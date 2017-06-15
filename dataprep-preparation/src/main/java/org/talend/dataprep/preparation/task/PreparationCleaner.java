@@ -34,6 +34,7 @@ import org.talend.dataprep.api.preparation.PreparationUtils;
 import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.preparation.store.PersistentStep;
 import org.talend.dataprep.preparation.store.PreparationRepository;
+import org.talend.dataprep.security.ForAll;
 import org.talend.dataprep.security.SecurityProxy;
 
 /**
@@ -66,6 +67,9 @@ public class PreparationCleaner {
 
     @Autowired
     private List<OrphanStepsFinder> orphanStepsFinders;
+
+    @Autowired
+    private ForAll forAll;
 
     /**
      * Only for test with in-memory repository, filter key changed.
@@ -167,14 +171,16 @@ public class PreparationCleaner {
      */
     @Scheduled(fixedDelay = 60 * 60 * 1000) // Every hour
     public void removeOrphanSteps() {
-        securityProxy.asTechnicalUser();
-        try {
-            final Set<Step> currentOrphans = getOrphanSteps();
-            updateOrphanTags(currentOrphans);
-            cleanSteps();
-        } finally {
-            securityProxy.releaseIdentity();
-        }
+        forAll.execute(() -> {
+            securityProxy.asTechnicalUser();
+            try {
+                final Set<Step> currentOrphans = getOrphanSteps();
+                updateOrphanTags(currentOrphans);
+                cleanSteps();
+            } finally {
+                securityProxy.releaseIdentity();
+            }
+        });
     }
 
     public String getFilterByContentIdKey() {
