@@ -70,8 +70,8 @@ public class PersistentPreparationRepository implements PreparationRepository {
         final Collection<Identifiable> identifiableList = PreparationUtils.scatter(object);
         for (Identifiable identifiable : identifiableList) {
             if(identifiable instanceof Step) {
-                final Step parent = ((Step) identifiable).getParent();
-                if (parent != null && parent.equals(Step.ROOT_STEP)) {
+                final String parent = ((Step) identifiable).getParent();
+                if (parent != null && parent.equals(Step.ROOT_STEP.id())) {
                     // Ensure root step is present
                     delegate.add(Step.ROOT_STEP);
                 }
