@@ -73,11 +73,11 @@ public class PersistentPreparationRepository implements PreparationRepository {
                 final String parent = ((Step) identifiable).getParent();
                 if (parent != null && parent.equals(Step.ROOT_STEP.id())) {
                     // Ensure root step is present
-                    delegate.add(Step.ROOT_STEP);
+                    delegate.add(beanConversionService.convert(Step.ROOT_STEP, PersistentStep.class));
                 }
             }
             if(identifiable instanceof PreparationActions) {
-                delegate.add(PreparationActions.ROOT_ACTIONS);
+                delegate.add(beanConversionService.convert(PreparationActions.ROOT_ACTIONS, PreparationActions.class));
             }
 
             final Class<? extends Identifiable> persistentClass = selectPersistentClass(identifiable.getClass());

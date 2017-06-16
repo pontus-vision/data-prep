@@ -26,6 +26,7 @@ import org.talend.dataprep.api.preparation.Identifiable;
 import org.talend.dataprep.api.preparation.PreparationActions;
 import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.preparation.store.ObjectPreparationRepository;
+import org.talend.dataprep.preparation.store.PersistentStep;
 import org.talend.dataprep.preparation.store.PreparationRepository;
 
 /**
@@ -34,12 +35,6 @@ import org.talend.dataprep.preparation.store.PreparationRepository;
 @Component
 @ConditionalOnProperty(name = "preparation.store", havingValue = "in-memory", matchIfMissing = true)
 public class InMemoryPreparationRepository extends ObjectPreparationRepository {
-
-    /**
-     * The root step.
-     */
-    @Resource(name = "rootStep")
-    private Step rootStep;
 
     /**
      * The default root content.
@@ -58,7 +53,9 @@ public class InMemoryPreparationRepository extends ObjectPreparationRepository {
     @PostConstruct
     private void initRootContent() {
         add(rootContent);
-        add(rootStep);
+        final PersistentStep persistentStep = new PersistentStep();
+        persistentStep.setId(Step.ROOT_STEP.id());
+        add(persistentStep);
     }
 
     /**
@@ -103,8 +100,7 @@ public class InMemoryPreparationRepository extends ObjectPreparationRepository {
     @Override
     public void clear() {
         store.clear();
-        add(rootContent);
-        add(rootStep);
+        initRootContent();
     }
 
     /**
