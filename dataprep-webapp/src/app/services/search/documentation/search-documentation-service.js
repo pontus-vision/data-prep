@@ -18,6 +18,7 @@ class SearchDocumentationService {
 
 		this.searchDocumentationRestService = SearchDocumentationRestService;
 		this.textFormatService = TextFormatService;
+		this.domEl = document.createElement('p');
 	}
 
 	/**
@@ -29,7 +30,7 @@ class SearchDocumentationService {
 	search(keyword) {
 		return this.searchDocumentationRestService.search(keyword)
 			.then((response) => {
-				return response.data.results.map(this._createDocElement);
+				return response.data.results.map(this._createDocElement.bind(this));
 			})
 			.catch(() => []);
 	}
@@ -62,12 +63,25 @@ class SearchDocumentationService {
 	_createDocElement(topic) {
 		const doc = {
 			inventoryType: 'documentation',
-			description: topic.htmlExcerpt.replace(/(<[^>]*>)/g, '').replace('&lt;', '<').replace('&gt;', '>'),
-			name: topic.htmlTitle.replace(/(<[^>]*>)/g, '').replace('&lt;', '<').replace('&gt;', '>'),
+			description: this._convertHtmlSpecialCharacters(topic.htmlExcerpt.replace(/(<[^>]*>)/g, '')),
+			name: this._convertHtmlSpecialCharacters(topic.htmlTitle.replace(/(<[^>]*>)/g, '')),
 			url: topic.occurrences[0].readerUrl,
 		};
 		doc.tooltipName = doc.name;
 		return doc;
+	}
+
+	/**
+	 * @ngdoc method
+	 * @name _convertHtmlSpecialCharacters
+	 * @methodOf data-prep.services.search.documentation:SearchDocumentationService
+	 * @description converts special html characters into readable characters
+	 * @param {String} The raw string
+	 * @returns {String} readable string
+	 */
+	_convertHtmlSpecialCharacters(unreadableStr) {
+		this.domEl.innerHTML = unreadableStr;
+		return this.domEl.innerText;
 	}
 }
 
