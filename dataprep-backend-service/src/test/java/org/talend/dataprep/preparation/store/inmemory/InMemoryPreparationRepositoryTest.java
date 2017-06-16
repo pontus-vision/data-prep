@@ -46,7 +46,6 @@ public class InMemoryPreparationRepositoryTest extends PreparationRepositoryTest
         String version = "1.0";
         final PreparationActions rootContent = new PreparationActions(Collections.emptyList(), version);
         ReflectionTestUtils.setField(repository, "rootContent", rootContent);
-        ReflectionTestUtils.setField(repository, "rootStep", new Step(null, rootContent.id(), version));
     }
 
     /**
