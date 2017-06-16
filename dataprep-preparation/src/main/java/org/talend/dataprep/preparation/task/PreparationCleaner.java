@@ -33,8 +33,7 @@ import org.talend.dataprep.security.ForAll;
 import org.talend.dataprep.security.SecurityProxy;
 
 /**
- * Scheduler that clean the repository.
- * It removes all the steps that do NOT belong to any preparation
+ * Scheduler that clean the repository. It removes all the steps that do NOT belong to any preparation
  */
 @Component
 @EnableScheduling
