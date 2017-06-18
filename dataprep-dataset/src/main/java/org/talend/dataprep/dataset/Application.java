@@ -24,7 +24,7 @@ import org.talend.daikon.documentation.DocumentationController;
 @Configuration("org.talend.dataprep.dataset.Application")
 @Profile("standalone")
 @ComponentScan( //
-        value = { "org.talend.dataprep", "org.talend.daikon", "org.talend.tenancy" }, //
+        value = { "org.talend.dataprep", "org.talend.daikon" }, //
         excludeFilters = @ComponentScan.Filter(value = DocumentationController.class, type = FilterType.ASSIGNABLE_TYPE) //
 )
 public class Application {

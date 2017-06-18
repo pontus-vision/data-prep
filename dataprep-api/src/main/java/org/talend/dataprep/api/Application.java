@@ -31,7 +31,7 @@ import com.netflix.hystrix.Hystrix;
 @Configuration("org.talend.dataprep.api.Application")
 @Profile("standalone")
 @ComponentScan( //
-        value = { "org.talend.dataprep", "org.talend.daikon", "org.talend.tenancy" }, //
+        value = { "org.talend.dataprep", "org.talend.daikon" }, //
         excludeFilters = @ComponentScan.Filter(value = DocumentationController.class, type = FilterType.ASSIGNABLE_TYPE) //
 )
 
