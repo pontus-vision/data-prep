@@ -27,6 +27,7 @@ import org.talend.dataprep.api.export.ExportParameters;
 import org.talend.dataprep.api.preparation.Preparation;
 import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.cache.ContentCache;
+import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.preparation.store.PreparationRepository;
 import org.talend.dataprep.transformation.cache.CacheKeyGenerator;
 import org.talend.dataprep.transformation.cache.TransformationCacheKey;
@@ -75,11 +76,11 @@ public class OptimizedExportStrategyTest extends TransformationServiceBaseTests 
         assertFalse(optimizedExportStrategy.accept(exportParameters));
     }
 
-    @Test
+    @Test(expected = TDPException.class)
     public void testAcceptKO_preparationNotExist() throws Exception {
         // Given
         ExportParameters exportParameters = new ExportParameters();
-        exportParameters.setPreparationId("1234");
+        exportParameters.setPreparationId("123456");
 
         // Then
         assertFalse(optimizedExportStrategy.accept(exportParameters));
