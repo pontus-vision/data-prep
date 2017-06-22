@@ -26,7 +26,7 @@ import org.talend.dataprep.processor.Wrapper;
 @EnableAsync
 public class Async implements Wrapper<RequestMappingHandlerAdapter> {
 
-    private static final String EXECUTOR = "requestMappingHandlerMapping#executor";
+    static final String EXECUTOR = "requestMappingHandlerMapping#executor";
 
     @Override
     public Class<RequestMappingHandlerAdapter> wrapped() {
