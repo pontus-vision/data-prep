@@ -15,6 +15,7 @@ package org.talend.dataprep.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -45,12 +46,7 @@ public class TaskExecution {
      */
     @Bean("requestMappingHandlerMapping#executor")
     public TaskExecutor asyncTaskExecutor() {
-        // Set async thread pool
-        final ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setQueueCapacity(50);
-        threadPoolTaskExecutor.setMaxPoolSize(50);
-        threadPoolTaskExecutor.initialize();
-        return threadPoolTaskExecutor;
+        return new SimpleAsyncTaskExecutor();
     }
 
     /**
