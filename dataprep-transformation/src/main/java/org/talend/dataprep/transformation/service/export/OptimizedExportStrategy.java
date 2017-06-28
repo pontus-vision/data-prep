@@ -283,20 +283,11 @@ public class OptimizedExportStrategy extends BaseSampleExportStrategy {
             LOGGER.debug("Previous content cache key: " + transformationCacheKey.getKey());
             LOGGER.debug("Previous content cache key details: " + transformationCacheKey.toString());
 
-            return isCachePresent() ? this : null;
-        }
-
-        private boolean isCachePresent() throws IOException {
-            boolean cachePresent;
-            try (final InputStream inputStream = contentCache.get(transformationCacheKey)) {
-                if (inputStream == null) {
-                    LOGGER.debug("No content cached for previous version '{}'", previousVersion);
-                    cachePresent = false;
-                } else {
-                    cachePresent = true;
-                }
+            if (!contentCache.has(transformationCacheKey)) {
+                LOGGER.debug("No content cached for previous version '{}'", previousVersion);
+                return null;
             }
-            return cachePresent;
+            return this;
         }
     }
 
