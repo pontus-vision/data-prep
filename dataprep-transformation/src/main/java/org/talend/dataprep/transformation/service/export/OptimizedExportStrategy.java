@@ -133,7 +133,7 @@ public class OptimizedExportStrategy extends BaseSampleExportStrategy {
                         .volume(Configuration.Volume.SMALL) //
                         .output(tee) //
                         .build();
-                factory.get(configuration).transform(dataSet, configuration);
+                factory.get(configuration).buildExecutable(dataSet, configuration).execute();
                 tee.flush();
             } catch (Throwable e) { // NOSONAR
                 contentCache.evict(key);
