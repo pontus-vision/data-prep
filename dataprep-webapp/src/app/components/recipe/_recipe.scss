@@ -127,6 +127,7 @@ $recipe-step-draggable-background-color: #808080 !default;
 
         > step-description {
           flex: 1;
+          min-height: 5rem;
         }
       }
 
@@ -160,6 +161,7 @@ $recipe-step-draggable-background-color: #808080 !default;
   }
 
   sc-accordion > ul > li {
+    margin-right: -1rem;
 
     &:first-child {
       .list-item-handler {
@@ -171,6 +173,10 @@ $recipe-step-draggable-background-color: #808080 !default;
       .list-item-handler {
         justify-content: flex-start;
       }
+    }
+
+    &:hover {
+      background-color: darken($recipe-step-background-color, 2%);
     }
   }
 }
@@ -187,12 +193,6 @@ $recipe-step-draggable-background-color: #808080 !default;
           display: none;
         }
       }
-    }
-  }
-
-  &-item-handle {
-    &:hover {
-      background-color: darken($recipe-step-background-color, 2%);
     }
   }
 
