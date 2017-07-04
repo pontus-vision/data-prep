@@ -29,7 +29,7 @@ public enum TransformationErrorCodes implements ErrorCode {
     EXPORT_IN_PROGRESS(400),
     UNSUPPORTED_SAMPLE_TYPE(400, "type"),
     UNSUPPORTED_SAMPLE_STATUS_UPDATE(400, "status"),
-    UNABLE_TO_CANCEL_EXECUTION(404, "id"),
+    UNABLE_TO_CANCEL_EXECUTION(400, "id"),
     // 403
     INSUFFICIENT_AUTHORITY(403),
     // 404
