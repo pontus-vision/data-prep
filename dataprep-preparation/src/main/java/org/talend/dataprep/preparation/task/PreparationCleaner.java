@@ -19,8 +19,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import javax.annotation.Resource;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -44,10 +42,6 @@ public class PreparationCleaner {
 
     @Value("${preparation.store.remove.hours:24}")
     private int orphanTime;
-
-    /** The root step. */
-    @Resource(name = "rootStep")
-    private Step rootStep;
 
     @Autowired
     private SecurityProxy securityProxy;
@@ -79,7 +73,7 @@ public class PreparationCleaner {
      */
     private Stream<PersistentStep> getCurrentOrphanSteps() {
         final Set<String> preparationStepIds = getPreparationStepIds();
-        final Predicate<PersistentStep> isNotRootStep = step -> !rootStep.getId().equals(step.getId());
+        final Predicate<PersistentStep> isNotRootStep = step -> !Step.ROOT_STEP.getId().equals(step.getId());
         final Predicate<PersistentStep> isOrphan = step -> !preparationStepIds.contains(step.getId());
         return repository.list(PersistentStep.class).filter(isNotRootStep).filter(isOrphan);
     }
