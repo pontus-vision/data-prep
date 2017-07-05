@@ -12,9 +12,11 @@
 
 package org.talend.dataprep.preparation.task;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +28,6 @@ import org.talend.dataprep.api.preparation.Preparation;
 import org.talend.dataprep.api.preparation.PreparationActions;
 import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.preparation.BasePreparationTest;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @TestPropertySource(properties={"dataset.metadata.store: in-memory"})
 public class PreparationCleanerTest extends BasePreparationTest {
@@ -134,8 +132,8 @@ public class PreparationCleanerTest extends BasePreparationTest {
         content.setAppVersion(version);
         repository.add(content);
 
-        final Step stepFirstPreparation = new Step(rootStep.getId(), content.getId(), version);
-        final Step stepSecondPreparation = new Step(rootStep.getId(), content.getId(), version);
+        final Step stepFirstPreparation = new Step(Step.ROOT_STEP.getId(), content.getId(), version);
+        final Step stepSecondPreparation = new Step(Step.ROOT_STEP.getId(), content.getId(), version);
 
         repository.add(stepFirstPreparation);
         repository.add(stepSecondPreparation);
