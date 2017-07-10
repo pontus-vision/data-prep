@@ -87,7 +87,8 @@ public class ActionDropdownSettings extends ActionSettings {
                 .bsStyle(actionSettings.getBsStyle()) //
                 .items(actionSettings.getItems()) //
                 .dynamicAction(actionSettings.getDynamicAction()) //
-                .staticActions(actionSettings.getStaticActions());
+                .staticActions(actionSettings.getStaticActions()) //
+                .enabled(actionSettings.isEnabled());
     }
 
     public static Builder dropdownBuilder() {
@@ -105,6 +106,8 @@ public class ActionDropdownSettings extends ActionSettings {
         private String bsStyle;
 
         private String items;
+
+        private boolean enabled = true;
 
         private String dynamicAction;
 
@@ -135,6 +138,11 @@ public class ActionDropdownSettings extends ActionSettings {
             return this;
         }
 
+        public Builder enabled(final boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
         public Builder dynamicAction(final String dynamicAction) {
             this.dynamicAction = dynamicAction;
             return this;
@@ -146,7 +154,9 @@ public class ActionDropdownSettings extends ActionSettings {
         }
 
         public Builder staticActions(final List<String> staticActions) {
-            this.staticActions.addAll(staticActions);
+            if (staticActions != null) {
+                this.staticActions.addAll(staticActions);
+            }
             return this;
         }
 
@@ -159,6 +169,7 @@ public class ActionDropdownSettings extends ActionSettings {
             action.setItems(this.items);
             action.setDynamicAction(dynamicAction);
             action.setStaticActions(staticActions.isEmpty() ? null : staticActions);
+            action.setEnabled(this.enabled);
             return action;
         }
     }

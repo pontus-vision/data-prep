@@ -28,6 +28,7 @@ export default class AppHeaderBarCtrl {
 		this.initHelp();
 		this.initSearch();
 		this.initUserMenu();
+		this.initProducts();
 	}
 
 	$postLink() {
@@ -124,6 +125,12 @@ export default class AppHeaderBarCtrl {
 	initUserMenu() {
 		this.user = this.appSettings.views[this.viewKey].userMenu ?
 			this.adaptUserMenu() :
+			null;
+	}
+
+	initProducts() {
+		this.products = this.appSettings.views[this.viewKey].products ?
+			this.adaptProducts() :
 			null;
 	}
 
@@ -255,11 +262,20 @@ export default class AppHeaderBarCtrl {
 	}
 
 	adaptUserMenu() {
-		const userMenu = this.appSettings
-			.views[this.viewKey]
-			.userMenu;
-		const { id, name, staticActions } = this.appSettings.actions[userMenu];
+		return this._adaptDropdown(this.appSettings.views[this.viewKey].userMenu);
+	}
 
+	adaptProducts() {
+		return this._adaptDropdown(this.appSettings.views[this.viewKey].products, true);
+	}
+
+	_adaptDropdown(menu, showIcons) {
+		const action = this.appSettings.actions[menu];
+		if (!action || !action.staticActions) {
+			return null;
+		}
+
+		const { id, name, staticActions } = action;
 		return {
 			id,
 			name,
@@ -267,6 +283,7 @@ export default class AppHeaderBarCtrl {
 				.map(actionName => this.appSettings.actions[actionName])
 				.map(action => ({
 					id: action.id,
+					icon: showIcons && action.icon,
 					label: action.name,
 					onClick: this.settingsActionsService.createDispatcher(action),
 				})),
