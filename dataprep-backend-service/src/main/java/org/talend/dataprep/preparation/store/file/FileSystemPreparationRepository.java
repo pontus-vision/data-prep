@@ -36,9 +36,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.dataprep.api.preparation.Identifiable;
+import org.talend.dataprep.api.preparation.PreparationActions;
+import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 import org.talend.dataprep.preparation.store.ObjectPreparationRepository;
+import org.talend.dataprep.preparation.store.PersistentStep;
 import org.talend.dataprep.preparation.store.PreparationRepository;
 import org.talend.dataprep.security.Security;
 import org.talend.dataprep.util.FilesHelper;
@@ -74,6 +77,11 @@ public class FileSystemPreparationRepository extends ObjectPreparationRepository
     @PostConstruct
     private void init() {
         getRootFolder().mkdirs();
+        remove(Step.ROOT_STEP);
+        final PersistentStep persistentStep = new PersistentStep();
+        persistentStep.setId(Step.ROOT_STEP.id());
+        remove(persistentStep);
+        remove(PreparationActions.ROOT_ACTIONS);
     }
 
     /**

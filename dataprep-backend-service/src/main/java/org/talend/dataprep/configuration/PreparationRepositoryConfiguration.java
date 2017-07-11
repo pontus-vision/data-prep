@@ -69,8 +69,6 @@ public class PreparationRepositoryConfiguration {
             }
             LOGGER.info("Wrapping '{}' ({})...", instance.getClass(), beanName);
             final BeanConversionService beanConversionService = applicationContext.getBean(BeanConversionService.class);
-            instance.remove(beanConversionService.convert(Step.ROOT_STEP, PersistentStep.class));
-            instance.remove(PreparationActions.ROOT_ACTIONS);
             return new PersistentPreparationRepository(instance, beanConversionService);
         }
     }
