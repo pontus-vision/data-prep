@@ -123,7 +123,7 @@ describe('Export controller', () => {
 	}));
 
 	beforeEach(inject((RestURLs) => {
-		RestURLs.setConfig({ serverUrl: '' }, settings);
+		RestURLs.register({ serverUrl: '' }, settings.uris);
 	}));
 
 	beforeEach(inject(($rootScope, $controller, ExportService) => {

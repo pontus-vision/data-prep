@@ -44,6 +44,8 @@ public class ActionsBundle implements MessagesBundle {
 
     private static final String URL_SUFFIX = ".url";
 
+    private static final String URL_PARAMETERS_SUFFIX = ".url_parameters";
+
     private static final String LABEL_SUFFIX = ".label";
 
     private static final String PARAMETER_PREFIX = "parameter.";
@@ -56,6 +58,11 @@ public class ActionsBundle implements MessagesBundle {
     private final Class fallBackKey;
 
     private final Map<Class, ResourceBundle> actionToResourceBundle = new ConcurrentHashMap<>();
+
+    /** Base URL of the documentation portal. */
+    // Documentation URL is not thread safe. It is acceptable while it is only changed at the application startup.
+    // If more changes is to happen, there should be a thread safety mechanism
+    private String documentationUrlBase;
 
     private ActionsBundle() {
         fallBackKey = this.getClass();
@@ -72,6 +79,29 @@ public class ActionsBundle implements MessagesBundle {
      */
     public static List<Parameter> attachToAction(List<Parameter> parameters, Object parent) {
         return parameters.stream().map(p -> p.attach(parent)).collect(Collectors.toList());
+    }
+
+    /**
+     * Set global Documentation portal URL.
+     *
+     * <p>
+     * Actions can specify the documentation URL parameters with the {@link #URL_PARAMETERS_SUFFIX} suffix in the
+     * {@code actions_messages.properties} file.
+     * </p>
+     */
+    public static void setGlobalDocumentationUrlBase(String documentationUrlBase) {
+        INSTANCE.setDocumentationUrlBase(documentationUrlBase);
+    }
+
+    /**
+     * Get global Documentation portal URL.
+     * <p>
+     * Actions can specify the documentation URL parameters with the {@link #URL_PARAMETERS_SUFFIX} suffix in the
+     * {@code actions_messages.properties} file.
+     * </p>
+     */
+    public static String getGlobalDocumentationUrlBase() {
+        return INSTANCE.getDocumentationUrlBase();
     }
 
     /**
@@ -169,6 +199,10 @@ public class ActionsBundle implements MessagesBundle {
         final String docUrl = getOptionalMessage(action, locale, actionDocUrlKey);
 
         if (docUrl == null) {
+            final String docParameters = getOptionalMessage(action, locale, ACTION_PREFIX + actionName + URL_PARAMETERS_SUFFIX);
+            if (documentationUrlBase != null && docParameters != null) {
+                return documentationUrlBase + docParameters;
+            }
             return StringUtils.EMPTY;
         }
         return docUrl;
@@ -216,4 +250,11 @@ public class ActionsBundle implements MessagesBundle {
         return getMandatoryMessage(fallBackKey, locale, code, args);
     }
 
+    private void setDocumentationUrlBase(String documentationUrlBase) {
+        this.documentationUrlBase = documentationUrlBase;
+    }
+
+    private String getDocumentationUrlBase() {
+        return documentationUrlBase;
+    }
 }

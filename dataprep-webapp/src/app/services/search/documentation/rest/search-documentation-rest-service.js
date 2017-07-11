@@ -13,16 +13,19 @@
 
 class SearchDocumentationRestService {
 
-	constructor($http, documentationSearchURL, documentationSearchVersion, documentationSearchLanguage) {
+	constructor($http, HelpService) {
 		'ngInject';
+
 		this.$http = $http;
-		this.documentationSearchURL = documentationSearchURL;
+
+		const { searchUrl, versionFacet, languageFacet } = HelpService;
+		this.url = searchUrl;
 		this.parameters = {
-			contentLocale: documentationSearchLanguage,
+			contentLocale: languageFacet,
 			filters: [
 				{
 					key: 'version',
-					values: [documentationSearchVersion],
+					values: [versionFacet],
 				},
 				{
 					key: 'EnrichPlatform',
@@ -33,6 +36,7 @@ class SearchDocumentationRestService {
 				page: 1,
 				perPage: 5,
 			},
+
 		};
 	}
 
@@ -44,8 +48,11 @@ class SearchDocumentationRestService {
 	 */
 	search(keyword) {
 		return this.$http({
-			url: this.documentationSearchURL,
-			data: { ...this.parameters, query: keyword },
+			url: this.url,
+			data: {
+				...this.parameters,
+				query: keyword,
+			},
 			method: 'POST',
 			failSilently: true,
 			withCredentials: false,

@@ -31,11 +31,6 @@ public class ActionsBundleTest {
     }
 
     @Test
-    public void actionDocUrl() throws Exception {
-        assertEquals("https://help.talend.com/access/sources/TDP_21/map?pageid=regular_expressions&EnrichPlatform=Talend+Data+Preparation&afs:lang=en&EnrichVersion=2.1&utm_medium=dpdesktop&utm_source=func", ActionsBundle.INSTANCE.actionDocUrl(this, Locale.US, "replace_on_value"));
-    }
-
-    @Test
     public void emptyActionDocUrl() throws Exception {
         assertEquals("", ActionsBundle.INSTANCE.actionDocUrl(this, Locale.US, "uppercase"));
     }

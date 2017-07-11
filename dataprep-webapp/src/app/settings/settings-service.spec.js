@@ -35,7 +35,7 @@ describe('Settings service', () => {
 		let $httpBackend;
 
 		beforeEach(inject(($rootScope, $injector, RestURLs) => {
-			RestURLs.setConfig({ serverUrl: '' }, settings);
+			RestURLs.register({ serverUrl: '' }, settings.uris);
 			$httpBackend = $injector.get('$httpBackend');
 		}));
 
@@ -45,7 +45,7 @@ describe('Settings service', () => {
 				.expectGET(RestURLs.settingsUrl)
 				.respond(200, settings);
 
-			expect(appSettings).toEqual({ views: [], actions: [], uris: [] });
+			expect(appSettings).toEqual({ views: [], actions: [], uris: [], help: [] });
 
 			// when
 			SettingsService.refreshSettings();
@@ -58,7 +58,7 @@ describe('Settings service', () => {
 
 	describe('setSettings', () => {
 		it('should merge settings', inject((appSettings, SettingsService) => {
-			expect(appSettings).toEqual({ views: [], actions: [], uris: [] });
+			expect(appSettings).toEqual({ views: [], actions: [], uris: [], help: [] });
 
 			const newSettings = {
 				views: {
@@ -66,6 +66,7 @@ describe('Settings service', () => {
 				},
 				actions: [],
 				uris: [],
+				help: []
 			};
 
 			// when
@@ -82,6 +83,7 @@ describe('Settings service', () => {
 			appSettings.views.push({});
 			appSettings.actions.push({});
 			appSettings.uris.push({});
+			appSettings.help.push({});
 
 			// when
 			SettingsService.clearSettings();
@@ -90,6 +92,7 @@ describe('Settings service', () => {
 			expect(appSettings.views).toEqual([]);
 			expect(appSettings.actions).toEqual([]);
 			expect(appSettings.uris).toEqual([]);
+			expect(appSettings.help).toEqual([]);
 		}));
 	});
 });
