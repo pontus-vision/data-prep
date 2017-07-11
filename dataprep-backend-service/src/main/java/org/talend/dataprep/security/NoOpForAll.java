@@ -14,6 +14,9 @@ package org.talend.dataprep.security;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * A fall back implementation of {@link ForAll} in case code is running with no tenancy enabled.
+ */
 @Component
 public class NoOpForAll implements ForAll {
 

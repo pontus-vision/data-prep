@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.preparation.Preparation;
+import org.talend.dataprep.api.preparation.PreparationActions;
 import org.talend.dataprep.api.preparation.PreparationUtils;
 import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.conversions.BeanConversionService;
@@ -68,6 +69,8 @@ public class PreparationRepositoryConfiguration {
             }
             LOGGER.info("Wrapping '{}' ({})...", instance.getClass(), beanName);
             final BeanConversionService beanConversionService = applicationContext.getBean(BeanConversionService.class);
+            instance.remove(beanConversionService.convert(Step.ROOT_STEP, PersistentStep.class));
+            instance.remove(PreparationActions.ROOT_ACTIONS);
             return new PersistentPreparationRepository(instance, beanConversionService);
         }
     }

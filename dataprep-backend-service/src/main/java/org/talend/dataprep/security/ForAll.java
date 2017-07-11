@@ -13,7 +13,7 @@
 package org.talend.dataprep.security;
 
 /**
- * An interface to abstract repetitive actions (to be performed on all tenants for exemple).
+ * An interface to abstract repetitive actions (to be performed on all tenants for example).
  */
 public interface ForAll {
 
