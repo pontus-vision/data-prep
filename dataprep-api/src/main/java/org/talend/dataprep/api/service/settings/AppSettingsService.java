@@ -13,18 +13,18 @@
 
 package org.talend.dataprep.api.service.settings;
 
+import static java.util.Arrays.stream;
+
+import java.util.Collection;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.talend.dataprep.api.service.settings.actions.api.ActionSettings;
 import org.talend.dataprep.api.service.settings.help.api.HelpSettings;
 import org.talend.dataprep.api.service.settings.uris.api.UriSettings;
 import org.talend.dataprep.api.service.settings.views.api.ViewSettings;
-
-import java.util.Collection;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
-import static java.util.Arrays.stream;
 
 /**
  * App settings service
@@ -72,7 +72,7 @@ public class AppSettingsService {
 
         // populate appSettings actions dictionary (key: actionId, value: action)
         getSettingsStream(actionsProviders, actionsConfigurers) //
-                .filter(actionSettings -> actionSettings.isEnabled())
+                .filter(ActionSettings::isEnabled)
                 .forEach(action -> appSettings.getActions().put(action.getId(), action));
 
         // populate appSettings views dictionary (key: viewId, value: view)
