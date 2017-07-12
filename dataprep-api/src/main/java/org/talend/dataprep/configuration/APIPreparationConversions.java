@@ -14,7 +14,7 @@ package org.talend.dataprep.configuration;
 
 import static org.talend.dataprep.conversions.BeanConversionService.fromBean;
 
-import java.util.stream.Collectors;
+import java.util.LinkedList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +72,13 @@ public class APIPreparationConversions extends BeanConversionServiceWrapper {
         }
 
         // Add step ids
-        enrichedPreparation.setSteps(preparationMessage.getSteps().stream().map(Step::getId).collect(Collectors.toList()));
+        LinkedList<String> collected = new LinkedList<>();
+        preparationMessage.getSteps().stream().map(Step::getId).forEach(s -> {
+            if (s != null && (collected.isEmpty() || !collected.getLast().equals(s))) {
+                collected.add(s);
+            }
+        });
+        enrichedPreparation.setSteps(collected);
 
         // Add folder information
         final LocatePreparation command = applicationContext.getBean(LocatePreparation.class, enrichedPreparation.getId());

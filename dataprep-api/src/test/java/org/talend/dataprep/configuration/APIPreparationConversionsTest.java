@@ -12,6 +12,7 @@
 
 package org.talend.dataprep.configuration;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -136,6 +138,27 @@ public class APIPreparationConversionsTest {
         assertNull(actual.getSummary());
         assertNull(actual.getFolder());
     }
+
+    @Test
+    public void shouldDealWithRepeatedStepIds() {
+        // given
+        DataSetMetadata metadata = getDataSetMetadata("super dataset", 1001L);
+        setupHystrixCommand(DataSetGetMetadata.class, metadata);
+
+        final PreparationMessage preparation = getPreparationMessage(metadata.getId());
+        preparation.setSteps(asList(Step.ROOT_STEP, Step.ROOT_STEP));
+
+        Folder folder = getFolder("F-753854");
+        setupHystrixCommand(LocatePreparation.class, folder);
+
+        // when
+        final EnrichedPreparation actual = conversionService.convert(preparation, EnrichedPreparation.class);
+
+        // then
+        assertEquals(1, actual.getSteps().size());
+        assertEquals(Step.ROOT_STEP.id(), actual.getSteps().get(0));
+    }
+
 
     private Folder getFolder(String name) {
         final Folder folder = new Folder();
