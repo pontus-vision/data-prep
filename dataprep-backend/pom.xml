@@ -52,6 +52,7 @@
         <apache.poi.version>3.15</apache.poi.version>
         <java-semver.version>0.9.0</java-semver.version>
         <commons-math3.version>3.5</commons-math3.version>
+        <start-class>fill.this.value.in.service.module</start-class>
     </properties>
     <modules>
         <module>../dataprep-backend-common</module>
@@ -643,6 +644,12 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>${spring-boot.version}</version>
+                    <configuration>
+                        <!-- start-class is a property set in service modules -->
+                        <mainClass>${start-class}</mainClass>
+                        <!-- Needed to allow use of loader.path in Cloud setup (to bundle additional JARs) -->
+                        <layout>ZIP</layout>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
