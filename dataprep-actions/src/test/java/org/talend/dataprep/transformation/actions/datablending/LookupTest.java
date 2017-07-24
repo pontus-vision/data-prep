@@ -35,7 +35,6 @@ import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
@@ -44,6 +43,7 @@ import org.talend.dataprep.api.dataset.row.LightweightExportableDataSet;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -123,7 +123,7 @@ public class LookupTest extends AbstractMetadataBaseTest<Lookup> {
         cacheUsStates();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then (check values)
         DataSetRow expected = ActionMetadataTestUtils.getRow("Atlanta", "GA", "Philips Arena", "Georgia", "Atlanta");
@@ -145,7 +145,7 @@ public class LookupTest extends AbstractMetadataBaseTest<Lookup> {
         cacheNBA();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then (check values)
         DataSetRow expected = ActionMetadataTestUtils.getRow("Dallas", "TX", "Dallas Mavericks",
@@ -174,7 +174,7 @@ public class LookupTest extends AbstractMetadataBaseTest<Lookup> {
         cacheUsStates();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then (value)
         DataSetRow expected = ActionMetadataTestUtils.getRow("Toronto", "ON", "Air Canada Centre", "", "");
@@ -194,7 +194,7 @@ public class LookupTest extends AbstractMetadataBaseTest<Lookup> {
         cacheUsStates();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then (value)
         DataSetRow expected = ActionMetadataTestUtils.getRow("Huntington", "", "", "", "");
@@ -217,7 +217,7 @@ public class LookupTest extends AbstractMetadataBaseTest<Lookup> {
                 ActionMetadataTestUtils.getRow("Oakland", "CA", "Oracle Arena") };
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(rows), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(rows), factory.create(action, parameters));
 
         // then (check values)
         DataSetRow[] expectedRows = new DataSetRow[] {

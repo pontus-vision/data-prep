@@ -15,6 +15,9 @@ package org.talend.dataprep.dataset;
 
 import static org.talend.dataprep.api.type.Type.*;
 
+import java.io.Serializable;
+import static java.util.Comparator.naturalOrder;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -51,7 +54,7 @@ import org.talend.dataquality.statistics.type.DataTypeOccurences;
 /**
  * Statistics adapter. This is used to inject every statistics part in the columns metadata.
  */
-public class StatisticsAdapter {
+public class StatisticsAdapter implements Serializable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatisticsAdapter.class);
 

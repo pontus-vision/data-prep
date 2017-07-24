@@ -23,11 +23,11 @@ import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
@@ -86,7 +86,7 @@ public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "false");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -108,7 +108,7 @@ public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -130,7 +130,7 @@ public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -157,7 +157,7 @@ public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
         parameters.put("custom_date_pattern", "not a valid date pattern");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -189,7 +189,7 @@ public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters), factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters), factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -211,7 +211,7 @@ public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
         expected.add(createMetadata("0002", "last update"));
 
         // when
-        ActionTestWorkbench.test(rowMetadata, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(new DataSetRow(rowMetadata), factory.create(action, parameters));
 
         // then
         assertEquals(expected, rowMetadata.getColumns());
@@ -234,7 +234,7 @@ public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
         expected.add(createMetadata("0002", "last update"));
 
         // when
-        ActionTestWorkbench.test(rowMetadata, actionRegistry, factory.create(action, parameters), factory.create(action, parameters));
+        ActionTestWorkbench.test(Collections.singletonList(new DataSetRow(rowMetadata)), factory.create(action, parameters), factory.create(action, parameters));
 
         // then
         assertEquals(expected, rowMetadata.getColumns());
@@ -276,7 +276,7 @@ public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());

@@ -29,7 +29,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * duplicate a column
@@ -84,9 +84,9 @@ public class CopyColumnMetadata extends AbstractActionMetadata implements Column
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
-        row.set(ActionsUtils.getTargetColumnId(context), row.get(columnId));
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), row.get(columnId)));
     }
 
     @Override

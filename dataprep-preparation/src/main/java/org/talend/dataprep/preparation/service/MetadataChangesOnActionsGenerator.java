@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.preparation.service;
 
@@ -22,10 +22,10 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.Flag;
 import org.talend.dataprep.api.preparation.StepDiff;
+import org.talend.dataprep.transformation.actions.DataSetRowAction;
 import org.talend.dataprep.transformation.actions.common.RunnableAction;
-import org.talend.dataprep.transformation.api.action.DataSetRowAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
-import org.talend.dataprep.transformation.api.action.context.TransformationContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.TransformationContext;
 
 /**
  * Generates the metadata changes of a preparation between 2 steps.
@@ -80,7 +80,7 @@ public class MetadataChangesOnActionsGenerator {
         // compile every action within the transformation context
         for (RunnableAction action : actions) {
             final DataSetRowAction rowAction = action.getRowAction();
-            final ActionContext actionContext = transformationContext.create(rowAction, updatedRowMetadata);
+            final ActionContext actionContext = transformationContext.create(action, updatedRowMetadata);
             rowAction.compile(actionContext);
         }
 

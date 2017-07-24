@@ -32,7 +32,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Swap columns values
@@ -109,14 +109,14 @@ public class Swap extends AbstractActionMetadata implements ColumnAction, OtherC
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        RowMetadata rowMetadata = context.getRowMetadata();
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
+        RowMetadata rowMetadata = row.getRowMetadata();
         Map<String, String> parameters = context.getParameters();
 
         ColumnMetadata selectedColumn = rowMetadata.getById(parameters.get(SELECTED_COLUMN_PARAMETER));
 
         if (selectedColumn == null) {
-            return;
+            return Collections.singletonList(row);
         }
 
         final String columnId = context.getColumnId();
@@ -126,8 +126,9 @@ public class Swap extends AbstractActionMetadata implements ColumnAction, OtherC
         String columnValue = row.get(columnId);
         String selectedColumnValue = row.get(selectedColumn.getId());
 
-        row.set(columnId, selectedColumnValue == null ? StringUtils.EMPTY : selectedColumnValue);
-        row.set(selectedColumn.getId(), columnValue == null ? StringUtils.EMPTY : columnValue);
+        row = row.set(columnId, selectedColumnValue == null ? StringUtils.EMPTY : selectedColumnValue);
+        row = row.set(selectedColumn.getId(), columnValue == null ? StringUtils.EMPTY : columnValue);
+        return Collections.singletonList(row);
     }
 
     @Override

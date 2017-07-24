@@ -28,15 +28,15 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Clear cell when value is matching.
@@ -106,7 +106,7 @@ public class ClearMatching extends AbstractClear implements ColumnAction {
     @Override
     public boolean toClear(DataSetRow dataSetRow, String columnId, ActionContext actionContext) {
         final Map<String, String> parameters = actionContext.getParameters();
-        final RowMetadata rowMetadata = actionContext.getRowMetadata();
+        final RowMetadata rowMetadata = dataSetRow.getRowMetadata();
         final ColumnMetadata columnMetadata = rowMetadata.getById(columnId);
         final String value = dataSetRow.get(columnId);
         final String equalsValue = parameters.get(VALUE_PARAMETER);

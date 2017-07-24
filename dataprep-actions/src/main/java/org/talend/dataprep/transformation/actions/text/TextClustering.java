@@ -13,6 +13,8 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
@@ -24,7 +26,7 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(TextClustering.TEXT_CLUSTERING)
 public class TextClustering extends AbstractActionMetadata implements ColumnAction {
@@ -55,15 +57,16 @@ public class TextClustering extends AbstractActionMetadata implements ColumnActi
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
 
         // replace only the value if present in parameters
         final String replaceValue = context.getParameters().get(value);
         if (replaceValue != null) {
-            row.set(columnId, replaceValue);
+            return Collections.singletonList(row.set(columnId, replaceValue));
         }
+        return Collections.singletonList(row);
     }
 
     @Override

@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.math;
 
@@ -23,11 +23,11 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -64,7 +64,7 @@ public class TanTest extends AbstractMetadataBaseTest<Tan> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -77,7 +77,7 @@ public class TanTest extends AbstractMetadataBaseTest<Tan> {
         DataSetRow row = getRow("1000%", "3", "Done !");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("0.6483608274590866", row.get("0000"));
@@ -89,7 +89,7 @@ public class TanTest extends AbstractMetadataBaseTest<Tan> {
         DataSetRow row = getRow("10", "3", "Done !");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
         assertEquals(row.values().size(), 3);
 
         // then
@@ -104,7 +104,7 @@ public class TanTest extends AbstractMetadataBaseTest<Tan> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -117,7 +117,7 @@ public class TanTest extends AbstractMetadataBaseTest<Tan> {
         DataSetRow row = getRow("beer", "3", "Done !");
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);

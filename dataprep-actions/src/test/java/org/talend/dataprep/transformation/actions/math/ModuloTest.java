@@ -26,11 +26,11 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -109,7 +109,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "false");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("1", row.get("0000"));
@@ -124,7 +124,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -140,7 +140,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.CONSTANT_VALUE, "5");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -156,7 +156,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.CONSTANT_VALUE, "3");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -172,7 +172,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.CONSTANT_VALUE, "-5");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -192,7 +192,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0001");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -212,7 +212,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0001");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -228,7 +228,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.CONSTANT_VALUE, "");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -244,7 +244,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.CONSTANT_VALUE, "aaaa");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -260,7 +260,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.CONSTANT_VALUE, "0");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -280,7 +280,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0001");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -295,7 +295,7 @@ public class ModuloTest extends AbstractMetadataBaseTest<Modulo> {
         parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);

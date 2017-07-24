@@ -1,6 +1,5 @@
 // ============================================================================
-//
-// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -32,9 +31,10 @@ import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.preparation.Action;
 import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.transformation.actions.ActionParser;
+import org.talend.dataprep.transformation.actions.ActionRegistry;
 import org.talend.dataprep.transformation.actions.common.ActionFactory;
 import org.talend.dataprep.transformation.actions.common.RunnableAction;
-import org.talend.dataprep.transformation.pipeline.ActionRegistry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -81,7 +81,7 @@ public class ActionParserTest {
 
         // when
         final RunnableAction[] actions = actualActions.toArray(new RunnableAction[actualActions.size()]);
-        ActionTestWorkbench.test(actualRow, actionRegistry, actions);
+        ActionTestWorkbench.test(actualRow, actions);
 
         // then
         assertEquals(expectedRow, actualRow);

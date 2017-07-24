@@ -49,7 +49,7 @@ public class XlsWriter implements TransformerWriter {
     // The separator to be used in temporary record buffer
     private static final char BUFFER_CSV_SEPARATOR = ',';
 
-    private final OutputStream outputStream;
+    private OutputStream outputStream;
 
     private final SXSSFWorkbook workbook;
 
@@ -64,13 +64,12 @@ public class XlsWriter implements TransformerWriter {
 
     private boolean closed = false;
 
-    public XlsWriter(final OutputStream output) {
-        this(output, Collections.emptyMap());
+    public XlsWriter() {
+        this(Collections.emptyMap());
     }
 
-    public XlsWriter(final OutputStream output, Map<String, String> parameters) {
+    public XlsWriter(Map<String, String> parameters) {
         try {
-            this.outputStream = output;
             // we limit to only 50 rows in memory
             this.workbook = new SXSSFWorkbook(50);
             // TODO sheet name as an option?
@@ -94,6 +93,11 @@ public class XlsWriter implements TransformerWriter {
         } else {
             internalWriteRow(writtenMetadata, rowValues);
         }
+    }
+
+    @Override
+    public void setOutput(OutputStream output) {
+        this.outputStream = output;
     }
 
     @Override

@@ -12,12 +12,12 @@
 package org.talend.dataprep.transformation.actions.date;
 
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.dataset.statistics.PatternFrequency;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -204,7 +204,7 @@ public class DateCalendarConverterTest extends BaseDateTest<DateCalendarConverte
         parameters.put(TO_CALENDAR_TYPE_PARAMETER, DateCalendarConverter.CalendarUnit.HIJRI.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", HijrahStr3, "tata");
@@ -335,7 +335,7 @@ public class DateCalendarConverterTest extends BaseDateTest<DateCalendarConverte
         parameters.put(TO_CALENDAR_TYPE_PARAMETER, DateCalendarConverter.CalendarUnit.ISO.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         // While using ResolverStyle.STRICT, date pattern of input data on Japanese calendar must contain era 'G'
@@ -359,7 +359,7 @@ public class DateCalendarConverterTest extends BaseDateTest<DateCalendarConverte
         parameters.put(TO_CALENDAR_TYPE_PARAMETER, DateCalendarConverter.CalendarUnit.ISO.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         // The date pattern does not contain G, the input cannot be parsed
@@ -383,7 +383,7 @@ public class DateCalendarConverterTest extends BaseDateTest<DateCalendarConverte
         parameters.put(TO_CALENDAR_TYPE_PARAMETER, DateCalendarConverter.CalendarUnit.ISO.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         // February 30 does not exist, can not parse even the Era part exists.
@@ -413,7 +413,7 @@ public class DateCalendarConverterTest extends BaseDateTest<DateCalendarConverte
         parameters.put(TO_CALENDAR_TYPE_PARAMETER, toUnit.name());
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2), factory.create(action, parameters));
 
         // then
         assertEquals(expected, row1.get("0001"));
@@ -484,7 +484,7 @@ public class DateCalendarConverterTest extends BaseDateTest<DateCalendarConverte
         parameters.put(TO_CALENDAR_TYPE_PARAMETER, DateCalendarConverter.CalendarUnit.JULIAN_DAY.name());
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2), factory.create(action, parameters));
 
         // then
         assertEquals("2440588", row1.get("0001"));
@@ -522,7 +522,7 @@ public class DateCalendarConverterTest extends BaseDateTest<DateCalendarConverte
         parameters.put("create_new_column", "true");
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2), factory.create(action, parameters));
 
         // then
         // assert that original column is unchanged:

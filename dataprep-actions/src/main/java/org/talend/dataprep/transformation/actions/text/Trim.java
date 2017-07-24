@@ -19,24 +19,22 @@ import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
 import static org.talend.dataprep.transformation.actions.category.ScopeCategory.COLUMN;
 import static org.talend.dataprep.transformation.actions.category.ScopeCategory.DATASET;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
-
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractMultiScopeAction;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
-
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataquality.converters.StringTrimmer;
 
 /**
@@ -129,9 +127,9 @@ public class Trim extends AbstractMultiScopeAction {
     }
 
     @Override
-    public void apply(DataSetRow row, String columnId, String targetColumnId, ActionContext context) {
+    public Collection<DataSetRow> apply(DataSetRow row, String columnId, String targetColumnId, ActionContext context) {
         String toTrim = row.get(columnId);
-        row.set(targetColumnId, doTrim(toTrim, context));
+        return Collections.singletonList(row.set(targetColumnId, doTrim(toTrim, context)));
     }
 
     private String doTrim(String toTrim, ActionContext context) {

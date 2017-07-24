@@ -1,0 +1,331 @@
+// ============================================================================
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+//
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
+//
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
+//
+// ============================================================================
+
+package org.talend.dataprep.transformation.pipeline.node;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.talend.dataprep.api.dataset.DataSet;
+import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.api.preparation.PreparationMessage;
+import org.talend.dataprep.api.preparation.Step;
+import org.talend.dataprep.dataset.StatisticsAdapter;
+import org.talend.dataprep.quality.AnalyzerService;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
+import org.talend.dataprep.transformation.actions.ActionRegistry;
+import org.talend.dataprep.transformation.actions.category.ScopeCategory;
+import org.talend.dataprep.transformation.actions.common.ApplyDataSetRowAction;
+import org.talend.dataprep.transformation.actions.common.CompileDataSetRowAction;
+import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
+import org.talend.dataprep.transformation.actions.common.RunnableAction;
+import org.talend.dataprep.transformation.pipeline.Link;
+import org.talend.dataprep.transformation.pipeline.Node;
+import org.talend.dataprep.transformation.pipeline.Visitor;
+import org.talend.dataprep.transformation.pipeline.builder.ActionNodesBuilder;
+import org.talend.dataprep.transformation.pipeline.builder.NodeBuilder;
+import org.talend.dataprep.transformation.pipeline.util.PipelineConsoleDump;
+import org.talend.dataprep.transformation.pipeline.util.StepNodeTransformer;
+
+public class Pipeline implements Node, Serializable {
+
+    /** This class' logger. */
+    private static final Logger LOG = LoggerFactory.getLogger(Pipeline.class);
+
+    /** For the Serialization interface. */
+    private static final long serialVersionUID = 1L;
+
+    private Node node;
+
+    /**
+     * Default empty constructor.
+     */
+    public Pipeline() {
+        // needed for Serialization
+    }
+
+    /**
+     * @param node The source node (the node in the pipeline that submit content to the pipeline).
+     * @see Builder to create a new instance of this class.
+     */
+    public Pipeline(Node node) {
+        this.node = node;
+    }
+
+    public void setNode(Node node) {
+        this.node = node;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        accept(new PipelineConsoleDump(builder));
+        return builder.toString();
+    }
+
+    @Override
+    public Link getLink() {
+        return node.getLink();
+    }
+
+    @Override
+    public void setLink(Link link) {
+        Node current = node;
+        while(current.getLink() != null) {
+            current = current.getLink().getTarget();
+        }
+        current.setLink(link);
+    }
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+        return visitor.visitPipeline(this);
+    }
+
+    @Override
+    public Node copyShallow() {
+        return new Pipeline(node);
+    }
+
+    public Node getNode() {
+        return node;
+    }
+
+    public static class Builder {
+
+        private final List<RunnableAction> actions = new ArrayList<>();
+
+        private RowMetadata rowMetadata;
+
+        private boolean completeMetadata;
+
+        private ActionRegistry actionRegistry;
+
+        private StatisticsAdapter adapter;
+
+        private Supplier<Node> monitorSupplier = BasicNode::new;
+
+        private Supplier<Node> outputSupplier = null;
+
+        private boolean allowMetadataChange = true;
+
+        private Predicate<DataSetRow> inFilter;
+
+        private Function<RowMetadata, Predicate<DataSetRow>> outFilter;
+
+        private boolean needGlobalStatistics = true;
+
+        private AnalyzerService analyzerService;
+
+        private PreparationMessage preparation;
+
+        private Function<Step, RowMetadata> rowMetadataSupplier = s -> null;
+
+        private Stream<DataSetRow> input;
+
+        private Long limit = null;
+        private Consumer<RowMetadata> cacheAction;
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public Builder withInput(DataSet input) {
+            this.input = input.getRecords().map(r -> r.setRowMetadata(input.getMetadata().getRowMetadata()));
+            return this;
+        }
+
+        public Builder withStepMetadataSupplier(Function<Step, RowMetadata> rowMetadataSupplier) {
+            this.rowMetadataSupplier = rowMetadataSupplier;
+            return this;
+        }
+
+        public Builder withAnalyzerService(AnalyzerService analyzerService) {
+            this.analyzerService = analyzerService;
+            return this;
+        }
+
+        public Builder withStatisticsAdapter(StatisticsAdapter adapter) {
+            this.adapter = adapter;
+            return this;
+        }
+
+        public Builder withActionRegistry(ActionRegistry actionRegistry) {
+            this.actionRegistry = actionRegistry;
+            return this;
+        }
+
+        public Builder withInitialMetadata(RowMetadata rowMetadata, boolean completeMetadata) {
+            this.rowMetadata = rowMetadata;
+            this.completeMetadata = completeMetadata;
+            return this;
+        }
+
+        public Builder withPreparation(PreparationMessage preparation) {
+            this.preparation = preparation;
+            return this;
+        }
+
+        public Builder withActions(List<RunnableAction> actions) {
+            this.actions.addAll(actions);
+            return this;
+        }
+
+        public Builder withMonitor(Supplier<Node> monitorSupplier) {
+            this.monitorSupplier = monitorSupplier;
+            return this;
+        }
+
+        public Builder withOutput(Supplier<Node> outputSupplier) {
+            this.outputSupplier = outputSupplier;
+            return this;
+        }
+
+        public Builder withGlobalStatistics(boolean needGlobalStatistics) {
+            this.needGlobalStatistics = needGlobalStatistics;
+            return this;
+        }
+
+        public Builder allowMetadataChange(boolean allowMetadataChange) {
+            this.allowMetadataChange = allowMetadataChange;
+            return this;
+        }
+
+        public Builder withFilter(Predicate<DataSetRow> filter) {
+            this.inFilter = filter;
+            return this;
+        }
+
+        public Builder withFilterOut(Function<RowMetadata, Predicate<DataSetRow>> outFilter) {
+            this.outFilter = outFilter;
+            return this;
+        }
+
+        public Builder withLimit(Long limit) {
+            this.limit = limit;
+            return this;
+        }
+
+        public Pipeline build() {
+            final NodeBuilder current;
+            if (inFilter != null) {
+                current = NodeBuilder.filteredSource(inFilter, input);
+            } else {
+                current = NodeBuilder.source(input);
+            }
+
+            // Apply actions
+            final List<RunnableAction> runnableActions;
+            if (preparation != null) {
+                LOG.debug("Running using preparation #{} ({} step(s))", preparation.getId(),
+                        preparation.getSteps().size());
+                runnableActions = actions
+                        .stream() //
+                        .map(a -> {
+                            // gather all info for creating runnable actions
+                            final Map<String, String> parameters = a.getParameters();
+                            final ScopeCategory scope =
+                                    ScopeCategory.from(parameters.get(ImplicitParameters.SCOPE.getKey()));
+                            final ActionDefinition actionDefinition = actionRegistry.get(a.getName());
+                            final CompileDataSetRowAction compile =
+                                    new CompileDataSetRowAction(parameters, actionDefinition, scope);
+                            final ApplyDataSetRowAction apply =
+                                    new ApplyDataSetRowAction(actionDefinition, parameters, scope);
+
+                            // Create runnable action
+                            return RunnableAction.Builder
+                                    .builder() //
+                                    .withCompile(compile) //
+                                    .withRow(apply) //
+                                    .withName(a.getName()) //
+                                    .withParameters(new HashMap<>(parameters)) //
+                                    .build();
+                        }) //
+                        .collect(Collectors.toList());
+            } else {
+                LOG.debug("Running using submitted actions ({} action(s))", actions.size());
+                runnableActions = actions;
+            }
+
+            // Build nodes for actions
+            final Node actionsNode = ActionNodesBuilder
+                    .builder() //
+                    .initialMetadata(rowMetadata) //
+                    .actions(runnableActions) //
+                    // statistics requests
+                    .needStatisticsBefore(!completeMetadata) //
+                    .needStatisticsAfter(needGlobalStatistics) //
+                    .allowSchemaAnalysis(allowMetadataChange) //
+                    // statistics dependencies/arguments
+                    .actionRegistry(actionRegistry) //
+                    .analyzerService(analyzerService) //
+                    .statisticsAdapter(adapter) //
+                    .build();
+
+            if (false && preparation != null) {
+                LOG.debug("Applying step node transformations...");
+                actionsNode.logStatus(LOG, "Before transformation\n{}");
+                final Node node =
+                        StepNodeTransformer.transform(actionsNode, preparation.getSteps(), rowMetadataSupplier);
+                current.to(node);
+                node.logStatus(LOG, "After transformation\n{}");
+            } else {
+                current.to(actionsNode);
+            }
+
+            // Output
+            if (outFilter != null) {
+
+                current.to(new FilterNode((row) -> {
+                    final Predicate<DataSetRow> predicate = outFilter.apply(row.getRowMetadata());
+                    return predicate.test(row);
+                }));
+            }
+
+            Pipeline pipeline = new Pipeline();
+
+            // set the maximum number of output rows
+            if (limit != null && limit > 0) {
+                current.to(new LimitNode(limit)); // limit the output
+            }
+
+            if (cacheAction != null) {
+                current.to(new CacheMetadataNode(cacheAction));
+            }
+
+            current.to(outputSupplier.get());
+            current.to(monitorSupplier.get());
+
+            pipeline.setNode(current.build());
+
+            // Finally build pipeline
+            return pipeline;
+        }
+
+        public Builder withOutputMetadataCache(Consumer<RowMetadata> cacheAction) {
+            this.cacheAction = cacheAction;
+            return this;
+        }
+    }
+}

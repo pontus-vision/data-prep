@@ -12,6 +12,17 @@
 // ============================================================================
 package org.talend.dataprep.transformation.actions.text;
 
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.talend.dataprep.api.type.Type.STRING;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
+
+import java.util.*;
+
+import javax.annotation.Nonnull;
+
 import org.apache.commons.lang.StringUtils;
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
@@ -23,18 +34,8 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataquality.converters.DuplicateCharEraser;
-
-import javax.annotation.Nonnull;
-import java.util.*;
-
-import static java.util.Collections.singletonList;
-import static org.apache.commons.lang.StringUtils.EMPTY;
-import static org.talend.dataprep.api.type.Type.STRING;
-import static org.talend.dataprep.parameters.Parameter.parameter;
-import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 /**
  * Remove consecutive repeated characters for a Text.
@@ -113,16 +114,15 @@ public class RemoveRepeatedChars extends AbstractActionMetadata implements Colum
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String originalValue = row.get(columnId);
         if (StringUtils.isEmpty(originalValue)) {
-            row.set(ActionsUtils.getTargetColumnId(context), originalValue);
-            return;
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), originalValue));
         }
         final DuplicateCharEraser duplicateCharEraser = context.get(DUPLICATE_CHAR_ERASER_KEY);
         String cleanValue = duplicateCharEraser.removeRepeatedChar(originalValue);
-        row.set(ActionsUtils.getTargetColumnId(context), cleanValue);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), cleanValue));
     }
 
     @Override

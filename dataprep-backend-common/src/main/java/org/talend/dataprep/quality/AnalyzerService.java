@@ -14,27 +14,21 @@
 package org.talend.dataprep.quality;
 
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.row.RowMetadataUtils;
+import org.talend.dataprep.api.dataset.row.AvroUtils;
 import org.talend.dataprep.api.dataset.statistics.date.StreamDateHistogramAnalyzer;
 import org.talend.dataprep.api.dataset.statistics.date.StreamDateHistogramStatistics;
 import org.talend.dataprep.api.dataset.statistics.number.StreamNumberHistogramAnalyzer;
 import org.talend.dataprep.api.type.TypeUtils;
 import org.talend.dataprep.transformation.actions.date.DateParser;
-import org.talend.dataprep.transformation.api.transformer.json.NullAnalyzer;
 import org.talend.dataquality.common.inference.Analyzer;
 import org.talend.dataquality.common.inference.Analyzers;
 import org.talend.dataquality.common.inference.Metadata;
@@ -72,18 +66,16 @@ import org.talend.dataquality.statistics.type.DataTypeOccurences;
 /**
  * Service in charge of analyzing dataset quality.
  */
-public class AnalyzerService {
+public class AnalyzerService implements Serializable {
 
     /**
      * This class' logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzerService.class);
 
-    private final DateParser dateParser;
+    private final transient Set<Analyzer> openedAnalyzers = new HashSet<>();
 
-    private final Set<Analyzer> openedAnalyzers = new HashSet<>();
-
-    private DictionarySnapshotProvider dictionarySnapshotProvider;
+    private transient DictionarySnapshotProvider dictionarySnapshotProvider = new StandardDictionarySnapshotProvider();
 
     public AnalyzerService() {
         this(new StandardDictionarySnapshotProvider());
@@ -92,7 +84,6 @@ public class AnalyzerService {
     public AnalyzerService(DictionarySnapshotProvider dictionarySnapshotProvider) {
         // Semantic builder (a single instance to be shared among all analyzers for proper index file management).
         this.dictionarySnapshotProvider = dictionarySnapshotProvider;
-        this.dateParser = new DateParser(this);
     }
 
     public void setDictionarySnapshotProvider(DictionarySnapshotProvider provider) {
@@ -104,7 +95,7 @@ public class AnalyzerService {
         final DateTimePatternRecognizer dateTimePatternFrequencyAnalyzer = new DateTimePatternRecognizer();
         List<String> patterns = new ArrayList<>(columns.size());
         for (ColumnMetadata column : columns) {
-            final String pattern = RowMetadataUtils.getMostUsedDatePattern(column);
+            final String pattern = AvroUtils.getMostUsedDatePattern(column);
             if (StringUtils.isNotBlank(pattern)) {
                 patterns.add(pattern);
             }
@@ -130,7 +121,7 @@ public class AnalyzerService {
 
         List<String> patterns = new ArrayList<>(columns.size());
         for (ColumnMetadata column : columns) {
-            final String pattern = RowMetadataUtils.getMostUsedDatePattern(column);
+            final String pattern = AvroUtils.getMostUsedDatePattern(column);
             if (StringUtils.isNotBlank(pattern)) {
                 patterns.add(pattern);
             }
@@ -193,12 +184,14 @@ public class AnalyzerService {
         // Column types
         DataTypeEnum[] types = TypeUtils.convert(columns);
         // Semantic domains
-        List<String> domainList = columns.stream() //
+        final String[] domains = columns.stream() //
                 .map(ColumnMetadata::getDomain) //
                 .map(d -> StringUtils.isBlank(d) ? SemanticCategoryEnum.UNKNOWN.getId() : d) //
-                .collect(Collectors.toList());
-        final String[] domains = domainList.toArray(new String[domainList.size()]);
+                .toArray(String[]::new);
 
+        if (dictionarySnapshotProvider == null) {
+            dictionarySnapshotProvider = new StandardDictionarySnapshotProvider();
+        }
         DictionarySnapshot dictionarySnapshot = dictionarySnapshotProvider.get();
 
         // Build all analyzers
@@ -212,13 +205,13 @@ public class AnalyzerService {
                     analyzers.add(semanticAnalyzer);
                     break;
                 case HISTOGRAM:
-                    analyzers.add(new StreamDateHistogramAnalyzer(columns, types, dateParser));
+                    analyzers.add(new StreamDateHistogramAnalyzer(columns, types, new DateParser()));
                     analyzers.add(new StreamNumberHistogramAnalyzer(types));
                     break;
                 case QUALITY:
                     final DataTypeQualityAnalyzer dataTypeQualityAnalyzer = new DataTypeQualityAnalyzer(types);
                     columns.forEach(
-                            c -> dataTypeQualityAnalyzer.addCustomDateTimePattern(RowMetadataUtils.getMostUsedDatePattern(c)));
+                            c -> dataTypeQualityAnalyzer.addCustomDateTimePattern(AvroUtils.getMostUsedDatePattern(c)));
                     analyzers.add(new ValueQualityAnalyzer(dataTypeQualityAnalyzer,
                             new SemanticQualityAnalyzer(dictionarySnapshot, domains, false), true)); // NOSONAR
                     break;

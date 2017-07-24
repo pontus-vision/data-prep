@@ -13,12 +13,16 @@
 package org.talend.dataprep.transformation.service.export;
 
 import java.io.InputStream;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.io.InputStreamReader;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.talend.dataprep.api.dataset.DataSet;
+import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.export.ExportParameters;
 import org.talend.dataprep.command.dataset.DataSetGet;
 import org.talend.dataprep.command.dataset.DataSetGetMetadata;
@@ -68,15 +72,16 @@ public class DataSetExportStrategy extends BaseSampleExportStrategy {
                     final DataSet dataSet = mapper.readerFor(DataSet.class).readValue(parser);
                     dataSet.setMetadata(dataSetGetMetadata.execute());
                     // get the actions to apply (no preparation ==> dataset export ==> no actions)
+                    final Function<RowMetadata, Predicate<DataSetRow>> filter = rm -> filterService.build(parameters.getFilter(), rm);
                     Configuration configuration = Configuration.builder() //
                             .args(parameters.getArguments()) //
-                            .outFilter(rm -> filterService.build(parameters.getFilter(), rm)) //
+                            .outFilter(new FilterPredicate(parameters.getFilter())) //
                             .format(format.getName()) //
                             .volume(Configuration.Volume.SMALL) //
                             .output(outputStream) //
                             .limit(limit) //
                             .build();
-                    factory.get(configuration).buildExecutable(dataSet, configuration).execute();
+                    factory.get(configuration).buildExecutable(dataSet, configuration).run();
                 }
             } catch (TDPException e) {
                 throw e;
@@ -85,4 +90,6 @@ public class DataSetExportStrategy extends BaseSampleExportStrategy {
             }
         };
     }
+
+
 }

@@ -28,7 +28,7 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Change the domain of a column. <b>This action is not displayed in the UI it's here to ease recording it as a Step
@@ -72,11 +72,11 @@ public class DomainChange extends AbstractActionMetadata implements ColumnAction
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final Map<String, String> parameters = context.getParameters();
         LOGGER.debug("DomainChange for columnId {} with parameters {} ", columnId, parameters);
-        final RowMetadata rowMetadata = context.getRowMetadata();
+        final RowMetadata rowMetadata = row.getRowMetadata();
         final ColumnMetadata columnMetadata = rowMetadata.getById(columnId);
         final String newDomainId = parameters.get(NEW_DOMAIN_ID_PARAMETER_KEY);
         if (StringUtils.isNotEmpty(newDomainId)) {
@@ -87,6 +87,8 @@ public class DomainChange extends AbstractActionMetadata implements ColumnAction
         }
         rowMetadata.update(columnId, columnMetadata);
         context.setActionStatus(ActionContext.ActionStatus.DONE);
+
+        return Collections.singletonList(row);
     }
 
     @Override

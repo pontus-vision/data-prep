@@ -16,10 +16,7 @@ package org.talend.dataprep.transformation.actions.bool;
 import static java.util.Collections.singletonList;
 import static org.talend.dataprep.api.type.Type.BOOLEAN;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.WordUtils;
 import org.talend.dataprep.api.action.Action;
@@ -31,7 +28,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Negate a boolean.
@@ -78,13 +75,14 @@ public class Negate extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) { ;
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
         if (isBoolean(value)) {
             final Boolean boolValue = Boolean.valueOf(value);
-            row.set(ActionsUtils.getTargetColumnId(context), WordUtils.capitalizeFully("" + !boolValue));
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), WordUtils.capitalizeFully("" + !boolValue)));
         }
+        return Collections.singletonList(row);
     }
 
     private boolean isBoolean(final String value) {

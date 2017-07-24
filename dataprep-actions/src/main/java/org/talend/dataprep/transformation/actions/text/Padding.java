@@ -31,7 +31,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(Padding.ACTION_NAME)
 public class Padding extends AbstractActionMetadata implements ColumnAction {
@@ -115,7 +115,7 @@ public class Padding extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final Map<String, String> parameters = context.getParameters();
         final String original = row.get(columnId);
@@ -124,7 +124,7 @@ public class Padding extends AbstractActionMetadata implements ColumnAction {
         final char paddingChar = parameters.get(PADDING_CHAR_PARAMETER).charAt(0);
         final String paddingPosition = parameters.get(PADDING_POSITION_PARAMETER);
 
-        row.set(ActionsUtils.getTargetColumnId(context), apply(original, size, paddingChar, paddingPosition));
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), apply(original, size, paddingChar, paddingPosition)));
     }
 
     protected String apply(String from, int size, char paddingChar, String position) {

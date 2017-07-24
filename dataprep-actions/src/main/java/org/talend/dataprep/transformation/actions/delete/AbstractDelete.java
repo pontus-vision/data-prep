@@ -15,6 +15,8 @@ package org.talend.dataprep.transformation.actions.delete;
 
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.DATA_CLEANSING;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
@@ -22,7 +24,7 @@ import java.util.Set;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Abstract class used as base class for delete actions.
@@ -48,11 +50,12 @@ public abstract class AbstractDelete extends AbstractActionMetadata implements C
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         if (toDelete(row, columnId, context)) {
-            row.setDeleted(true);
+            return Collections.singletonList(row.setDeleted(true));
         }
+        return Collections.singletonList(row);
     }
 
     @Override

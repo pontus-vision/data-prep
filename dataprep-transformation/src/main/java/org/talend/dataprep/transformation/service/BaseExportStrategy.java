@@ -41,6 +41,7 @@ import org.talend.dataprep.exception.error.TransformationErrorCodes;
 import org.talend.dataprep.format.export.ExportFormat;
 import org.talend.dataprep.lock.LockFactory;
 import org.talend.dataprep.security.SecurityProxy;
+import org.talend.dataprep.transformation.actions.ActionParser;
 import org.talend.dataprep.transformation.api.transformer.TransformerFactory;
 import org.talend.dataprep.transformation.format.FormatRegistrationService;
 
@@ -112,7 +113,7 @@ public abstract class BaseExportStrategy {
      * @param preparationId The preparation id, if <code>null</code> or blank, returns <code>{actions: []}</code>
      * @param stepId A step id that must exist in given preparation id.
      * @return The actions that can be parsed by ActionParser.
-     * @see org.talend.dataprep.transformation.api.action.ActionParser
+     * @see ActionParser
      */
     protected String getActions(String preparationId, String stepId) {
         String actions;
@@ -139,7 +140,7 @@ public abstract class BaseExportStrategy {
      * @param startStepId A step id that must exist in given preparation id.
      * @param endStepId A step id that must exist in given preparation id.
      * @return The actions that can be parsed by ActionParser.
-     * @see org.talend.dataprep.transformation.api.action.ActionParser
+     * @see ActionParser
      */
     protected String getActions(String preparationId, String startStepId, String endStepId) {
         if (Step.ROOT_STEP.id().equals(startStepId)) {

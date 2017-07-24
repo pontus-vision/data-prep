@@ -20,8 +20,8 @@ import static org.talend.dataprep.parameters.ParameterType.INTEGER;
 import static org.talend.dataprep.parameters.ParameterType.STRING;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.SPLIT;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -44,7 +44,7 @@ import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Split a cell value on a separator.
@@ -125,13 +125,14 @@ public class Split extends AbstractActionMetadata implements ColumnAction {
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), true)) {
-            ActionsUtils.createNewColumn(context, getAdditionalColumns(context));
-        }
         if (context.getActionStatus() == OK) {
             if (isEmpty(getSeparator(context))) {
                 LOGGER.warn("Cannot split on an empty separator");
                 context.setActionStatus(CANCELED);
+            } else {
+                if (ActionsUtils.doesCreateNewColumn(context.getParameters(), true)) {
+                    ActionsUtils.createNewColumn(context, getAdditionalColumns(context));
+                }
             }
         }
     }
@@ -153,13 +154,13 @@ public class Split extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final Map<String, String> parameters = context.getParameters();
         final String columnId = context.getColumnId();
         // Set the split values in newly created columns
         final String originalValue = row.get(columnId);
         if (originalValue == null) {
-            return;
+            return Collections.singletonList(row);
         }
         // Perform the split
         String realSeparator = getSeparator(context);
@@ -172,9 +173,10 @@ public class Split extends AbstractActionMetadata implements ColumnAction {
         if (split.length != 0) {
             for (int i = 0; i < limit; i++) {
                 final String newValue = i < split.length ? split[i] : EMPTY;
-                row.set(newColumns.get("" + i), newValue);
+                row = row.set(newColumns.get("" + i), newValue);
             }
         }
+        return Collections.singletonList(row);
     }
 
     /**

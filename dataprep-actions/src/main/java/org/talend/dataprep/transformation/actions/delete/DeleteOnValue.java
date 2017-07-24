@@ -19,7 +19,7 @@ import static org.talend.dataprep.api.type.Type.NUMERIC;
 import static org.talend.dataprep.api.type.Type.STRING;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.REGEX;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.List;
 import java.util.Locale;
@@ -34,7 +34,7 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Delete row on a given value.

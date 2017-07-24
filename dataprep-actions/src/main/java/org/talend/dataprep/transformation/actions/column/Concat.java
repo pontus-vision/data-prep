@@ -19,7 +19,7 @@ import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.COLUMN;
 import static org.talend.dataprep.parameters.ParameterType.STRING;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
@@ -37,7 +37,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Concat action concatenates 2 columns into a new one. The new column name will be "column_source + selected_column."
@@ -149,7 +149,7 @@ public class Concat extends AbstractActionMetadata implements ColumnAction, Othe
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final RowMetadata rowMetadata = context.getRowMetadata();
         final String columnId = context.getColumnId();
         final Map<String, String> parameters = context.getParameters();
@@ -185,7 +185,7 @@ public class Concat extends AbstractActionMetadata implements ColumnAction, Othe
 
         newValue.append(getParameter(parameters, SUFFIX_PARAMETER, StringUtils.EMPTY));
 
-        row.set(ActionsUtils.getTargetColumnId(context), newValue.toString());
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue.toString()));
     }
 
     protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {

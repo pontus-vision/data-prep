@@ -19,12 +19,12 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import java.util.*;
 
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
@@ -77,7 +77,7 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         parameters.put(GenerateSequence.STEP_VALUE, "2");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "0012.50", "tata", "0");
@@ -101,7 +101,7 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         row.setTdpId(1L);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("0", "0012.50", "tata");
@@ -120,20 +120,17 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         //row1
         Map<String, String> values = new HashMap<>();
         values.put("0000", " ");
-        DataSetRow row1 = new DataSetRow(values);
-        row1.setTdpId(1L);
+        DataSetRow row1 = new DataSetRow(values).setTdpId(1L);
 
         // row2
         Map<String, String> values2 = new HashMap<>();
         values2.put("0000", "");
-        DataSetRow row2 = new DataSetRow(values2);
-        row2.setTdpId(2L);
+        DataSetRow row2 = new DataSetRow(values2).setTdpId(2L);
 
         // row3
         Map<String, String> values3 = new HashMap<>();
         values3.put("0000", " ");
-        DataSetRow row3 = new DataSetRow(values3);
-        row3.setTdpId(3L);
+        DataSetRow row3 = new DataSetRow(values3).setTdpId(3L);
 
         Map<String, Object> expectedValues = new LinkedHashMap<>();
         expectedValues.put("0000", "0");
@@ -144,7 +141,7 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         Map<String, Object> expectedValues3 = new LinkedHashMap<>();
         expectedValues3.put("0000", "4");
 
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), factory.create(action, parameters));
         assertEquals(expectedValues, row1.values());
         assertEquals(expectedValues2, row2.values());
         assertEquals(expectedValues3, row3.values());
@@ -162,20 +159,17 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         //row1
         Map<String, String> values = new HashMap<>();
         values.put("0000", "John");
-        DataSetRow row1 = new DataSetRow(values);
-        row1.setTdpId(1L);
+        DataSetRow row1 = new DataSetRow(values).setTdpId(1L);
 
         // row2
         Map<String, String> values2 = new HashMap<>();
         values2.put("0000", "Lily");
-        DataSetRow row2 = new DataSetRow(values2);
-        row2.setTdpId(2L);
+        DataSetRow row2 = new DataSetRow(values2).setTdpId(2L);
 
         // row3
         Map<String, String> values3 = new HashMap<>();
         values3.put("0000", "Lucy");
-        DataSetRow row3 = new DataSetRow(values3);
-        row3.setTdpId(3L);
+        DataSetRow row3 = new DataSetRow(values3).setTdpId(3L);
 
         Map<String, Object> expectedValues = new LinkedHashMap<>();
         expectedValues.put("0000", "1");
@@ -186,7 +180,7 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         Map<String, Object> expectedValues3 = new LinkedHashMap<>();
         expectedValues3.put("0000", "5");
 
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), factory.create(action, parameters));
         assertEquals(expectedValues, row1.values());
         assertEquals(expectedValues2, row2.values());
         assertEquals(expectedValues3, row3.values());
@@ -207,10 +201,9 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         // row2
         Map<String, String> values2 = new HashMap<>();
         values2.put("0000", "Lucy");
-        DataSetRow row2 = new DataSetRow(values2);
-        row2.setTdpId(2L);
+        DataSetRow row2 = new DataSetRow(values2).setTdpId(2L);
 
-        ActionTestWorkbench.test(Arrays.asList(row1, row2), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2), factory.create(action, parameters));
         // then
         assertEquals("Lily", row1.get("0000"));
         assertEquals("Lucy", row2.get("0000"));
@@ -228,7 +221,7 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         values.put("0000", "Lily");
         final DataSetRow row = new DataSetRow(values);
 
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
         // then
         assertEquals("Lily", row.get("0000"));
     }
@@ -245,21 +238,17 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         // row1
         Map<String, String> values = new HashMap<>();
         values.put("0000", "John");
-        DataSetRow row1 = new DataSetRow(values);
-        row1.setTdpId(1L);
+        DataSetRow row1 = new DataSetRow(values).setTdpId(1L);
 
         // row2
         Map<String, String> values2 = new HashMap<>();
         values2.put("0000", "Lily");
-        DataSetRow row2 = new DataSetRow(values2);
-        row2.setTdpId(2L);
-        row2.setDeleted(true);
+        DataSetRow row2 = new DataSetRow(values2).setTdpId(2L).setDeleted(true);
 
         // row3
         Map<String, String> values3 = new HashMap<>();
         values3.put("0000", "Lucy");
-        DataSetRow row3 = new DataSetRow(values3);
-        row3.setTdpId(3L);
+        DataSetRow row3 = new DataSetRow(values3).setTdpId(3L);
 
         Map<String, Object> expectedValues = new LinkedHashMap<>();
         expectedValues.put("0000", "1");
@@ -270,7 +259,7 @@ public class GenerateSequenceTest extends AbstractMetadataBaseTest<GenerateSeque
         Map<String, Object> expectedValues3 = new LinkedHashMap<>();
         expectedValues3.put("0000", "3");
 
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), factory.create(action, parameters));
         assertEquals(expectedValues, row1.values());
         assertEquals(expectedValues2, row2.values());
         assertEquals(expectedValues3, row3.values());

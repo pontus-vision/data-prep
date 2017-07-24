@@ -62,6 +62,9 @@
     </properties>
     <modules>
         <module>../dataprep-backend-common</module>
+        <module>../dataprep-transformation-common</module>
+        <module>../dataprep-transformation-java</module>
+        <module>../dataprep-transformation-beam</module>
         <module>../dataprep-backend-service</module>
         <module>../dataprep-backend-service-parent</module>
         <module>../dataprep-avro-message</module>
@@ -300,6 +303,33 @@
                 <artifactId>dataprep-transformation</artifactId>
                 <version>${project.version}</version>
                 <classifier>lib</classifier>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.dataprep</groupId>
+                <artifactId>dataprep-transformation-common</artifactId>
+                <version>${dataprep.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.dataprep</groupId>
+                <artifactId>dataprep-transformation-common</artifactId>
+                <version>${dataprep.core.version}</version>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.dataprep</groupId>
+                <artifactId>dataprep-transformation-beam</artifactId>
+                <version>${dataprep.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.dataprep</groupId>
+                <artifactId>dataprep-transformation-java</artifactId>
+                <version>${dataprep.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.dataprep</groupId>
+                <artifactId>dataprep-transformation-java</artifactId>
+                <version>${dataprep.core.version}</version>
+                <type>test-jar</type>
             </dependency>
             <dependency>
                 <groupId>org.talend.dataprep</groupId>

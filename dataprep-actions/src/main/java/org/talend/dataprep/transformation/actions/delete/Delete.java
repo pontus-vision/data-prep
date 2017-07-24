@@ -16,19 +16,17 @@ package org.talend.dataprep.transformation.actions.delete;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.DATA_CLEANSING;
 import static org.talend.dataprep.transformation.actions.category.ScopeCategory.LINE;
 
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.i18n.ActionsBundle;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.RowAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Delete the line which id matches TdpId in context. This id/filtering is managed by ActionMetadata.
@@ -92,8 +90,8 @@ public class Delete extends AbstractActionMetadata implements RowAction {
     }
 
     @Override
-    public void applyOnLine(DataSetRow row, ActionContext context) {
-        row.setDeleted(true);
+    public Collection<DataSetRow> applyOnLine(DataSetRow row, ActionContext context) {
+        return Collections.singletonList(row.setDeleted(true));
     }
 
     @Override

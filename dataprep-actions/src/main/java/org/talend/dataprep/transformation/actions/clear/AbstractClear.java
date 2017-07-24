@@ -13,6 +13,8 @@
 
 package org.talend.dataprep.transformation.actions.clear;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -20,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Abstract class used as base class for clear cells actions.
@@ -28,11 +30,12 @@ import org.talend.dataprep.transformation.api.action.context.ActionContext;
 abstract class AbstractClear extends AbstractActionMetadata implements ColumnAction {
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         if (toClear(row, columnId, context)) {
-            row.set(columnId, StringUtils.EMPTY);
+            return Collections.singletonList(row.set(columnId, StringUtils.EMPTY));
         }
+        return Collections.singletonList(row);
     }
 
     /**

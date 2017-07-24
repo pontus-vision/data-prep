@@ -36,7 +36,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
 /**
- * Iterator of dataset row used to Stream DatasetRows from json.
+ * Iterator of data set row used to Stream DatasetRows from json.
  */
 public class DataSetRowIterator implements Iterator<DataSetRow> {
 
@@ -45,9 +45,6 @@ public class DataSetRowIterator implements Iterator<DataSetRow> {
 
     /** The json parser. */
     private final JsonParser parser;
-
-    /** DataSetRow object used to read rows (cleaned and reused at each iteration). */
-    private DataSetRow row;
 
     /** RowMetadata to link to the row. */
     private final RowMetadata rowMetadata;
@@ -61,7 +58,6 @@ public class DataSetRowIterator implements Iterator<DataSetRow> {
     public DataSetRowIterator(JsonParser parser, RowMetadata rowMetadata) {
         this.parser = parser;
         this.rowMetadata = rowMetadata;
-        this.row = new DataSetRow(rowMetadata);
     }
 
     /**
@@ -73,10 +69,25 @@ public class DataSetRowIterator implements Iterator<DataSetRow> {
         try {
             this.parser = new JsonFactory().createParser(new InputStreamReader(inputStream, UTF_8));
             this.rowMetadata = new RowMetadata();
-            this.row = new DataSetRow(rowMetadata);
         } catch (IOException e) {
             throw new TalendRuntimeException(BaseErrorCodes.UNABLE_TO_PARSE_JSON, e);
         }
+    }
+
+    /**
+     * Set the string value and deal with the TDP-ID case.
+     *
+     * @param row The row to modify.
+     * @param fieldName the name of the field.
+     * @param value the value.
+     */
+    private static DataSetRow setStringValue(DataSetRow row, String fieldName, String value) {
+        if (TDP_ID.equals(fieldName)) {
+            row = row.setTdpId(Long.parseLong(value));
+        } else {
+            row = row.set(fieldName, value);
+        }
+        return row;
     }
 
     /**
@@ -84,7 +95,6 @@ public class DataSetRowIterator implements Iterator<DataSetRow> {
      */
     @Override
     public boolean hasNext() {
-
         // parser is closed, it's easy !
         if (parser.isClosed()) {
             return false;
@@ -100,7 +110,8 @@ public class DataSetRowIterator implements Iterator<DataSetRow> {
 
         final JsonToken currentToken = parser.getCurrentToken();
 
-        // when dealing with records, there are still records when the token is not null and the end of the array is not reached
+        // when dealing with records, there are still records when the token is not null and the end of the array is not
+        // reached
         if ("records".equals(currentName)) {
             return currentToken != null && currentToken != END_ARRAY;
         }
@@ -118,7 +129,7 @@ public class DataSetRowIterator implements Iterator<DataSetRow> {
         try {
             String currentFieldName = StringUtils.EMPTY;
             JsonToken nextToken;
-            row.clear();
+            DataSetRow row = new DataSetRow(rowMetadata);
             while ((nextToken = parser.nextToken()) != JsonToken.END_OBJECT) {
                 if (nextToken == null) {
                     // End of input, return the current row.
@@ -131,21 +142,21 @@ public class DataSetRowIterator implements Iterator<DataSetRow> {
                     currentFieldName = parser.getText();
                     break;
                 case VALUE_STRING:
-                    setStringValue(currentFieldName, parser.getText());
+                    row = setStringValue(row, currentFieldName, parser.getText());
                     break;
                 case VALUE_NULL:
-                    row.set(currentFieldName, "");
+                    row = row.set(currentFieldName, StringUtils.EMPTY);
                     break;
                 case VALUE_TRUE:
                 case VALUE_FALSE:
                     if ("_deleted".equals(currentFieldName)) {
-                        row.setDeleted(Boolean.parseBoolean(parser.getText()));
+                        row = row.setDeleted(Boolean.parseBoolean(parser.getText()));
                     }
                     break;
                 case VALUE_NUMBER_INT:
                 case VALUE_NUMBER_FLOAT:
                     if (FlagNames.TDP_ID.equals(currentFieldName)) {
-                        row.setTdpId(Long.parseLong(parser.getText()));
+                        row = row.setTdpId(Long.parseLong(parser.getText()));
                     }
                     break;
                 default:
@@ -157,20 +168,6 @@ public class DataSetRowIterator implements Iterator<DataSetRow> {
             return row;
         } catch (IOException e) {
             throw new TalendRuntimeException(BaseErrorCodes.UNABLE_TO_PARSE_JSON, e);
-        }
-    }
-
-    /**
-     * Set the string value and deal with the TDP-ID case.
-     *
-     * @param fieldName the name of the field.
-     * @param value the value.
-     */
-    private void setStringValue(String fieldName, String value) {
-        if (TDP_ID.equals(fieldName)) {
-            row.setTdpId(Long.parseLong(value));
-        } else {
-            row.set(fieldName, value);
         }
     }
 }

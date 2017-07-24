@@ -16,8 +16,8 @@ package org.talend.dataprep.transformation.actions.column;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.talend.dataprep.transformation.actions.category.ActionScope.HIDDEN_IN_ACTION_LIST;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.DONE;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.DONE;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
@@ -31,7 +31,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Change the type of a column <b>This action is not displayed in the UI it's here to ease recording it as a Step It's
@@ -105,7 +105,8 @@ public class TypeChange extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         // Nothing to do.
+        return Collections.singletonList(row);
     }
 }

@@ -14,7 +14,10 @@ package org.talend.dataprep.transformation.actions.delete;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Action(KeepOnly.KEEP_ONLY_ACTION_NAME)
 public class KeepOnly extends AbstractFilteringAction {
@@ -27,10 +30,11 @@ public class KeepOnly extends AbstractFilteringAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         if (!context.getFilter().test(row)) {
-            row.setDeleted(true);
+            return Collections.singletonList(row.setDeleted(true));
         }
+        return Collections.singletonList(row);
     }
 
 }

@@ -15,11 +15,6 @@ package org.talend.dataprep.transformation.actions.duplication;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
@@ -27,7 +22,11 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.DataSetAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+
+import java.util.*;
+
+import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 /**
  * Keep only one occurrence of duplicated rows.
@@ -76,7 +75,7 @@ public class Deduplicate extends AbstractActionMetadata implements DataSetAction
     }
 
     @Override
-    public void applyOnDataSet(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnDataSet(DataSetRow row, ActionContext context) {
         if (!row.isDeleted()) {
             String data = evalHashCode(row);
 
@@ -84,12 +83,13 @@ public class Deduplicate extends AbstractActionMetadata implements DataSetAction
             if (!hashes.contains(data)) {
                 hashes.add(data);
             } else {
-                row.setDeleted(true);
+                return Collections.singletonList(row.setDeleted(true));
             }
         }
+        return Collections.singletonList(row);
     }
 
-    protected String evalHashCode(DataSetRow row) {
+    private String evalHashCode(DataSetRow row) {
         StringBuilder columnContents = new StringBuilder();
         for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
             columnContents

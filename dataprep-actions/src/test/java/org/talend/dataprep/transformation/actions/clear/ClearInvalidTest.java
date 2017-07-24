@@ -19,22 +19,17 @@ import static org.junit.Assert.*;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.actions.common.RunnableAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
-import org.talend.dataprep.transformation.api.action.context.TransformationContext;
+import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 /**
  * Test class for ClearInvalid action. Creates one consumer, and test it.
@@ -99,13 +94,10 @@ public class ClearInvalidTest extends AbstractMetadataBaseTest<ClearInvalid> {
         expectedValues.put("0002", "Something");
 
         // when
-        final RunnableAction runnableAction = factory.create(action, parameters);
-        final ActionContext context = new ActionContext(new TransformationContext(), rowMetadata);
-        context.setParameters(parameters);
-        runnableAction.getRowAction().apply(row, context);
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(expectedValues, row.values());
+        assertEquals(expectedValues, collected.get(0).values());
     }
 
     @Test
@@ -126,13 +118,10 @@ public class ClearInvalidTest extends AbstractMetadataBaseTest<ClearInvalid> {
         expectedValues.put("0002", "Something");
 
         // when
-        final RunnableAction runnableAction = factory.create(action, parameters);
-        final ActionContext context = new ActionContext(new TransformationContext(), rowMetadata);
-        context.setParameters(parameters);
-        runnableAction.getRowAction().apply(row, context);
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(expectedValues, row.values());
+        assertEquals(expectedValues, collected.get(0).values());
     }
 
     @Test
@@ -153,13 +142,10 @@ public class ClearInvalidTest extends AbstractMetadataBaseTest<ClearInvalid> {
         expectedValues.put("0003", "Something");
 
         // when
-        final RunnableAction runnableAction = factory.create(action, parameters);
-        final ActionContext context = new ActionContext(new TransformationContext(), rowMetadata);
-        context.setParameters(parameters);
-        runnableAction.getRowAction().apply(row, context);
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(expectedValues, row.values());
+        assertEquals(expectedValues, collected.get(0).values());
     }
 
 

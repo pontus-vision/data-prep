@@ -14,7 +14,9 @@
 package org.talend.dataprep.transformation.actions.common;
 
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+
+import java.util.Collection;
 
 /**
  * Interface used to apply action on a row.
@@ -23,9 +25,8 @@ public interface RowAction {
 
     /**
      * Apply action on a row.
-     * 
      * @param row the dataset row.
      * @param context the transformation context.
      */
-    void applyOnLine(final DataSetRow row, final ActionContext context);
+    Collection<DataSetRow> applyOnLine(final DataSetRow row, final ActionContext context);
 }

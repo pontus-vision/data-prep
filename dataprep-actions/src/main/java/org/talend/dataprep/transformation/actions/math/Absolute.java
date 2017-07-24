@@ -15,23 +15,20 @@ package org.talend.dataprep.transformation.actions.math;
 import static java.util.Collections.singletonList;
 import static org.talend.dataprep.api.type.Type.DOUBLE;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataprep.util.NumericHelper;
 
 /**
@@ -86,19 +83,20 @@ public class Absolute extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
         if (value == null) {
-            return;
+            return Collections.singletonList(row);
         }
         String absValueStr = null;
         if(NumericHelper.isBigDecimal(value)) {
             absValueStr = BigDecimalParser.toBigDecimal(value).abs().toPlainString();
         }
         if (absValueStr != null) {
-            row.set(ActionsUtils.getTargetColumnId(context), absValueStr);
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), absValueStr));
         }
+        return Collections.singletonList(row);
     }
 
     @Override

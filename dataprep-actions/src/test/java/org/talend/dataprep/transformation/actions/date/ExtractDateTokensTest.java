@@ -26,12 +26,12 @@ import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.dataset.statistics.Statistics;
 import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -92,8 +92,8 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         expectedValues.put("0003", "0");
         expectedValues.put("0002", "tata");
 
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        //when
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -118,8 +118,8 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         expectedValues.put("0003", "0");
         expectedValues.put("0002", "tata");
 
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        //when
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -148,7 +148,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         expectedValues.put("0002", "tata");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -178,8 +178,8 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         expectedValues.put("0003", "0");
         expectedValues.put("0002", "tata");
 
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        //when
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -205,7 +205,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         expectedValues.put("0002", "tata");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -234,7 +234,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         expectedValues.put("0002", "tata");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -263,7 +263,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         expectedValues.put("0002", "tata");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -283,7 +283,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         input.get(1).setStatistics(statistics);
 
         // when
-        ActionTestWorkbench.test(rowMetadata, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(new DataSetRow(rowMetadata), factory.create(action, parameters));
 
         // then
         assertNotNull(rowMetadata.getById("0003"));

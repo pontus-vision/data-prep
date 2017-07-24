@@ -19,16 +19,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ ElementType.TYPE })
-@Retention(RetentionPolicy.RUNTIME)
 /**
  * This annotation is equivalent to @Scope("prototype") of Spring framework for the Provider.
  *
  * When this annotation is declared for a class, the Provider will return a new instance for each call of
  * {@link Providers#get(Class, Object...)}.
- * 
+ *
  * @see Providers
  */
+@Target({ ElementType.TYPE })
+@Retention(RetentionPolicy.RUNTIME)
 public @interface PrototypeScope {
 
 }

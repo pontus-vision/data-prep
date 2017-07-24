@@ -12,6 +12,20 @@
 
 package org.talend.dataprep.transformation.actions.math;
 
+import static java.util.Collections.singletonList;
+import static org.talend.daikon.number.BigDecimalParser.*;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.ParameterType.STRING;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
+
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
+import java.util.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,22 +41,8 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataprep.util.NumericHelper;
-
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
-import java.util.*;
-
-import static java.util.Collections.singletonList;
-import static org.talend.daikon.number.BigDecimalParser.*;
-import static org.talend.dataprep.parameters.Parameter.parameter;
-import static org.talend.dataprep.parameters.ParameterType.STRING;
-import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 /**
  * Change the pattern on a 'number' column.
@@ -279,11 +279,11 @@ public class ChangeNumberFormat extends AbstractActionMetadata implements Column
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final DecimalFormat decimalTargetFormat = context.get(COMPILED_TARGET_FORMAT);
 
-        final ColumnMetadata columnMetadata = context.getRowMetadata().getById(columnId);
+        final ColumnMetadata columnMetadata = row.getRowMetadata().getById(columnId);
         columnMetadata.setType(Type.DOUBLE.toString());
         columnMetadata.setTypeForced(true);
         columnMetadata.setDomain("");
@@ -294,38 +294,37 @@ public class ChangeNumberFormat extends AbstractActionMetadata implements Column
         final String mode = context.getParameters().get(FROM_SEPARATORS);
         if (StringUtils.isBlank(originalValue) || (!NumericHelper.isBigDecimal(originalValue) && !CUSTOM.equals(mode))) {
             LOGGER.debug("Unable to parse {} value as Number, it is blank or not numeric", originalValue);
-            row.set(ActionsUtils.getTargetColumnId(context), originalValue);
-            return;
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), originalValue));
         }
 
         final BigDecimal bd;
         switch (mode) {
-            case EU_SEPARATORS:
-                bd = BigDecimalParser.toBigDecimal(originalValue, ',', '.');
+        case EU_SEPARATORS:
+            bd = BigDecimalParser.toBigDecimal(originalValue, ',', '.');
+            break;
+        case CH_SEPARATORS:
+            bd = BigDecimalParser.toBigDecimal(originalValue, '.', '\'');
+            break;
+        case CUSTOM:
+            try {
+                bd = parseCustomNumber(context, originalValue);
                 break;
-            case CH_SEPARATORS:
-                bd = BigDecimalParser.toBigDecimal(originalValue, '.', '\'');
-                break;
-            case CUSTOM:
-                try {
-                    bd = parseCustomNumber(context, originalValue);
-                    break;
-                } catch (Exception e) {
-                    // User specified custom separators that doesn't validate value
-                    LOGGER.debug("Unable to use custom separators to parse value '{}'", originalValue);
-                    return;
-                }
-            case US_SEPARATORS:
-                bd = BigDecimalParser.toBigDecimal(originalValue, '.', ',');
-                break;
-            case UNKNOWN_SEPARATORS:
-            default:
-                bd = BigDecimalParser.toBigDecimal(originalValue);
-                break;
+            } catch (Exception e) {
+                // User specified custom separators that doesn't validate value
+                LOGGER.debug("Unable to use custom separators to parse value '{}'", originalValue);
+                return Collections.singletonList(row);
+            }
+        case US_SEPARATORS:
+            bd = BigDecimalParser.toBigDecimal(originalValue, '.', ',');
+            break;
+        case UNKNOWN_SEPARATORS:
+        default:
+            bd = BigDecimalParser.toBigDecimal(originalValue);
+            break;
         }
 
         String newValue = BigDecimalFormatter.format(bd, decimalTargetFormat);
-        row.set(ActionsUtils.getTargetColumnId(context), newValue);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue));
     }
 
     /**

@@ -16,8 +16,8 @@ import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.INTEGER;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -32,7 +32,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Generate a sequence on a column based on start value and step value.
@@ -118,12 +118,12 @@ public class GenerateSequence extends AbstractActionMetadata implements ColumnAc
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         if (row.isDeleted()) {
-            return;
+            return Collections.singletonList(row);
         }
         final CalcSequence sequence = context.get(SEQUENCE);
-        row.set(ActionsUtils.getTargetColumnId(context), sequence.getNextValue());
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), sequence.getNextValue()));
     }
 
     /** this class is used to calculate the sequence next step */

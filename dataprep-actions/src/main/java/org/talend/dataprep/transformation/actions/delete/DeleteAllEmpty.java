@@ -26,7 +26,7 @@ import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.DataSetAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Delete all rows when they are empty.
@@ -85,19 +85,20 @@ public class DeleteAllEmpty extends AbstractActionMetadata implements DataSetAct
     }
 
     @Override
-    public void applyOnDataSet(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnDataSet(DataSetRow row, ActionContext context) {
         if (!row.isDeleted()) {
             String mode = context.getParameters().get(ACTION_PARAMETER);
-            row.setDeleted(toDelete(row, mode));
+            return Collections.singletonList(row.setDeleted(toDelete(row, mode)));
         }
+        return Collections.singletonList(row);
     }
 
-    public boolean toDelete(DataSetRow row, String mode) {
+    private boolean toDelete(DataSetRow row, String mode) {
         Predicate<String> nonDeletableCriteria;
         if (KEEP.equals(mode)) {
-            nonDeletableCriteria = s -> StringUtils.isNotEmpty(s);
+            nonDeletableCriteria = StringUtils::isNotEmpty;
         } else {
-            nonDeletableCriteria = s -> StringUtils.isNotBlank(s);
+            nonDeletableCriteria = StringUtils::isNotBlank;
         }
         for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
             String value = row.get(column.getId());

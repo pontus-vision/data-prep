@@ -12,9 +12,11 @@
 
 package org.talend.dataprep.transformation.actions.common;
 
+import java.util.Collection;
+
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.transformation.api.action.DataSetRowAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.DataSetRowAction;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 class DataSetRowActionImpl implements DataSetRowAction {
 
@@ -28,7 +30,7 @@ class DataSetRowActionImpl implements DataSetRowAction {
     }
 
     @Override
-    public DataSetRow apply(DataSetRow dataSetRow, ActionContext actionContext) {
+    public Collection<DataSetRow> apply(DataSetRow dataSetRow, ActionContext actionContext) {
         return rowAction.apply(dataSetRow, actionContext);
     }
 

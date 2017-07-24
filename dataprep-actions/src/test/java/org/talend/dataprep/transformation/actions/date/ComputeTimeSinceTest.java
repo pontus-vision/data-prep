@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 package org.talend.dataprep.transformation.actions.date;
 
 import static java.time.temporal.ChronoUnit.*;
@@ -38,12 +38,12 @@ import org.assertj.core.data.MapEntry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.SelectParameter;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
@@ -115,7 +115,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "false");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertEquals(expectedValues, row.values());
@@ -137,7 +137,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         expectedValues.put("0002", "Bacon");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertEquals(expectedValues, row.values());
@@ -159,7 +159,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         expectedValues.put("0002", "Bacon");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -181,7 +181,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         expectedValues.put("0002", "Bacon");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -205,7 +205,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(TIME_UNIT_PARAMETER, DAYS.name());
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertEquals(expectedValues, row.values());
@@ -229,7 +229,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(TIME_UNIT_PARAMETER, HOURS.name());
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertEquals(expectedValues, row.values());
@@ -253,7 +253,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(TIME_UNIT_PARAMETER, HOURS.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -278,7 +278,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(TIME_UNIT_PARAMETER, HOURS.name());
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters), factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters), factory.create(action, parameters));
 
         //then
         assertEquals(expectedValues, row.values());
@@ -303,10 +303,10 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
 
         //when
         parameters.put(TIME_UNIT_PARAMETER, YEARS.name());
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         parameters.put(TIME_UNIT_PARAMETER, MONTHS.name());
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertEquals(expectedValues, row.values());
@@ -326,7 +326,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(TIME_UNIT_PARAMETER, DAYS.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -344,7 +344,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         expected.add(createMetadata("0002", "steps"));
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertEquals(expected, row.getRowMetadata().getColumns());
@@ -363,7 +363,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         expected.add(createMetadata("0002", "steps"));
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters), factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters), factory.create(action, parameters));
 
         //then
         assertEquals(expected, row.getRowMetadata().getColumns());
@@ -383,10 +383,10 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
 
         //when
         parameters.put(TIME_UNIT_PARAMETER, YEARS.name());
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         parameters.put(TIME_UNIT_PARAMETER, DAYS.name());
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertEquals(expected, row.getRowMetadata().getColumns());
@@ -421,7 +421,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(SELECTED_COLUMN_PARAMETER, "0002");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertThat(row.values()).contains(MapEntry.entry("0000", "lorem bacon"), //
@@ -445,7 +445,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(SELECTED_COLUMN_PARAMETER, "0002");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertThat(row.values()).contains(MapEntry.entry("0000", "lorem bacon"), //
@@ -469,7 +469,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(SPECIFIC_DATE_PARAMETER, compare);
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertThat(row.values()).contains(MapEntry.entry("0000", "lorem bacon"), //
@@ -493,7 +493,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(SPECIFIC_DATE_PARAMETER, compare);
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertThat(row.values()).contains(MapEntry.entry("0000", "lorem bacon"), //
@@ -516,7 +516,7 @@ public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
         parameters.put(SPECIFIC_DATE_PARAMETER, compare);
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertThat(row.values()).contains(MapEntry.entry("0000", "lorem bacon"), //

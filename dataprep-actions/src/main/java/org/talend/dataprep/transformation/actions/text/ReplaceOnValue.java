@@ -19,8 +19,8 @@ import static org.talend.dataprep.api.type.Type.STRING;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.BOOLEAN;
 import static org.talend.dataprep.parameters.ParameterType.REGEX;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.security.InvalidParameterException;
 import java.util.*;
@@ -37,7 +37,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Replace the content or part of a cell by a value.
@@ -117,26 +117,25 @@ public class ReplaceOnValue extends AbstractActionMetadata implements ColumnActi
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        apply(row, context);
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
+        return apply(row, context);
     }
 
     /**
      * Apply the action.
-     *
-     * @param row the row where to apply the action.
+     *  @param row the row where to apply the action.
      * @param context the action context.
      */
-    private void apply(DataSetRow row, ActionContext context) {
+    private List<DataSetRow> apply(DataSetRow row, ActionContext context) {
         final String value = row.get(context.getColumnId());
 
         // defensive programming against null pointer exception
         if (value == null) {
-            return;
+            return Collections.singletonList(row);
         }
 
         final String newValue = computeNewValue(context, value);
-        row.set(ActionsUtils.getTargetColumnId(context), newValue);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue));
     }
 
     /**
@@ -152,7 +151,7 @@ public class ReplaceOnValue extends AbstractActionMetadata implements ColumnActi
         }
 
         // There are direct calls to this method from unit tests, normally such checks are done during transformation.
-        if (context.getActionStatus() != ActionContext.ActionStatus.OK) {
+        if (context.getActionStatus() != OK) {
             return originalValue;
         }
 

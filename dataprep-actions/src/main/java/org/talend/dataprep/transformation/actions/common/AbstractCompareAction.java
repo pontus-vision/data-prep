@@ -34,7 +34,7 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.parameters.SelectParameter;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 public abstract class AbstractCompareAction extends AbstractActionMetadata
         implements ColumnAction, OtherColumnParameters, CompareAction {
@@ -136,7 +136,7 @@ public abstract class AbstractCompareAction extends AbstractActionMetadata
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final Map<String, String> parameters = context.getParameters();
         final String compareMode = getCompareMode(parameters);
@@ -145,12 +145,12 @@ public abstract class AbstractCompareAction extends AbstractActionMetadata
 
         ComparisonRequest comparisonRequest = new ComparisonRequest() //
                 .setMode(compareMode) //
-                .setColumnMetadata1(context.getRowMetadata().getById(columnId)) //
+                .setColumnMetadata1(row.getRowMetadata().getById(columnId)) //
                 .setValue1(row.get(columnId)) //
                 // this can be null when comparing with a constant
                 .setColumnMetadata2(getColumnMetadataToCompareWith(parameters, context)) //
                 .setValue2(getValueToCompareWith(parameters, context, row));
-        row.set(newColumnId, toStringCompareResult(comparisonRequest));
+        return Collections.singletonList(row.set(newColumnId, toStringCompareResult(comparisonRequest)));
     }
 
     /**

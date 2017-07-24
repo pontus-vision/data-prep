@@ -30,13 +30,13 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
@@ -97,11 +97,12 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
+        final DataSetRow actual = collected.get(0);
         DataSetRow expected = getRow("first", "second", "Done !", "<first-second>");
-        assertEquals(expected, row);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -110,7 +111,7 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         DataSetRow row = getRow("first", "second", "Done !");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         DataSetRow expected = getRow("<first-second>", "second", "Done !");
@@ -128,11 +129,12 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
+        final DataSetRow actualRow = collected.get(0);
         final ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("source_selected").type(Type.STRING).build();
-        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        ColumnMetadata actual = actualRow.getRowMetadata().getById("0003");
         assertEquals(expected, actual);
     }
 
@@ -150,11 +152,12 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.remove(Concat.SELECTED_COLUMN_PARAMETER);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
+        final DataSetRow actualRow = collected.get(0);
         final ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("<source>").type(Type.STRING).build();
-        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        ColumnMetadata actual = actualRow.getRowMetadata().getById("0003");
         assertEquals(expected, actual);
     }
 
@@ -166,11 +169,12 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
+        final DataSetRow actual = collected.get(0);
         DataSetRow expected = getRow("first", "second", "Done !", "<firstsecond>");
-        assertEquals(expected, row);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -180,10 +184,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", ""), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", ""), //
                 MapEntry.entry("0001", "second"), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<second>"));
@@ -197,10 +202,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", ""), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", ""), //
                 MapEntry.entry("0001", "second"), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<-second>"));
@@ -213,10 +219,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", " "), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", " "), //
                 MapEntry.entry("0001", "second"), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<second>"));
@@ -230,10 +237,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", " "), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", " "), //
                 MapEntry.entry("0001", "second"), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<-second>"));
@@ -246,10 +254,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", " "), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", " "), //
                 MapEntry.entry("0001", "second"), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<second>"));
@@ -263,10 +272,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", "first"), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", "first"), //
                 MapEntry.entry("0001", ""), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<first->"));
@@ -279,10 +289,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", "first"), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", "first"), //
                 MapEntry.entry("0001", ""), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<first>"));
@@ -295,10 +306,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", "first"), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", "first"), //
                 MapEntry.entry("0001", ""), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<first>"));
@@ -311,10 +323,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", "first"), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", "first"), //
                 MapEntry.entry("0001", "  "), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<first>"));
@@ -328,10 +341,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", "first"), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", "first"), //
                 MapEntry.entry("0001", "  "), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<first->"));
@@ -345,10 +359,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", " "), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", " "), //
                 MapEntry.entry("0001", " "), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<->"));
@@ -362,10 +377,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", ""), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", ""), //
                 MapEntry.entry("0001", ""), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<->"));
@@ -379,10 +395,11 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", "first"), //
+        final DataSetRow actual = collected.get(0);
+        Assertions.assertThat(actual.values()).contains(MapEntry.entry("0000", "first"), //
                 MapEntry.entry("0001", "  "), //
                 MapEntry.entry("0002", "Done !"), //
                 MapEntry.entry("0003", "<first>"));
@@ -396,11 +413,12 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
+        final DataSetRow actual = collected.get(0);
         DataSetRow expected = getRow("first", "second", "Done !", "first-second>");
-        assertEquals(expected, row);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -412,11 +430,12 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
+        final DataSetRow actual = collected.get(0);
         DataSetRow expected = getRow("first", "second", "Done !", "<first>");
-        assertEquals(expected, row);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -427,11 +446,12 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
+        final DataSetRow actual = collected.get(0);
         DataSetRow expected = getRow("first", "second", "Done !", "<first-second");
-        assertEquals(expected, row);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -444,11 +464,12 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
+        final DataSetRow actual = collected.get(0);
         DataSetRow expected = getRow("first", "second", "Done !", "firstsecond");
-        assertEquals(expected, row);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -458,12 +479,13 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.remove(Concat.SELECTED_COLUMN_PARAMETER);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(row.get("0000"), "first");
-        assertEquals(row.get("0001"), "second");
-        assertEquals(row.get("0002"), "Done !");
+        final DataSetRow actual = collected.get(0);
+        assertEquals(actual.get("0000"), "first");
+        assertEquals(actual.get("0001"), "second");
+        assertEquals(actual.get("0002"), "Done !");
     }
 
     @Test
@@ -473,12 +495,13 @@ public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
         parameters.put(Concat.SELECTED_COLUMN_PARAMETER, "123548");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(row.get("0000"), "first");
-        assertEquals(row.get("0001"), "second");
-        assertEquals(row.get("0002"), "Done !");
+        final DataSetRow actual = collected.get(0);
+        assertEquals(actual.get("0000"), "first");
+        assertEquals(actual.get("0001"), "second");
+        assertEquals(actual.get("0002"), "Done !");
     }
 
     @Test

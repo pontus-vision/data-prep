@@ -23,8 +23,6 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +51,7 @@ public class CSVWriter extends AbstractTransformerWriter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVWriter.class);
 
-    private final OutputStream output;
+    private transient OutputStream output;
 
     private char separator;
 
@@ -67,55 +65,45 @@ public class CSVWriter extends AbstractTransformerWriter {
 
     /** The default separator. */
     @Value("${default.text.separator:;}")
-    private String defaultSeparator;
+    private String defaultSeparator = ";";
 
     /** The default enclosure character. */
     @Value("${default.text.enclosure:\"}")
-    private String defaultTextEnclosure;
+    private String defaultTextEnclosure = "\"";
 
     /** The default escape character. */
     @Value("${default.text.escape:\"}")
-    private String defaultEscapeChar;
+    private String defaultEscapeChar = "\"";
 
     /** The default encoding. */
     @Value("${default.text.encoding:UTF-8}")
-    private String defaultEncoding;
+    private String defaultEncoding = "UTF-8";
 
-    private Map<String, String> parameters;
-
-    private Charset encoding;
+    private transient Charset encoding = Charset.forName("UTF-8");
 
     private CSVWriterCustom csvWriter;
 
     /**
      * Simple constructor with default separator value.
-     *
-     * @param output where this writer should... write !
      */
-    public CSVWriter(final OutputStream output) {
-        this(output, Collections.emptyMap());
+    public CSVWriter() {
+        this(Collections.emptyMap());
     }
 
     /**
      * Constructor.
      *
-     * @param output where to write the dataset.
      * @param parameters parameters to get the separator and the escape character from.
      */
-    public CSVWriter(final OutputStream output, Map<String, String> parameters) {
-        this.parameters = ExportFormat.cleanParameters(parameters);
-        this.output = output;
-    }
-
-    @PostConstruct
-    private void initWriter() {
-        separator = getParameterCharValue(parameters, CSVFormat.ParametersCSV.FIELDS_DELIMITER, defaultSeparator);
-        escapeCharacter = getParameterCharValueWithEmpty(parameters, CSVFormat.ParametersCSV.ESCAPE_CHAR, defaultEscapeChar);
-        enclosureCharacter = getParameterCharValueWithEmpty(parameters, CSVFormat.ParametersCSV.ENCLOSURE_CHAR,
+    public CSVWriter(Map<String, String> parameters) {
+        Map<String, String> cleanedParameters = ExportFormat.cleanParameters(parameters);
+        separator = getParameterCharValue(cleanedParameters, CSVFormat.ParametersCSV.FIELDS_DELIMITER, defaultSeparator);
+        escapeCharacter = getParameterCharValueWithEmpty(cleanedParameters, CSVFormat.ParametersCSV.ESCAPE_CHAR, defaultEscapeChar);
+        enclosureCharacter = getParameterCharValueWithEmpty(cleanedParameters, CSVFormat.ParametersCSV.ENCLOSURE_CHAR,
                 defaultTextEnclosure);
-        enclosureMode = getParameterStringValue(parameters, CSVFormat.ParametersCSV.ENCLOSURE_MODE, DEFAULT_ENCLOSURE_MODE);
+        enclosureMode = getParameterStringValue(cleanedParameters, CSVFormat.ParametersCSV.ENCLOSURE_MODE, DEFAULT_ENCLOSURE_MODE);
 
-        encoding = extractEncodingWithFallback(parameters.get(CSVFormat.ParametersCSV.ENCODING));
+        encoding = extractEncodingWithFallback(cleanedParameters.get(CSVFormat.ParametersCSV.ENCODING));
     }
 
     private Charset extractEncodingWithFallback(String encodingParameter) {
@@ -191,11 +179,11 @@ public class CSVWriter extends AbstractTransformerWriter {
         }
     }
 
-    /**
-     * Write the rowMetadata
-     *
-     * @param rowMetadata
-     */
+    @Override
+    public void setOutput(OutputStream output) {
+        this.output = output;
+    }
+
     @Override
     public void write(final RowMetadata rowMetadata) throws IOException {
         csvWriter = new CSVWriterCustom(new OutputStreamWriter(output, encoding), separator, enclosureCharacter, escapeCharacter);

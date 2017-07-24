@@ -2,24 +2,24 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.date;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.daikon.exception.TalendRuntimeException;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
@@ -90,7 +90,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         missingParameters.put("column_id", "");
 
         //when
-        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), actionRegistry, factory.create(action, missingParameters));
+        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), factory.create(action, missingParameters));
     }
 
     @Test(expected = TalendRuntimeException.class)
@@ -101,7 +101,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         missingParameters.put(ModifyDate.NEW_PATTERN, "toto");
 
         //when
-        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), actionRegistry, factory.create(action, missingParameters));
+        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), factory.create(action, missingParameters));
     }
 
     @Test(expected = TalendRuntimeException.class)
@@ -111,7 +111,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         insufficientParams.put("column_id", "0000");
 
         //when
-        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), actionRegistry, factory.create(action, insufficientParams));
+        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), factory.create(action, insufficientParams));
     }
 
     @Test
@@ -138,10 +138,9 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row1, actionRegistry, factory.create(action, parameters));
-        ActionTestWorkbench.test(row2, actionRegistry, factory.create(action, parameters));
-        ActionTestWorkbench.test(row3, actionRegistry, factory.create(action, parameters));
-
+        ActionTestWorkbench.test(row1, factory.create(action, parameters));
+        ActionTestWorkbench.test(row2, factory.create(action, parameters));
+        ActionTestWorkbench.test(row3, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow1 = getRow("toto", "04/25/1999", "tata", "04/25/2000");
@@ -173,7 +172,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/2000", "tata");
@@ -188,7 +187,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(CONSTANT_VALUE, "ouf");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/1999", "tata");
@@ -206,7 +205,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(TIME_UNIT_PARAMETER, MONTHS.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "05/25/1999", "tata");
@@ -224,7 +223,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(CONSTANT_VALUE, "4");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/2003", "tata");
@@ -245,7 +244,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(TIME_UNIT_PARAMETER, DAYS.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/30/1999", "5");
@@ -266,7 +265,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(TIME_UNIT_PARAMETER, DAYS.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "10/04/1999", "162");
@@ -286,7 +285,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(TIME_UNIT_PARAMETER, DAYS.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/30/1999", "5.0");
@@ -306,7 +305,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(TIME_UNIT_PARAMETER, DAYS.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/30/1999", "5.2");
@@ -323,7 +322,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         parameters.put(TIME_UNIT_PARAMETER, DAYS.name());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/1999", "ah");
@@ -340,7 +339,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/2010", "tata");
@@ -354,7 +353,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         setStatistics(row, "0001", getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "NA", "tata");
@@ -368,7 +367,7 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
         setStatistics(row, "0001", getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then (values should be unchanged)
         final DataSetRow expectedRow = getRow("toto", "", "tata");

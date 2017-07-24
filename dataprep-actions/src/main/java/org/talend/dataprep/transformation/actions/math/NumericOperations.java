@@ -17,7 +17,7 @@ import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.COLUMN;
 import static org.talend.dataprep.parameters.ParameterType.STRING;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -41,7 +41,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataprep.util.NumericHelper;
 
 /**
@@ -161,11 +161,11 @@ public class NumericOperations extends AbstractActionMetadata implements ColumnA
     }
 
     @Override
-    public void applyOnColumn(final DataSetRow row, final ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(final DataSetRow row, final ActionContext context) {
         final Map<String, String> parameters = context.getParameters();
         final String columnId = context.getColumnId();
 
-        final RowMetadata rowMetadata = context.getRowMetadata();
+        final RowMetadata rowMetadata = row.getRowMetadata();
 
         // extract transformation parameters
         final String operator = parameters.get(OPERATOR_PARAMETER);
@@ -180,7 +180,7 @@ public class NumericOperations extends AbstractActionMetadata implements ColumnA
         // set new column value
         final String sourceValue = row.get(columnId);
         final String newValue = compute(sourceValue, operator, operand);
-        row.set(ActionsUtils.getTargetColumnId(context), newValue);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue));
     }
 
     protected String compute(final String stringOperandOne, final String operator, final String stringOperandTwo) {

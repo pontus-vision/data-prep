@@ -31,7 +31,7 @@ import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.actions.common.RowAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * This action does two things:
@@ -82,7 +82,7 @@ public class MakeLineHeader extends AbstractActionMetadata implements RowAction 
     }
 
     @Override
-    public void applyOnLine(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnLine(DataSetRow row, ActionContext context) {
         Map<String, String> parameters = context.getParameters();
         String skipUntilStr = parameters.get(SKIP_UNTIL);
         // default is true
@@ -92,28 +92,25 @@ public class MakeLineHeader extends AbstractActionMetadata implements RowAction 
         long rowId = NumberUtils.toLong(parameters.get(ImplicitParameters.ROW_ID.getKey()), 0);
 
         if (skipPreviousRows && (tdpId < rowId)) {
-            row.setDeleted(true);
+            return Collections.singletonList(row.setDeleted(true));
         } else if (context.getFilter().test(row)) {
-            setHeadersFromRow(row, context);
+            return Collections.singletonList(setHeadersFromRow(row, context));
         } else {
-            setRemainingRowColumnsNames(context);
+            return Collections.singletonList(setRemainingRowColumnsNames(row));
         }
     }
 
-    private void setRemainingRowColumnsNames(ActionContext context) {
-        for (ColumnMetadata column : context.getRowMetadata().getColumns()) {
-            if (!context.has(column.getId())) {
-                // Action hasn't yet found new headers
-                break;
-            }
-            String newColumnName = context.get(column.getId());
+    private DataSetRow setRemainingRowColumnsNames(DataSetRow row) {
+        for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
+            String newColumnName = row.get(column.getId());
             column.setName(newColumnName);
         }
+        return row;
     }
 
-    private void setHeadersFromRow(DataSetRow row, ActionContext context) {
+    private DataSetRow setHeadersFromRow(DataSetRow row, ActionContext context) {
         LOGGER.debug("Make line header for rowId {} with parameters {} ", context.getRowId(), context.getParameters());
-        List<ColumnMetadata> columns = context.getRowMetadata().getColumns();
+        List<ColumnMetadata> columns = row.getRowMetadata().getColumns();
         for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
             ColumnMetadata column = columns.get(columnIndex);
             // get new column name keyed on column id from context or use the row value
@@ -128,7 +125,7 @@ public class MakeLineHeader extends AbstractActionMetadata implements RowAction 
             });
             column.setName(newColumnName);
         }
-        row.setDeleted(true);
+        return row.setDeleted(true);
     }
 
     @Override

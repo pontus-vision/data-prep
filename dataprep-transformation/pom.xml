@@ -29,6 +29,10 @@
         <stack.param.name>DataPrepTransformationFQIN</stack.param.name>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.talend.dataprep</groupId>
+            <artifactId>dataprep-transformation-common</artifactId>
+        </dependency>
         <!-- UNIT TEST DEPENDENCIES -->
         <dependency>
             <groupId>org.talend.dataprep</groupId>

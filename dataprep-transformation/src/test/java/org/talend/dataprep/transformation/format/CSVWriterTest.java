@@ -25,21 +25,19 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.format.export.ExportFormat;
-import org.talend.dataprep.transformation.api.transformer.AbstractTransformerWriterTest;
 
 /**
  * Unit test for the CSVWriter.
  *
  * @see CSVWriter
  */
-public class CSVWriterTest extends AbstractTransformerWriterTest {
+public class CSVWriterTest {
 
     /** Separator argument name. */
     static final String SEPARATOR_PARAM_NAME = ExportFormat.PREFIX + CSVFormat.ParametersCSV.FIELDS_DELIMITER;
@@ -48,21 +46,31 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
     private static final String ESCAPE_CHARACTER_PARAM_NAME = ExportFormat.PREFIX + CSVFormat.ParametersCSV.ESCAPE_CHAR;
 
     /** Enclosure character argument name. */
-    private static final String ENCLOSURE_CHARACTER_PARAM_NAME = ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCLOSURE_CHAR;
+    private static final String ENCLOSURE_CHARACTER_PARAM_NAME =
+            ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCLOSURE_CHAR;
 
     /** Enclosure character argument name. */
-    private static final String ENCLOSURE_MODE_PARAM_NAME = ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCLOSURE_MODE;
+    private static final String ENCLOSURE_MODE_PARAM_NAME =
+            ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCLOSURE_MODE;
 
-    private static final String NON_ASCII_TEST_CHARS = "ñóǹ äŝçíì 汉语/漢語  华语/華語 Huáyǔ; 中文 Zhōngwén 漢字仮名交じり文 Lech Wałęsa æøå";
+    private static final String NON_ASCII_TEST_CHARS =
+            "ñóǹ äŝçíì 汉语/漢語  华语/華語 Huáyǔ; 中文 Zhōngwén 漢字仮名交じり文 Lech Wałęsa æøå";
 
     /** Enclosure character argument name. */
-    private static final String DELIMITER_CHAR_PARAM_NAME = ExportFormat.PREFIX + CSVFormat.ParametersCSV.FIELDS_DELIMITER;
+    private static final String DELIMITER_CHAR_PARAM_NAME =
+            ExportFormat.PREFIX + CSVFormat.ParametersCSV.FIELDS_DELIMITER;
 
-    @Before
-    public void init() {
-        // to avoid breaking stranger abstract test "should_only_write_values_in_columns_order_TDP_3188" final
-        // ByteArrayOutputStream temp = new ByteArrayOutputStream();
-        writer = (CSVWriter) context.getBean("writer#CSV", new ByteArrayOutputStream(), emptyMap());
+    /**
+     * <a href="https://jira.talendforge.org/browse/TDP-3188">TDP-3188</a>
+     */
+    @Test(expected = IllegalStateException.class)
+    public void should_only_write_values_in_columns_order_TDP_3188() throws Exception {
+
+        final Map<String, String> values = new HashMap<>();
+        values.put("key", "value");
+        DataSetRow row = new DataSetRow(new RowMetadata(), values);
+
+        writeCsv(Collections.emptyMap(), row.getRowMetadata(), singletonList(row));
     }
 
     /**
@@ -99,9 +107,10 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
     public void should_write_with_any_escape_character() throws Exception {
         // given
         final ByteArrayOutputStream temp = new ByteArrayOutputStream();
-        Map<String, Object> parameters = new HashMap<>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(ESCAPE_CHARACTER_PARAM_NAME, "#");
-        final CSVWriter tabWriter = (CSVWriter) context.getBean("writer#CSV", temp, parameters);
+        final CSVWriter tabWriter = new CSVWriter(parameters);
+        tabWriter.setOutput(temp);
 
         final ColumnMetadata column1 = column().id(1).name("song").type(Type.STRING).build();
         final ColumnMetadata column2 = column().id(2).name("band").type(Type.STRING).build();
@@ -131,8 +140,8 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
     public void should_use_quote_as_default_escape_character() throws Exception {
         // given
         final ByteArrayOutputStream temp = new ByteArrayOutputStream();
-        Map<String, Object> parameters = new HashMap<>();
-        final CSVWriter tabWriter = (CSVWriter) context.getBean("writer#CSV", temp, parameters);
+        final CSVWriter tabWriter = new CSVWriter(Collections.emptyMap());
+        tabWriter.setOutput(temp);
 
         final ColumnMetadata column1 = column().id(1).name("song").type(Type.STRING).build();
         final ColumnMetadata column2 = column().id(2).name("band").type(Type.STRING).build();
@@ -162,9 +171,10 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
     public void should_enclose_all_columns() throws Exception {
         // given
         final ByteArrayOutputStream temp = new ByteArrayOutputStream();
-        Map<String, Object> parameters = new HashMap<>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(ENCLOSURE_CHARACTER_PARAM_NAME, "+");
-        final CSVWriter tabWriter = (CSVWriter) context.getBean("writer#CSV", temp, parameters);
+        final CSVWriter tabWriter = new CSVWriter(parameters);
+        tabWriter.setOutput(temp);
 
         final ColumnMetadata column1 = column().id(1).name("song").type(Type.STRING).build();
         final ColumnMetadata column2 = column().id(2).name("band").type(Type.STRING).build();
@@ -193,10 +203,11 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
     public void should_enclose_only_text() throws Exception {
         // given
         final ByteArrayOutputStream temp = new ByteArrayOutputStream();
-        Map<String, Object> parameters = new HashMap<>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(ENCLOSURE_CHARACTER_PARAM_NAME, "%");
         parameters.put(ENCLOSURE_MODE_PARAM_NAME, "text_only");
-        final CSVWriter tabWriter = (CSVWriter) context.getBean("writer#CSV", temp, parameters);
+        final CSVWriter tabWriter = new CSVWriter(parameters);
+        tabWriter.setOutput(temp);
 
         final DataSetRow row = getDataSetRow();
 
@@ -219,11 +230,12 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
     public void should_neither_enclose_nor_escape_with_empty_char() throws Exception {
         // given
         final ByteArrayOutputStream temp = new ByteArrayOutputStream();
-        Map<String, Object> parameters = new HashMap<>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(ENCLOSURE_CHARACTER_PARAM_NAME, "");
         parameters.put(ESCAPE_CHARACTER_PARAM_NAME, "");
         parameters.put(ENCLOSURE_MODE_PARAM_NAME, "all_fields");
-        final CSVWriter tabWriter = (CSVWriter) context.getBean("writer#CSV", temp, parameters);
+        final CSVWriter tabWriter = new CSVWriter(parameters);
+        tabWriter.setOutput(temp);
 
         final DataSetRow row = getDataSetRow();
 
@@ -246,16 +258,18 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
     public void should_use_custom_params() throws Exception {
         // given
         final ByteArrayOutputStream temp = new ByteArrayOutputStream();
-        Map<String, Object> parameters = new HashMap<>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(ENCLOSURE_CHARACTER_PARAM_NAME, "+");
         parameters.put(ENCLOSURE_MODE_PARAM_NAME, "all_fields");
         parameters.put(ESCAPE_CHARACTER_PARAM_NAME, "#");
         parameters.put(DELIMITER_CHAR_PARAM_NAME, "-");
-        final CSVWriter tabWriter = (CSVWriter) context.getBean("writer#CSV", temp, parameters);
+        final CSVWriter tabWriter = new CSVWriter(parameters);
+        tabWriter.setOutput(temp);
 
         final ColumnMetadata column1 = ColumnMetadata.Builder.column().id(1).name("id").type(Type.INTEGER).build();
         final ColumnMetadata column2 = ColumnMetadata.Builder.column().id(2).name("lastname").type(Type.STRING).build();
-        final ColumnMetadata column3 = ColumnMetadata.Builder.column().id(3).name("firstname").type(Type.STRING).build();
+        final ColumnMetadata column3 =
+                ColumnMetadata.Builder.column().id(3).name("firstname").type(Type.STRING).build();
         final List<ColumnMetadata> columns = Arrays.asList(column1, column2, column3);
         final RowMetadata rowMetadata = new RowMetadata(columns);
 
@@ -316,8 +330,7 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
     @Test
     public void write_shouldWriteIso885_1() throws Exception {
         // given
-        final DataSetRow row = buildSimpleRow();
-        row.set("0002", NON_ASCII_TEST_CHARS);
+        final DataSetRow row = buildSimpleRow().set("0002", NON_ASCII_TEST_CHARS);
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put(ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCODING, StandardCharsets.ISO_8859_1.name());
@@ -326,17 +339,18 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
         ByteArrayOutputStream out = writeCsv(parameters, row.getRowMetadata(), singletonList(row));
 
         // then
-        assertThat(out.toByteArray()).isEqualTo(
-                ("\"id\";\"firstname\"\n\"64a5456ac148b64524ef165\";\"" + NON_ASCII_TEST_CHARS + "\"\n").getBytes(ISO_8859_1));
-        assertThat(out.toByteArray()).isNotEqualTo(
-                ("\"id\";\"firstname\"\n\"64a5456ac148b64524ef165\";\"" + NON_ASCII_TEST_CHARS + "\"\n").getBytes(UTF_8));
+        assertThat(out.toByteArray())
+                .isEqualTo(("\"id\";\"firstname\"\n\"64a5456ac148b64524ef165\";\"" + NON_ASCII_TEST_CHARS + "\"\n")
+                        .getBytes(ISO_8859_1));
+        assertThat(out.toByteArray())
+                .isNotEqualTo(("\"id\";\"firstname\"\n\"64a5456ac148b64524ef165\";\"" + NON_ASCII_TEST_CHARS + "\"\n")
+                        .getBytes(UTF_8));
     }
 
     @Test
     public void write_shouldDefaultToUtf8() throws Exception {
         // given
-        final DataSetRow row = buildSimpleRow();
-        row.set("0002", NON_ASCII_TEST_CHARS);
+        final DataSetRow row = buildSimpleRow().set("0002", NON_ASCII_TEST_CHARS);
 
         Map<String, String> parameters = new HashMap<>();
         String invalidCharsetName = "ISO-8859-560";
@@ -346,8 +360,9 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
         ByteArrayOutputStream out = writeCsv(parameters, row.getRowMetadata(), singletonList(row));
 
         // then
-        assertThat(out.toByteArray()).isEqualTo(
-                ("\"id\";\"firstname\"\n\"64a5456ac148b64524ef165\";\"" + NON_ASCII_TEST_CHARS + "\"\n").getBytes(UTF_8));
+        assertThat(out.toByteArray())
+                .isEqualTo(("\"id\";\"firstname\"\n\"64a5456ac148b64524ef165\";\"" + NON_ASCII_TEST_CHARS + "\"\n")
+                        .getBytes(UTF_8));
     }
 
     @Test
@@ -381,14 +396,14 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
         DataSetRow dataSetRow = buildSimpleRow();
         final ColumnMetadata column3 = column().id(3).name("age").type(Type.INTEGER).build();
         dataSetRow.getRowMetadata().addColumn(column3);
-        dataSetRow.set("0003", "10");
-        return dataSetRow;
+        return dataSetRow.set("0003", "10");
     }
 
-    private ByteArrayOutputStream writeCsv(Map<String, String> parameters, RowMetadata rowMetadata, List<DataSetRow> rows)
-            throws IOException {
+    private ByteArrayOutputStream writeCsv(Map<String, String> parameters, RowMetadata rowMetadata,
+            List<DataSetRow> rows) throws IOException {
         final ByteArrayOutputStream temp = new ByteArrayOutputStream();
-        final CSVWriter writer = (CSVWriter) context.getBean("writer#CSV", temp, parameters);
+        final CSVWriter writer = new CSVWriter(parameters);
+        writer.setOutput(temp);
         if (rows != null) {
             for (DataSetRow row : rows) {
                 writer.write(row);
@@ -412,7 +427,8 @@ public class CSVWriterTest extends AbstractTransformerWriterTest {
         final ColumnMetadata column5 = column().id(5).name("alive").type(Type.BOOLEAN).build();
         final ColumnMetadata column6 = column().id(6).name("old").type(Type.NUMERIC).build();
         final ColumnMetadata column7 = column().id(7).name("any").type(Type.ANY).build();
-        final List<ColumnMetadata> columns = Arrays.asList(column1, column2, column3, column4, column5, column6, column7);
+        final List<ColumnMetadata> columns =
+                Arrays.asList(column1, column2, column3, column4, column5, column6, column7);
         final RowMetadata rowMetadata = new RowMetadata(columns);
 
         Map<String, String> values = new HashMap<>();

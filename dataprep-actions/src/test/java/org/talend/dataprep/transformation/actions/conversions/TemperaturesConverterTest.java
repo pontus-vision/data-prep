@@ -23,13 +23,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
@@ -84,7 +84,7 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
         parameters.put("precision", "0");
 
         // when
-        ActionTestWorkbench.test(Collections.singletonList(row1), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Collections.singletonList(row1), factory.create(action, parameters));
 
         // then
         // assertEquals("365", row1.get("0001"));
@@ -110,7 +110,7 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(Collections.singletonList(row1), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Collections.singletonList(row1), factory.create(action, parameters));
 
         // then
         assertEquals("0", row1.get("0001"));
@@ -178,15 +178,13 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
         Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "David");
         rowContent.put("0001", from);
-        final DataSetRow row1 = new DataSetRow(rowContent);
-        row1.setTdpId(rowId++);
+        final DataSetRow row1 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 2
         rowContent = new HashMap<>();
         rowContent.put("0000", "John");
         rowContent.put("0001", "0");
-        final DataSetRow row2 = new DataSetRow(rowContent);
-        row2.setTdpId(rowId++);
+        final DataSetRow row2 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "column");
@@ -197,7 +195,7 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2), factory.create(action, parameters));
 
         // then
         assertEquals(expected, row1.get("0002"));

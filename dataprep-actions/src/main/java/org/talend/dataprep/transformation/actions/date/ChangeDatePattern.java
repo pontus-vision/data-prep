@@ -13,6 +13,15 @@
 
 package org.talend.dataprep.transformation.actions.date;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
+
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.util.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,16 +37,7 @@ import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
-
-import java.time.DateTimeException;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.apache.commons.lang.StringUtils.EMPTY;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Change the date pattern on a 'date' column.
@@ -156,26 +156,26 @@ public class ChangeDatePattern extends AbstractDate implements ColumnAction {
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final DatePattern newPattern = context.get(COMPILED_DATE_PATTERN);
 
         // Change the date pattern
         final String originalValue = row.get(columnId);
         if (StringUtils.isBlank(originalValue)) {
-            row.set(ActionsUtils.getTargetColumnId(context), originalValue);
-            return;
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), originalValue));
         }
         try {
             LocalDateTime date = Providers.get().parseDateFromPatterns(originalValue, context.get(FROM_DATE_PATTERNS));
 
             if (date != null) {
-                row.set(ActionsUtils.getTargetColumnId(context), newPattern.getFormatter().format(date));
+                return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newPattern.getFormatter().format(date)));
             }
         } catch (DateTimeException e) {
             // cannot parse the date, let's leave it as is
             LOGGER.debug("Unable to parse date {}.", originalValue, e);
         }
+        return Collections.singletonList(row);
     }
 
     /**

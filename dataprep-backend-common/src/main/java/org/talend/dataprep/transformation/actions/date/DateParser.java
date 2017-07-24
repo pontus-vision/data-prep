@@ -44,11 +44,7 @@ public class DateParser {
     private final AnalyzerService analyzerService;
 
     public DateParser() {
-        this(Providers.get(AnalyzerService.class));
-    }
-
-    public DateParser(AnalyzerService analyzerService) {
-        this.analyzerService = analyzerService;
+        this.analyzerService = Providers.get(AnalyzerService.class);
     }
 
     /**

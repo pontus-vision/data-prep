@@ -23,6 +23,7 @@ import org.talend.dataprep.api.folder.Folder;
 import org.talend.dataprep.api.preparation.Action;
 import org.talend.dataprep.api.preparation.StepDiff;
 import org.talend.dataprep.api.share.Owner;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

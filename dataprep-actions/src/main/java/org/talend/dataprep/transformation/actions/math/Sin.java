@@ -17,7 +17,7 @@ import static org.talend.dataprep.transformation.actions.math.Sin.SIN_NAME;
 import org.apache.commons.math3.util.FastMath;
 import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Create a new column with Sin

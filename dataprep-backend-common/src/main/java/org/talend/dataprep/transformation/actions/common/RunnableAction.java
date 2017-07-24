@@ -12,15 +12,20 @@
 
 package org.talend.dataprep.transformation.actions.common;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import org.talend.dataprep.api.preparation.Action;
-import org.talend.dataprep.transformation.api.action.DataSetRowAction;
+import org.talend.dataprep.transformation.actions.DataSetRowAction;
 
 public class RunnableAction extends Action {
 
     /** Default noop action. */
-    private static final DataSetRowAction IDLE_ROW_ACTION = (row, context) -> row;
+    private static final DataSetRowAction IDLE_ROW_ACTION = (row, context) -> Collections.singletonList(row);
+
+    private final String id = UUID.randomUUID().toString();
 
     /** The wrapped row action. */
     private final DataSetRowAction rowAction;
@@ -35,6 +40,21 @@ public class RunnableAction extends Action {
 
     public DataSetRowAction getRowAction() {
         return rowAction;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        RunnableAction that = (RunnableAction) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(super.hashCode(), id);
     }
 
     /**

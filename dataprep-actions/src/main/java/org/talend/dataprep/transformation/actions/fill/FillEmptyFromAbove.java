@@ -15,11 +15,9 @@ package org.talend.dataprep.transformation.actions.fill;
 
 import static java.util.Collections.singletonList;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.DATA_CLEANSING;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.talend.dataprep.api.action.Action;
@@ -28,7 +26,7 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * TDQ-13265 msjian : Fill empty cell from above.
@@ -74,12 +72,12 @@ public class FillEmptyFromAbove extends AbstractActionMetadata implements Column
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         // the first time applyOnColumn is called, save the current value in PreviousValueHolder
         // and the Optional.ofNullable(...) allows you to NOT modify the first row (add an empty value)
         // then second call of applyOnColumn, PreviousContextHolder has... previous value
         if (row.isDeleted()) {
-            return;
+            return Collections.singletonList(row);
         }
         final PreviousValueHolder holder = context.get(PREVIOUS);
         final String columnId = context.getColumnId();
@@ -88,12 +86,13 @@ public class FillEmptyFromAbove extends AbstractActionMetadata implements Column
         // Empty means null, empty string and any whitespace only strings
         if (StringUtils.isBlank(value)) {
             if (holder.getValue() != null) {
-                row.set(ActionsUtils.getTargetColumnId(context), holder.getValue());
+                return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), holder.getValue()));
             }
         } else {
             holder.setValue(value);
             row.set(ActionsUtils.getTargetColumnId(context), value);
         }
+        return Collections.singletonList(row);
     }
 
     /** this class is used to store the previous value. */

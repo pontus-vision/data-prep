@@ -14,7 +14,10 @@ package org.talend.dataprep.transformation.actions.delete;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * This action is used to delete lines that match a filter.
@@ -33,10 +36,11 @@ public class DeleteLines extends AbstractFilteringAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         if (context.getFilter().test(row)) {
-            row.setDeleted(true);
+            return Collections.singletonList(row.setDeleted(true));
         }
+        return Collections.singletonList(row);
     }
 
 }

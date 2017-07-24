@@ -13,6 +13,14 @@
 
 package org.talend.dataprep.transformation.actions.dataquality;
 
+import static java.util.Collections.singletonList;
+import static java.util.Optional.empty;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
+
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,18 +33,10 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataquality.semantic.api.CategoryRegistryManager;
 import org.talend.dataquality.semantic.model.CategoryType;
 import org.talend.dataquality.semantic.model.DQCategory;
-
-import java.util.*;
-
-import static java.util.Collections.singletonList;
-import static java.util.Optional.empty;
-import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 /**
  * Find a closest valid value from a dictionary.
@@ -136,20 +136,21 @@ public class StandardizeInvalid extends AbstractActionMetadata implements Column
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         if (isApplicable(row, context)) {
             final String columnId = context.getColumnId();
             final String value = row.get(columnId);
-            final RowMetadata rowMetadata = context.getRowMetadata();
+            final RowMetadata rowMetadata = row.getRowMetadata();
             final ColumnMetadata column = rowMetadata.getById(columnId);
             final Double threshold = context.get(MATCH_THRESHOLD_KEY);
             String closestValue =
                     CategoryRegistryManager.getInstance().findMostSimilarValue(value, column.getDomain(), threshold);
             // If not found the similar value, display original value.
             if (!StringUtils.isEmpty(closestValue)) {
-                row.set(columnId, closestValue);
+                return Collections.singletonList(row.set(columnId, closestValue));
             }
         }
+        return Collections.singletonList(row);
     }
 
     /**

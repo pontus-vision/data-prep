@@ -27,11 +27,11 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -103,7 +103,7 @@ public class DeleteAllEmptyTest extends AbstractMetadataBaseTest<DeleteAllEmpty>
         final DataSetRow row3 = getRow("", "");
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), factory.create(action, parameters));
 
         // then
         assertThat(row1.isDeleted(), is(false));
@@ -130,8 +130,7 @@ public class DeleteAllEmptyTest extends AbstractMetadataBaseTest<DeleteAllEmpty>
         final DataSetRow row5 = getRow("", "\n\t");
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3, row4, row5), actionRegistry,
-                factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3, row4, row5), factory.create(action, parameters));
 
         // then
         assertThat(row1.isDeleted(), is(false));
@@ -161,8 +160,7 @@ public class DeleteAllEmptyTest extends AbstractMetadataBaseTest<DeleteAllEmpty>
 
         parameters.put(DeleteAllEmpty.ACTION_PARAMETER, DeleteAllEmpty.KEEP);
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3, row4, row5), actionRegistry,
-                factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3, row4, row5), factory.create(action, parameters));
 
         // then
         assertThat(row1.isDeleted(), is(false));
@@ -191,8 +189,7 @@ public class DeleteAllEmptyTest extends AbstractMetadataBaseTest<DeleteAllEmpty>
         final DataSetRow row5 = getRow("", null);
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3, row4, row5), actionRegistry,
-                factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3, row4, row5), factory.create(action, parameters));
 
         // then
         assertThat(row1.isDeleted(), is(false));
@@ -218,8 +215,7 @@ public class DeleteAllEmptyTest extends AbstractMetadataBaseTest<DeleteAllEmpty>
         final DataSetRow row4 = getRow(null, "c");
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3, row4), actionRegistry,
-                factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3, row4), factory.create(action, parameters));
 
         // then
         assertThat(row1.isDeleted(), is(false));

@@ -12,6 +12,7 @@
 
 package org.talend.dataprep.cache;
 
+import java.io.Serializable;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang.StringUtils;
@@ -20,7 +21,7 @@ import org.apache.commons.lang.StringUtils;
  * Content cache key used to group all information needed by the cache.
  */
 @FunctionalInterface
-public interface ContentCacheKey {
+public interface ContentCacheKey extends Serializable {
 
     /**
      * The key must be unique per content !

@@ -25,11 +25,11 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -70,7 +70,7 @@ public class TypeChangeTest extends AbstractMetadataBaseTest<TypeChange> {
     @Test
     public void test_apply_inplace() throws Exception {
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final ColumnMetadata column = row.getRowMetadata().getById("0002");
@@ -80,7 +80,7 @@ public class TypeChangeTest extends AbstractMetadataBaseTest<TypeChange> {
     @Test
     public void should_reset_domain() throws Exception {
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final ColumnMetadata column = row.getRowMetadata().getById("0002");
@@ -92,7 +92,7 @@ public class TypeChangeTest extends AbstractMetadataBaseTest<TypeChange> {
     @Test
     public void should_add_column_to_force_columns() throws Exception {
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertThat(row.getRowMetadata().getById("0002").isTypeForced()).isTrue();

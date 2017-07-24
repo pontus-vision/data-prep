@@ -20,17 +20,14 @@ import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.math.NumberUtils.isNumber;
 import static org.talend.daikon.number.BigDecimalParser.toBigDecimal;
-import static org.talend.dataprep.api.action.ActionDefinition.Behavior.METADATA_CREATE_COLUMNS;
+import static org.talend.dataprep.transformation.actions.ActionDefinition.Behavior.METADATA_CREATE_COLUMNS;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.SPLIT;
 import static org.talend.dataprep.util.NumericHelper.isBigDecimal;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.StringCharacterIterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.talend.dataprep.api.action.Action;
@@ -39,7 +36,7 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * This will extract the numeric part
@@ -212,9 +209,9 @@ public class ExtractNumber extends AbstractActionMetadata implements ColumnActio
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
-        row.set(ActionsUtils.getTargetColumnId(context), extractNumber(row.get(columnId)));
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), extractNumber(row.get(columnId))));
     }
 
     @Override

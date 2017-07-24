@@ -27,12 +27,12 @@ import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
@@ -75,7 +75,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         DataSetRow row = createDataSetRow(2);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final RowMetadata rowMetadata = row.getRowMetadata();
@@ -97,7 +97,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0003");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final RowMetadata rowMetadata = row.getRowMetadata();
@@ -119,7 +119,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0000");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final RowMetadata actual = row.getRowMetadata();
@@ -141,7 +141,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0002");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final RowMetadata rowMetadata = row.getRowMetadata();
@@ -168,7 +168,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0002");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final RowMetadata rowMetadata = row.getRowMetadata();
@@ -188,7 +188,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0000");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(rowMetadata.getColumns()).isNotEmpty().hasSize(5);
@@ -214,7 +214,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0002");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final RowMetadata actualRowMetadata = row.getRowMetadata();
@@ -235,7 +235,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0000");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(rowMetadata.getColumns()).isNotEmpty().hasSize(5);
@@ -254,7 +254,7 @@ public class ReorderColumnTest extends AbstractMetadataBaseTest<ReorderColumn> {
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0004");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(actualRowMetadata.getColumns()).isNotEmpty().hasSize(5);

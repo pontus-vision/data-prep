@@ -11,16 +11,11 @@
 
 package org.talend.dataprep.transformation.actions.clear;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
-import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
-import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
-import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
+import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,13 +23,16 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
-import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
-import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
+import org.junit.Before;
+import org.junit.Test;
+import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
+import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
+import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNegativeValues> {
 
@@ -81,7 +79,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -97,7 +95,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -112,7 +110,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row3 = getRow("-5", "-15");
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), factory.create(action, parameters));
 
         // then
         assertEquals("", row1.get("0001"));
@@ -128,7 +126,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row3 = getRow("-5", "-15");
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), factory.create(action, parameters));
 
         // then
         assertEquals("", row1.get("0001"));
@@ -145,7 +143,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -161,7 +159,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -177,7 +175,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -193,7 +191,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -209,7 +207,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -224,7 +222,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -239,7 +237,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -255,7 +253,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("David Bowie", row.get("0000"));
@@ -271,7 +269,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("Michael Jordan", row.get("0000"));
@@ -287,7 +285,7 @@ public class RemoveNegativeValuesTest extends AbstractMetadataBaseTest<RemoveNeg
         final DataSetRow row = new DataSetRow(values);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("Michael Jordan", row.get("0000"));

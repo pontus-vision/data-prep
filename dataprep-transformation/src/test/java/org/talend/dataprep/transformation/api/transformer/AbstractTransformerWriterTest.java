@@ -16,6 +16,7 @@ package org.talend.dataprep.transformation.api.transformer;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.junit.Test;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
@@ -36,6 +37,7 @@ public abstract class AbstractTransformerWriterTest extends BaseFormatTest {
         values.put("key", "value");
         DataSetRow row = new DataSetRow(new RowMetadata(), values);
 
+        writer.setOutput(new NullOutputStream());
         writer.write(row);
     }
 

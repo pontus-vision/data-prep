@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.line;
 
@@ -24,9 +24,9 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.column.Concat;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
@@ -73,15 +73,13 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "David");
         rowContent.put("0001", "Bowie");
-        final DataSetRow row1 = new DataSetRow(rowContent);
-        row1.setTdpId(rowId++);
+        final DataSetRow row1 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 2
         rowContent = new HashMap<>();
         rowContent.put("0000", "John");
         rowContent.put("0001", "Lennon");
-        final DataSetRow row2 = new DataSetRow(rowContent);
-        row2.setTdpId(rowId++);
+        final DataSetRow row2 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "line");
@@ -92,7 +90,7 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         assertThat(row2.isDeleted(), is(false));
 
         //when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2), factory.create(action, parameters));
 
         // then
         assertThat(row1.isDeleted(), is(false));
@@ -112,22 +110,19 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "David");
         rowContent.put("0001", "Bowie");
-        final DataSetRow row1 = new DataSetRow(rowContent);
-        row1.setTdpId(rowId++);
+        final DataSetRow row1 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 2
         rowContent = new HashMap<>();
         rowContent.put("0000", "John");
         rowContent.put("0001", "Lennon");
-        final DataSetRow row2 = new DataSetRow(rowContent);
-        row2.setTdpId(rowId++);
+        final DataSetRow row2 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 3
         rowContent = new HashMap<>();
         rowContent.put("0000", "Johnny");
         rowContent.put("0001", "Lennon");
-        final DataSetRow row3 = new DataSetRow(rowContent);
-        row3.setTdpId(rowId++);
+        final DataSetRow row3 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // when
         final Map<String, String> makeHeaderParameters = new HashMap<>();
@@ -138,7 +133,7 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         upperCaseParameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "column");
         upperCaseParameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
         final RunnableAction upperCase = factory.create(new UpperCase(), upperCaseParameters);
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, makeHeader, upperCase);
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), makeHeader, upperCase);
 
         // then
         assertEquals("John", row1.getRowMetadata().getById("0000").getName());
@@ -158,22 +153,19 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "David");
         rowContent.put("0001", "Bowie");
-        final DataSetRow row1 = new DataSetRow(rowContent);
-        row1.setTdpId(rowId++);
+        final DataSetRow row1 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 2
         rowContent = new HashMap<>();
         rowContent.put("0000", "John");
         rowContent.put("0001", "Lennon");
-        final DataSetRow row2 = new DataSetRow(rowContent);
-        row2.setTdpId(rowId++);
+        final DataSetRow row2 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 3
         rowContent = new HashMap<>();
         rowContent.put("0000", "Johnny");
         rowContent.put("0001", "Lennon");
-        final DataSetRow row3 = new DataSetRow(rowContent);
-        row3.setTdpId(rowId++);
+        final DataSetRow row3 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // when
         final Map<String, String> makeHeaderParameters = new HashMap<>();
@@ -187,7 +179,7 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         concatColumnParameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0001");
         concatColumnParameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
         final RunnableAction concat = factory.create(new Concat(), concatColumnParameters);
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, makeHeader, concat);
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), makeHeader, concat);
 
         // then
        // assertEquals(3, row3.getRowMetadata().getColumns().size());
@@ -209,22 +201,19 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "David");
         rowContent.put("0001", "Bowie");
-        final DataSetRow row1 = new DataSetRow(rowContent);
-        row1.setTdpId(rowId++);
+        final DataSetRow row1 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 2
         rowContent = new HashMap<>();
         rowContent.put("0000", "John");
         rowContent.put("0001", "Lennon");
-        final DataSetRow row2 = new DataSetRow(rowContent);
-        row2.setTdpId(rowId++);
+        final DataSetRow row2 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 3
         rowContent = new HashMap<>();
         rowContent.put("0000", "John");
         rowContent.put("0001", "Lennon");
-        final DataSetRow row3 = new DataSetRow(rowContent);
-        row3.setTdpId(rowId++);
+        final DataSetRow row3 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "line");
@@ -235,7 +224,7 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         assertThat(row3.isDeleted(), is(false));
 
         //when
-        ActionTestWorkbench.test(Arrays.asList( row1,row2, row3 ), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList( row1,row2, row3 ), factory.create(action, parameters));
 
         // then
         assertThat(row1.isDeleted(), is(true));
@@ -258,22 +247,19 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "David");
         rowContent.put("0001", "Bowie");
-        final DataSetRow row1 = new DataSetRow(rowContent);
-        row1.setTdpId(rowId++);
+        final DataSetRow row1 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 2
         rowContent = new HashMap<>();
         rowContent.put("0000", "John");
         rowContent.put("0001", "");
-        final DataSetRow row2 = new DataSetRow(rowContent);
-        row2.setTdpId(rowId++);
+        final DataSetRow row2 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         // row 3
         rowContent = new HashMap<>();
         rowContent.put("0000", "John");
         rowContent.put("0001", "Lennon");
-        final DataSetRow row3 = new DataSetRow(rowContent);
-        row3.setTdpId(rowId++);
+        final DataSetRow row3 = new DataSetRow(rowContent).setTdpId(rowId++);
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "line");
@@ -284,7 +270,7 @@ public class MakeLineHeaderTest extends AbstractMetadataBaseTest<MakeLineHeader>
         assertFalse(row3.isDeleted());
 
         //when
-        ActionTestWorkbench.test(Arrays.asList( row1,row2, row3 ), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList( row1,row2, row3 ), factory.create(action, parameters));
 
         // then
         assertTrue(row1.isDeleted());

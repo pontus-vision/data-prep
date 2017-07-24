@@ -26,7 +26,7 @@ public class PolyglotFilterServiceTest extends FilterServiceTest {
     @Test
     public void shouldUnderstandJsonQuery() throws Exception {
         //given
-        row.set("c0001", "test");
+        row = row.set("c0001", "test");
         final String filtersDefinition = "{" +
                 "   \"eq\": {" +
                 "       \"field\": \"c0001\"," +
@@ -44,7 +44,7 @@ public class PolyglotFilterServiceTest extends FilterServiceTest {
     @Test
     public void shouldUnderstandTQLQuery() throws Exception {
         //given
-        row.set("c0001", "test");
+        row = row.set("c0001", "test");
         final String filtersDefinition = "c0001 = 'test'";
 
         //when

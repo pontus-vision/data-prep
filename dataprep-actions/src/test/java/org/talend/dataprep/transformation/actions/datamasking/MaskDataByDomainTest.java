@@ -28,10 +28,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -80,7 +80,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final String resultValue = row.values().get("0000").toString();
@@ -105,7 +105,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
         expectedValues.put("0000", "XXXXXX@talend.com");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -119,7 +119,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         int realValueAsInteger = Integer.parseInt((String) row.values().get("0000"));
@@ -135,7 +135,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         float realValueAsFloat = Float.parseFloat((String) row.values().get("0000"));
@@ -151,7 +151,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         float realValueAsFloat = Float.parseFloat((String) row.values().get("0000"));
@@ -167,7 +167,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         int realValueAsInteger = Integer.parseInt((String) row.values().get("0000"));
@@ -187,7 +187,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
         expectedValues.put("0000", " ");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -206,7 +206,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
         expectedValues.put("0000", "XXXXXXX");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -224,7 +224,7 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest<MaskDataByDom
         expectedValues.put("0000", "azerty@talend.com");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());

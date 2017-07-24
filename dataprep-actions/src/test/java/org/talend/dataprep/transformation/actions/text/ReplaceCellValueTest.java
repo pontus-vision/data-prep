@@ -18,14 +18,14 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.talend.dataprep.api.action.ActionDefinition.Behavior.FORBID_DISTRIBUTED;
-import static org.talend.dataprep.api.action.ActionDefinition.Behavior.VALUES_COLUMN;
 import static org.talend.dataprep.api.type.Type.STRING;
+import static org.talend.dataprep.transformation.actions.ActionDefinition.Behavior.FORBID_DISTRIBUTED;
+import static org.talend.dataprep.transformation.actions.ActionDefinition.Behavior.VALUES_COLUMN;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
 import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.*;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
 import static org.talend.dataprep.transformation.actions.text.ReplaceCellValue.NEW_VALUE_PARAMETER;
 import static org.talend.dataprep.transformation.actions.text.ReplaceCellValue.ORIGINAL_VALUE_PARAMETER;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
 
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
@@ -41,9 +41,9 @@ import org.talend.dataprep.quality.AnalyzerService;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.TransformationContext;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
-import org.talend.dataprep.transformation.api.action.context.TransformationContext;
 
 /**
  * Unit test for the ReplaceCellValue class.
@@ -164,7 +164,7 @@ public class ReplaceCellValueTest extends AbstractMetadataBaseTest<ReplaceCellVa
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedRow, row);
@@ -185,7 +185,7 @@ public class ReplaceCellValueTest extends AbstractMetadataBaseTest<ReplaceCellVa
         final Map<String, String> parameters = getParameters(rowId, joe, "Jimmy");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertThat(row.get("0000"), is("Jimmy"));
@@ -203,7 +203,7 @@ public class ReplaceCellValueTest extends AbstractMetadataBaseTest<ReplaceCellVa
         final Map<String, String> parameters = getParameters(rowId, "Jimmy", joe);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertThat(row.get("0000"), is(joe));
@@ -221,7 +221,7 @@ public class ReplaceCellValueTest extends AbstractMetadataBaseTest<ReplaceCellVa
 
         // when
         final AnalyzerService analyzerService = new AnalyzerService();
-        ActionTestWorkbench.test(Collections.singleton(row), analyzerService, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Collections.singleton(row), factory.create(action, parameters));
 
         // then
         assertThat(row.get("0000"), is("NotABoolean"));

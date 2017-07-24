@@ -31,6 +31,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
+import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
@@ -38,7 +39,7 @@ import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Change the date pattern on a 'date' column.
@@ -182,18 +183,18 @@ public class ExtractDateTokens extends AbstractDate implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final Map<String, String> parameters = context.getParameters();
 
         // Get the most used pattern formatter and parse the date
         final String value = row.get(columnId);
         if (value == null) {
-            return;
+            return Collections.singletonList(row);
         }
         TemporalAccessor temporalAccessor = null;
         try {
-            temporalAccessor = Providers.get().parse(value, context.getRowMetadata().getById(columnId));
+            temporalAccessor = Providers.get().parse(value, row.getRowMetadata().getById(columnId));
         } catch (DateTimeException e) {
             // temporalAccessor is left null, this will be used bellow to set empty new value for all fields
             LOGGER.debug("Unable to parse date {}.", value, e);
@@ -222,9 +223,10 @@ public class ExtractDateTokens extends AbstractDate implements ColumnAction {
                         break;
                     }
                 }
-                row.set(ActionsUtils.getTargetColumnIds(context).get(date_field.key), newValue);
+                row = row.set(ActionsUtils.getTargetColumnIds(context).get(date_field.key), newValue);
             }
         }
+        return Collections.singletonList(row);
     }
 
     /**

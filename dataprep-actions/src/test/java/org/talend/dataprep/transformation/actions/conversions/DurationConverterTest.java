@@ -21,11 +21,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
@@ -111,7 +111,7 @@ public class DurationConverterTest extends BaseDateTest<DurationConverter> {
         parameters.put("precision", "0");
 
         // when
-        ActionTestWorkbench.test(Collections.singletonList(row1), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Collections.singletonList(row1), factory.create(action, parameters));
 
         // then
         assertEquals("1", row1.get("0001"));
@@ -140,7 +140,7 @@ public class DurationConverterTest extends BaseDateTest<DurationConverter> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(Collections.singletonList(row1), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Collections.singletonList(row1), factory.create(action, parameters));
 
         // then
         assertEquals("365", row1.get("0001"));
@@ -317,7 +317,7 @@ public class DurationConverterTest extends BaseDateTest<DurationConverter> {
         parameters.put("precision", precision);
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2), factory.create(action, parameters));
 
         // then
         // TDP-3675: add precision parameter

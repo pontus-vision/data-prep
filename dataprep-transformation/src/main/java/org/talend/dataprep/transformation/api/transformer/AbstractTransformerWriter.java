@@ -16,6 +16,7 @@ package org.talend.dataprep.transformation.api.transformer;
 import java.io.IOException;
 
 import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.transformation.pipeline.node.TransformerWriter;
 
 public abstract class AbstractTransformerWriter implements TransformerWriter {
 

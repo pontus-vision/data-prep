@@ -13,6 +13,8 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import java.util.Collection;
+import java.util.Collections;
 import static java.util.Collections.singletonList;
 import static org.talend.dataprep.transformation.actions.common.ActionsUtils.appendColumnCreationParameter;
 
@@ -31,7 +33,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(RemoveNonNumChars.ACTION_NAME)
 public class RemoveNonNumChars extends AbstractActionMetadata implements ColumnAction {
@@ -78,10 +80,10 @@ public class RemoveNonNumChars extends AbstractActionMetadata implements ColumnA
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String toCut = row.get(columnId);
-        row.set(ActionsUtils.getTargetColumnId(context), apply(toCut));
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), apply(toCut)));
     }
 
     protected String apply(String from) {

@@ -131,7 +131,7 @@ public class OptimizedExportStrategy extends BaseSampleExportStrategy {
             try (final TeeOutputStream tee = new TeeOutputStream(outputStream, contentCache.put(key, ContentCache.TimeToLive.DEFAULT))) {
                 final Configuration configuration = Configuration.builder() //
                         .args(parameters.getArguments()) //
-                        .outFilter(rm -> filterService.build(parameters.getFilter(), rm)) //
+                        .outFilter(new FilterPredicate(parameters.getFilter())) //
                         .sourceType(parameters.getFrom())
                         .format(format.getName()) //
                         .actions(actions) //
@@ -141,7 +141,7 @@ public class OptimizedExportStrategy extends BaseSampleExportStrategy {
                         .output(tee) //
                         .limit(limit) //
                         .build();
-                factory.get(configuration).buildExecutable(dataSet, configuration).execute();
+                factory.get(configuration).buildExecutable(dataSet, configuration).run();
                 tee.flush();
             } catch (Throwable e) { // NOSONAR
                 contentCache.evict(key);

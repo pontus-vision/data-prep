@@ -14,8 +14,8 @@ package org.talend.dataprep.transformation.actions.column;
 
 import static java.util.Collections.singletonList;
 import static org.talend.daikon.exception.ExceptionContext.build;
-import static org.talend.dataprep.api.action.ActionDefinition.Behavior.VALUES_COLUMN;
 import static org.talend.dataprep.exception.error.ActionErrorCodes.UNEXPECTED_EXCEPTION;
+import static org.talend.dataprep.transformation.actions.ActionDefinition.Behavior.VALUES_COLUMN;
 import static org.talend.dataprep.transformation.actions.category.ActionScope.COLUMN_METADATA;
 import static org.talend.dataprep.transformation.actions.category.ActionScope.HIDDEN_IN_ACTION_LIST;
 import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.COLUMN_ID;
@@ -41,7 +41,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.DataSetAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * This action reorder columns. The column will be move to the selected column. All other columns will be moved as well.
@@ -169,8 +169,9 @@ public class ReorderColumn extends AbstractActionMetadata implements DataSetActi
     }
 
     @Override
-    public void applyOnDataSet(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnDataSet(DataSetRow row, ActionContext context) {
         // no op
+        return Collections.singletonList(row);
     }
 
     @Override

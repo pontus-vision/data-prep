@@ -15,6 +15,11 @@ package org.talend.dataprep.transformation.actions.net;
 
 import static org.talend.dataprep.api.type.Type.STRING;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Set;
 import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -27,7 +32,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Split a cell value on a separator.
@@ -82,7 +87,7 @@ public class ExtractEmailDomain extends AbstractActionMetadata implements Column
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String originalValue = row.get(columnId);
         // Perform metadata level actions (add local + domain columns).
@@ -90,13 +95,14 @@ public class ExtractEmailDomain extends AbstractActionMetadata implements Column
         final String domain = ActionsUtils.getTargetColumnIds(context).get(DOMAIN);
         // Set the values in newly created columns
         if (originalValue == null) {
-            return;
+            return Collections.singletonList(row);
         }
         final String[] split = originalValue.split("@", 2);
         final String localPart = split.length >= 2 ? split[0] : StringUtils.EMPTY;
-        row.set(local, localPart);
+        row = row.set(local, localPart);
         final String domainPart = split.length >= 2 ? split[1] : StringUtils.EMPTY;
-        row.set(domain, domainPart);
+        row = row.set(domain, domainPart);
+        return Collections.singletonList(row);
     }
 
     @Override

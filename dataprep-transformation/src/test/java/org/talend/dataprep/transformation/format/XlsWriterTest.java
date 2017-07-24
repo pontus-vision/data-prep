@@ -61,9 +61,10 @@ public class XlsWriterTest extends BaseFormatTest {
 
     @Before
     public void init() {
-        outputStream = new ByteArrayOutputStream();
-        Map<String, Object> parameters = new HashMap<>();
-        writer = (XlsWriter) context.getBean("writer#XLSX", outputStream, parameters);
+        final OutputStream outputStream = new ByteArrayOutputStream();
+        final Map<String, String> parameters = new HashMap<>();
+        writer = (XlsWriter) context.getBean("writer#XLSX", parameters);
+        writer.setOutput(outputStream);
     }
 
     /**
@@ -273,7 +274,7 @@ public class XlsWriterTest extends BaseFormatTest {
             final InputStream inputStream = XlsWriterTest.class.getResourceAsStream(inputFileName);
             try (JsonParser parser = mapper.getFactory().createParser(inputStream)) {
                 final DataSet dataSet = mapper.readerFor(DataSet.class).readValue(parser);
-                exporter.buildExecutable(dataSet, configuration).execute();
+                exporter.buildExecutable(dataSet, configuration).run();
             }
         }
         DataSetMetadata metadata = metadataBuilder.metadata().id("123").build();

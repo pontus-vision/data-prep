@@ -12,6 +12,24 @@
 
 package org.talend.dataprep.transformation.actions.date;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.talend.dataprep.api.type.Type.DATE;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.date.DateCalendarConverter.CalendarUnit.*;
+
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.chrono.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.time.temporal.JulianFields;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalField;
+import java.util.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,27 +44,9 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataquality.converters.JulianDayConverter;
 import org.talend.dataquality.semantic.classifier.SemanticCategoryEnum;
-
-import java.time.DateTimeException;
-import java.time.LocalDate;
-import java.time.chrono.*;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
-import java.time.temporal.JulianFields;
-import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalField;
-import java.util.*;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.talend.dataprep.api.type.Type.DATE;
-import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.actions.date.DateCalendarConverter.CalendarUnit.*;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 @Action(DateCalendarConverter.ACTION_NAME)
 public class DateCalendarConverter extends AbstractActionMetadata implements ColumnAction {
@@ -212,13 +212,12 @@ public class DateCalendarConverter extends AbstractActionMetadata implements Col
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         // Change the date calendar
         final String originalValue = row.get(columnId);
         if (StringUtils.isBlank(originalValue)) {
-            row.set(ActionsUtils.getTargetColumnId(context), originalValue);
-            return;
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), originalValue));
         }
 
         try {
@@ -237,12 +236,13 @@ public class DateCalendarConverter extends AbstractActionMetadata implements Col
                 newValue = julianDayConvert.convert(originalValue);
             }
             if (StringUtils.isNotEmpty(newValue) && StringUtils.isNotBlank(newValue)) {
-                row.set(ActionsUtils.getTargetColumnId(context), newValue);
+                return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue));
             }
         } catch (DateTimeException e) {
             // cannot parse the date, let's leave it as is
             LOGGER.debug("Unable to parse date {}.", originalValue);
         }
+        return Collections.singletonList(row);
     }
 
     /**

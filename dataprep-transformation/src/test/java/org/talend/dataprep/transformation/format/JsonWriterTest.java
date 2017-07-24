@@ -33,15 +33,15 @@ import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Unit test for the JsonWriter.
- *
- * @JsonWriter
  */
-public class JsonWriterTest extends BaseFormatTest {
+public class JsonWriterTest {
 
     /** The writer to test. */
-    private JsonWriter writer;
+    private JsonWriter writer = new JsonWriter();
 
     /** Where the writer should write. */
     private ByteArrayOutputStream outputStream;
@@ -49,7 +49,9 @@ public class JsonWriterTest extends BaseFormatTest {
     @Before
     public void init() {
         outputStream = new ByteArrayOutputStream();
-        writer = (JsonWriter) context.getBean("writer#JSON", outputStream);
+        writer = new JsonWriter();
+        writer.setMapper(new ObjectMapper());
+        writer.setOutput(outputStream);
     }
 
     @Test
@@ -82,8 +84,7 @@ public class JsonWriterTest extends BaseFormatTest {
                 put("firstname", "Superman");
             }
         };
-        final DataSetRow row = new DataSetRow(values);
-        row.setTdpId(23L);
+        final DataSetRow row = new DataSetRow(values).setTdpId(23L);
 
         final String expectedJson = "{\"records\":[{\"firstname\":\"Superman\",\"id\":\"64a5456ac148b64524ef165\",\"tdpId\":23}]}";
 

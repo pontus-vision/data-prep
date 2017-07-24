@@ -22,16 +22,16 @@ import java.util.*;
 import javax.annotation.Nonnull;
 
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Rename a column.
@@ -110,13 +110,13 @@ public class Rename extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String newColumnName = context.getParameters().get(NEW_COLUMN_NAME_PARAMETER_NAME);
-        final RowMetadata rowMetadata = context.getRowMetadata();
+        final RowMetadata rowMetadata = row.getRowMetadata();
         final ColumnMetadata column = rowMetadata.getById(context.getColumnId());
         column.setName(newColumnName);
         rowMetadata.update(context.getColumnId(), column);
-        context.setActionStatus(ActionContext.ActionStatus.DONE);
+        return Collections.singletonList(row.setRowMetadata(rowMetadata));
     }
 
     @Override

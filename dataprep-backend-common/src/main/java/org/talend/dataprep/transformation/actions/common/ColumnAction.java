@@ -13,8 +13,10 @@
 
 package org.talend.dataprep.transformation.actions.common;
 
+import java.util.Collection;
+
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Interface used to apply an action on a column.
@@ -27,5 +29,5 @@ public interface ColumnAction {
      * @param row the dataset row.
      * @param context the transformation context.
      */
-    void applyOnColumn(final DataSetRow row, final ActionContext context);
+    Collection<DataSetRow> applyOnColumn(final DataSetRow row, final ActionContext context);
 }

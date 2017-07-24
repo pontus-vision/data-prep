@@ -28,12 +28,12 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -91,7 +91,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         parameters.put(Contains.CONSTANT_VALUE, "toubidou");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("name_contains_toubidou").type(Type.BOOLEAN)
@@ -113,7 +113,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         parameters.put(Contains.SELECTED_COLUMN_PARAMETER, "0000");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("name_contains_source").type(Type.BOOLEAN)
@@ -141,7 +141,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -166,7 +166,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -191,7 +191,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -216,7 +216,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -229,7 +229,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         parameters.remove(Contains.CONSTANT_MODE);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         DataSetRow expected = getRow("first", "second", "Done !");
@@ -254,7 +254,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -278,7 +278,7 @@ public class ContainsTest extends AbstractMetadataBaseTest<Contains> {
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());

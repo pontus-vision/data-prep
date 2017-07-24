@@ -18,7 +18,7 @@ import static org.talend.daikon.number.BigDecimalParser.toBigDecimal;
 import static org.talend.dataprep.transformation.actions.math.Logarithm.LOGARITHM_NAME;
 
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Create a new column with Logarithm

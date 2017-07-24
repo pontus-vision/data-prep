@@ -29,24 +29,20 @@ import org.talend.dataprep.api.type.Type;
 
 public class DataSetRowTest {
 
-
-    /**
-     * Test the clear method.
-     */
     @Test
     public void should_clear_row() {
+        // Given
         DataSetRow row = createRow(defaultValues(), true);
-        row.diff(createRow(defaultValues(), false));
+        row = row.diff(createRow(defaultValues(), false));
 
-        row.clear();
+        // When
+        row = row.clear();
 
+        // Then
         assertFalse(row.isDeleted());
         assertTrue(row.values().isEmpty());
     }
 
-    /**
-     * Test the should write method.
-     */
     @Test
     public void write_or_not_write_that_is_the_question() {
         // no old value not deleted --> write
@@ -54,19 +50,19 @@ public class DataSetRowTest {
         assertTrue(row.shouldWrite());
 
         // no old value and deleted --> don't write
-        row.setDeleted(true);
+        row = row.setDeleted(true);
         assertFalse(row.shouldWrite());
 
         // old value and deleted --> write
-        row.diff(createRow(defaultValues(), false));
+        row = row.diff(createRow(defaultValues(), false));
         assertTrue(row.shouldWrite());
 
         // old deleted value and deleted --> don't write
-        row.diff(createRow(defaultValues(), true));
+        row = row.diff(createRow(defaultValues(), true));
         assertFalse(row.shouldWrite());
 
         // old deleted value and not deleted --> don't write
-        row.setDeleted(false);
+        row = row.setDeleted(false);
         assertTrue(row.shouldWrite());
     }
 
@@ -78,8 +74,8 @@ public class DataSetRowTest {
         DataSetRow row = createRow(defaultValues(), false);
         DataSetRow oldRow = createRow(defaultValues(), true);
 
-        row.diff(oldRow);
-        Map<String, Object> actual = row.values();
+        DataSetRow diff = row.diff(oldRow);
+        Map<String, Object> actual = diff.values();
         assertEquals(actual.get(FlagNames.ROW_DIFF_KEY), NEW.getValue());
     }
 
@@ -91,8 +87,8 @@ public class DataSetRowTest {
         DataSetRow row = createRow(defaultValues(), true);
         DataSetRow oldRow = createRow(defaultValues(), false);
 
-        row.diff(oldRow);
-        Map<String, Object> actual = row.values();
+        DataSetRow diff = row.diff(oldRow);
+        Map<String, Object> actual = diff.values();
         assertEquals(actual.get(FlagNames.ROW_DIFF_KEY), DELETE.getValue());
     }
 
@@ -110,7 +106,8 @@ public class DataSetRowTest {
         oldValues.put("age", "81");
         DataSetRow oldRow = createRow(oldValues, false);
 
-        row.diff(oldRow);
+        row = row.diff(oldRow);
+
         Map<String, Object> actual = row.values();
         Map<String, Object> diff = (Map<String, Object>) actual.get(FlagNames.DIFF_KEY);
         diff.values().forEach(value -> assertEquals(value, UPDATE.getValue()));
@@ -128,7 +125,7 @@ public class DataSetRowTest {
         oldValues.put("age", "18");
         DataSetRow oldRow = createRow(oldValues, false);
 
-        row.diff(oldRow);
+        row = row.diff(oldRow);
 
         Map<String, Object> diff = (Map<String, Object>) row.values().get(FlagNames.DIFF_KEY);
 
@@ -155,7 +152,7 @@ public class DataSetRowTest {
         values.put("age", "18");
         DataSetRow row = createRow(values, false);
 
-        row.diff(oldRow);
+        row = row.diff(oldRow);
 
         Map<String, Object> processedValues = row.values();
         Map<String, Object> diff = (Map<String, Object>) processedValues.get(FlagNames.DIFF_KEY);
@@ -169,8 +166,6 @@ public class DataSetRowTest {
             // check the diff
             assertTrue(diff.containsKey(expectedKey));
             assertEquals(Flag.DELETE.getValue(), diff.get(expectedKey));
-            // check the original value was put back
-            assertTrue(processedValues.containsKey(expectedKey));
         }
     }
 
@@ -240,8 +235,7 @@ public class DataSetRowTest {
     @Test
     public void should_return_values_with_tdp_id() {
         //given
-        final DataSetRow row = createRow(defaultValues(), false);
-        row.setTdpId(1L);
+        final DataSetRow row = createRow(defaultValues(), false).setTdpId(1L);
 
         //when
         final Map<String, Object> values = row.valuesWithId();
@@ -256,9 +250,7 @@ public class DataSetRowTest {
      * @return a new dataset row with the given values.
      */
     private DataSetRow createRow(final Map<String, String> values, final boolean isDeleted) {
-        final DataSetRow row = new DataSetRow(values);
-        row.setDeleted(isDeleted);
-        return row;
+        return new DataSetRow(values).setDeleted(isDeleted);
     }
 
     /**
@@ -329,11 +321,10 @@ public class DataSetRowTest {
     public void should_set_invalid_column() throws Exception {
         // given
         final Map<String, String> values = new HashMap<>();
-        final DataSetRow row = new DataSetRow(values);
+        DataSetRow row = new DataSetRow(values);
 
         // when
-        row.setInvalid("0001");
-        row.setInvalid("0004");
+        row = row.setInvalid("0001").setInvalid("0004");
 
         // then
         assertThat(row.values().get(TDP_INVALID), CoreMatchers.is("0004,0001"));
@@ -343,13 +334,10 @@ public class DataSetRowTest {
     public void should_unset_invalid_column() throws Exception {
         // given
         final Map<String, String> values = new HashMap<>();
-        final DataSetRow row = new DataSetRow(values);
-
-        row.setInvalid("0001");
-        row.setInvalid("0004");
+        DataSetRow row = new DataSetRow(values).setInvalid("0001").setInvalid("0004");
 
         // when
-        row.unsetInvalid("0004");
+        row = row.unsetInvalid("0004");
 
         // then
         assertThat(row.values().get(TDP_INVALID), CoreMatchers.is("0001"));

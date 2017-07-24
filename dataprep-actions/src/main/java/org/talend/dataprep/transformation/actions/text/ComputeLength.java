@@ -17,13 +17,14 @@ import java.util.*;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(ComputeLength.LENGTH_ACTION_NAME)
 public class ComputeLength extends AbstractActionMetadata implements ColumnAction {
@@ -70,14 +71,15 @@ public class ComputeLength extends AbstractActionMetadata implements ColumnActio
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         // create new column and append it after current column
+        final RowMetadata rowMetadata = row.getRowMetadata();
         final String columnId = context.getColumnId();
         final String lengthColumn = ActionsUtils.getTargetColumnId(context);
 
         // Set length value
         final String value = row.get(columnId);
-        row.set(lengthColumn, value == null ? "0" : String.valueOf(value.length()));
+        return Collections.singletonList(row.set(lengthColumn, value == null ? "0" : String.valueOf(value.length())));
     }
 
     @Override

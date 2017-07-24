@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 package org.talend.dataprep.transformation.actions.column;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +24,6 @@ import java.util.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
@@ -32,6 +31,7 @@ import org.talend.dataprep.api.dataset.statistics.SemanticDomain;
 import org.talend.dataprep.api.dataset.statistics.Statistics;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -92,10 +92,11 @@ public class CopyColumnTest extends AbstractMetadataBaseTest<CopyColumnMetadata>
         expectedValues.put("0002", "01/01/2015");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(expectedValues, row.values());
+        final DataSetRow actual = collected.get(0);
+        assertEquals(expectedValues, actual.values());
     }
 
     @Test
@@ -116,10 +117,11 @@ public class CopyColumnTest extends AbstractMetadataBaseTest<CopyColumnMetadata>
 
         // when
         final DataSetRow row = new DataSetRow(rowMetadata);
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(expected, row.getRowMetadata());
+        final DataSetRow actual = collected.get(0);
+        assertEquals(expected, actual.getRowMetadata());
     }
 
     /**
@@ -138,12 +140,13 @@ public class CopyColumnTest extends AbstractMetadataBaseTest<CopyColumnMetadata>
         // when
         rowMetadata.deleteColumnById("0003");
         final DataSetRow row = new DataSetRow(rowMetadata);
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        final List<ColumnMetadata> actual = row.getRowMetadata().getColumns();
+        final DataSetRow actualRow = collected.get(0);
+        final List<ColumnMetadata> actual = actualRow.getRowMetadata().getColumns();
         assertEquals(actual.size(), 4);
-        final ColumnMetadata copiedColumn = row.getRowMetadata().getById("0004");
+        final ColumnMetadata copiedColumn = actualRow.getRowMetadata().getById("0004");
         assertNotNull(copiedColumn);
         assertEquals("steps_copy", copiedColumn.getName());
     }
@@ -164,10 +167,11 @@ public class CopyColumnTest extends AbstractMetadataBaseTest<CopyColumnMetadata>
         expected.add(transformed);
 
         // when
-        ActionTestWorkbench.test(rowMetadata, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(new DataSetRow(rowMetadata), factory.create(action, parameters));
 
         // then
-        assertEquals(expected.get(1).getStatistics(), original.getStatistics());
+        final DataSetRow actual = collected.get(0);
+        assertEquals(expected.get(1).getStatistics(), actual.getRowMetadata().getById("0002").getStatistics());
     }
 
     @Test
@@ -189,7 +193,7 @@ public class CopyColumnTest extends AbstractMetadataBaseTest<CopyColumnMetadata>
         assertThat(rowMetadata.getColumns()).isNotNull().isNotEmpty().hasSize(1);
 
         final DataSetRow row = new DataSetRow(rowMetadata);
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         List<ColumnMetadata> actual = row.getRowMetadata().getColumns();
 
@@ -225,7 +229,7 @@ public class CopyColumnTest extends AbstractMetadataBaseTest<CopyColumnMetadata>
         assertThat(rowMetadata.getColumns()).isNotNull().isNotEmpty().hasSize(1);
 
         final DataSetRow row = new DataSetRow(rowMetadata);
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         List<ColumnMetadata> actual = row.getRowMetadata().getColumns();
 
@@ -262,7 +266,7 @@ public class CopyColumnTest extends AbstractMetadataBaseTest<CopyColumnMetadata>
         assertThat(rowMetadata.getColumns()).isNotNull().isNotEmpty().hasSize(1);
 
         final DataSetRow row = new DataSetRow(rowMetadata);
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         List<ColumnMetadata> actual = row.getRowMetadata().getColumns();
 

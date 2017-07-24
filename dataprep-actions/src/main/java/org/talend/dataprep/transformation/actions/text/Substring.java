@@ -25,13 +25,14 @@ import java.util.*;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(Substring.SUBSTRING_ACTION_NAME)
 public class Substring extends AbstractActionMetadata implements ColumnAction {
@@ -148,15 +149,16 @@ public class Substring extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         // create the new column
+        final RowMetadata rowMetadata = row.getRowMetadata();
         final String columnId = context.getColumnId();
         final String substringColumn = ActionsUtils.getTargetColumnId(context);
 
         // Perform substring
         final String value = row.get(columnId);
         if (value == null) {
-            return;
+            return Collections.singletonList(row);
         }
         final Map<String, String> parameters = context.getParameters();
         final int realFromIndex = getStartIndex(parameters, value);
@@ -164,10 +166,10 @@ public class Substring extends AbstractActionMetadata implements ColumnAction {
 
         try {
             final String newValue = value.substring(realFromIndex, realToIndex);
-            row.set(substringColumn, newValue);
+            return Collections.singletonList(row.set(substringColumn, newValue));
         } catch (IndexOutOfBoundsException e) {
             // Nothing to do in that case, just set with the empty string:
-            row.set(substringColumn, EMPTY);
+            return Collections.singletonList(row.set(substringColumn, EMPTY));
         }
     }
 

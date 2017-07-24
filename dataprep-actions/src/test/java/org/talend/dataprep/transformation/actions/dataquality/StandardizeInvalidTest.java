@@ -15,7 +15,6 @@ package org.talend.dataprep.transformation.actions.dataquality;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
@@ -23,6 +22,7 @@ import org.talend.dataprep.api.dataset.statistics.SemanticDomain;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -107,7 +107,7 @@ public class StandardizeInvalidTest extends AbstractMetadataBaseTest<Standardize
         expectedValues.put("__tdpInvalid", columnId1);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -125,7 +125,7 @@ public class StandardizeInvalidTest extends AbstractMetadataBaseTest<Standardize
         values.put("__tdpInvalid", columnId1);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(values, row.values());
@@ -142,7 +142,7 @@ public class StandardizeInvalidTest extends AbstractMetadataBaseTest<Standardize
         final DataSetRow row = createRow(values, null, "COUNTRY");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(values, row.values());
@@ -162,7 +162,7 @@ public class StandardizeInvalidTest extends AbstractMetadataBaseTest<Standardize
         values.put("__tdpInvalid", columnId1);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(values, row.values());
@@ -181,7 +181,7 @@ public class StandardizeInvalidTest extends AbstractMetadataBaseTest<Standardize
         values.put("__tdpInvalid", columnId1);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(values, row.values());

@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.common;
 
@@ -31,9 +31,9 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
+import org.talend.dataprep.transformation.actions.ActionRegistry;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
-import org.talend.dataprep.transformation.pipeline.ActionRegistry;
 
 public class ActionMetadataTest {
 
@@ -157,11 +157,10 @@ public class ActionMetadataTest {
 
         final Map<String, String> rowValues = new HashMap<>();
         rowValues.put("0000", "toto");
-        final DataSetRow row = new DataSetRow(rowValues);
-        row.setTdpId(58L);
+        final DataSetRow row = new DataSetRow(rowValues).setTdpId(58L);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(cellTransformation, parameters));
+        ActionTestWorkbench.test(row, factory.create(cellTransformation, parameters));
 
         // then
         assertThat(row.get("0000"), is("TOTO"));
@@ -173,8 +172,8 @@ public class ActionMetadataTest {
         final DataSetRow row = builder() //
                 .value("test", Type.STRING) //
                 .value("toto", Type.STRING) //
-                .build();
-        row.setTdpId(60L);
+                .build() //
+                .setTdpId(60L);
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put("scope", "cell");
@@ -182,7 +181,7 @@ public class ActionMetadataTest {
         parameters.put("row_id", "58");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(cellTransformation, parameters));
+        ActionTestWorkbench.test(row, factory.create(cellTransformation, parameters));
 
         // then
         assertThat(row.get("0001"), is("toto"));
@@ -198,11 +197,10 @@ public class ActionMetadataTest {
         final Map<String, String> rowValues = new HashMap<>();
         rowValues.put("0001", "toto");
         rowValues.put("0002", "tata");
-        final DataSetRow row = new DataSetRow(rowValues);
-        row.setTdpId(58L);
+        final DataSetRow row = new DataSetRow(rowValues).setTdpId(58L);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(lineTransformation, parameters));
+        ActionTestWorkbench.test(row, factory.create(lineTransformation, parameters));
 
         // then
         assertThat(row.get("0001"), is("TOTO"));
@@ -219,11 +217,10 @@ public class ActionMetadataTest {
         final Map<String, String> rowValues = new HashMap<>();
         rowValues.put("0001", "toto");
         rowValues.put("0002", "tata");
-        final DataSetRow row = new DataSetRow(rowValues);
-        row.setTdpId(60L);
+        final DataSetRow row = new DataSetRow(rowValues).setTdpId(60L);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(lineTransformation, parameters));
+        ActionTestWorkbench.test(row, factory.create(lineTransformation, parameters));
 
         // then
         assertThat(row.get("0001"), is("toto"));
@@ -240,11 +237,10 @@ public class ActionMetadataTest {
         final Map<String, String> rowValues = new HashMap<>();
         rowValues.put("0001", "toto");
         rowValues.put("0002", "tata");
-        final DataSetRow row = new DataSetRow(rowValues);
-        row.setTdpId(58L);
+        final DataSetRow row = new DataSetRow(rowValues).setTdpId(58L);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(columnTransformation, parameters));
+        ActionTestWorkbench.test(row, factory.create(columnTransformation, parameters));
 
         // then
         assertThat(row.get("0001"), is("TOTO"));
@@ -263,7 +259,7 @@ public class ActionMetadataTest {
         final DataSetRow row = new DataSetRow(rowValues);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(tableTransformation, parameters));
+        ActionTestWorkbench.test(row, factory.create(tableTransformation, parameters));
 
         // then
         assertThat(row.get("0000"), is("TOTO"));
@@ -293,10 +289,10 @@ class CellTransformation extends AbstractActionMetadata implements CellAction {
     }
 
     @Override
-    public void applyOnCell(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnCell(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
-        row.set(columnId, value.toUpperCase());
+        return Collections.singletonList(row.set(columnId, value.toUpperCase()));
     }
 
     @Override
@@ -323,10 +319,12 @@ class LineTransformation extends AbstractActionMetadata implements RowAction {
     }
 
     @Override
-    public void applyOnLine(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnLine(DataSetRow row, ActionContext context) {
+        DataSetRow current = row;
         for (final Map.Entry<String, Object> entry : row.values().entrySet()) {
-            row.set(entry.getKey(), entry.getValue().toString().toUpperCase());
+            current = current.set(entry.getKey(), entry.getValue().toString().toUpperCase());
         }
+        return Collections.singletonList(current);
     }
 
     @Override
@@ -353,10 +351,10 @@ class ColumnTransformation extends AbstractActionMetadata implements ColumnActio
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
-        row.set(columnId, value.toUpperCase());
+        return Collections.singletonList(row.set(columnId, value.toUpperCase()));
     }
 
     @Override
@@ -383,10 +381,11 @@ class TableTransformation extends AbstractActionMetadata implements DataSetActio
     }
 
     @Override
-    public void applyOnDataSet(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnDataSet(DataSetRow row, ActionContext context) {
         for (final Map.Entry<String, Object> entry : row.values().entrySet()) {
-            row.set(entry.getKey(), entry.getValue().toString().toUpperCase());
+            row = row.set(entry.getKey(), entry.getValue().toString().toUpperCase());
         }
+        return Collections.singletonList(row);
     }
 
     @Override

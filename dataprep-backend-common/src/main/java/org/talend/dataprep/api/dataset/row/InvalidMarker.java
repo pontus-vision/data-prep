@@ -58,9 +58,9 @@ public class InvalidMarker implements Function<DataSetRow, DataSetRow> {
         for (int i = 0; i < columns.size(); i++) {
             final String columnId = columns.get(i).getId();
             if (invalidBitSet.get(i)) {
-                dataSetRow.setInvalid(columnId);
+                dataSetRow = dataSetRow.setInvalid(columnId);
             } else {
-                dataSetRow.unsetInvalid(columnId);
+                dataSetRow = dataSetRow.unsetInvalid(columnId);
             }
         }
 

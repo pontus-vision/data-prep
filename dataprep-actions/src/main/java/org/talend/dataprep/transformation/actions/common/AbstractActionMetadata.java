@@ -17,20 +17,18 @@ import static java.util.Collections.emptyList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.function.Function;
 
-import org.apache.avro.generic.GenericRecord;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.i18n.DocumentationLinkGenerator;
 import org.talend.dataprep.i18n.MessagesBundle;
 import org.talend.dataprep.parameters.Parameter;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.category.ActionScope;
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -210,10 +208,5 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
     @JsonIgnore
     @Override
     public abstract Set<ActionDefinition.Behavior> getBehavior();
-
-    @Override
-    public Function<GenericRecord, GenericRecord> action(List<Parameter> parameters) {
-        return r -> r;
-    }
 
 }

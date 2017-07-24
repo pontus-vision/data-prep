@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.delete;
 
@@ -24,9 +24,9 @@ import static org.talend.dataprep.transformation.actions.category.ScopeCategory.
 import java.util.*;
 
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -95,8 +95,7 @@ public class DeleteTest extends AbstractMetadataBaseTest<Delete> {
         final Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "toto");
         rowContent.put("0001", "tata");
-        final DataSetRow row = new DataSetRow(rowContent);
-        row.setTdpId(rowId);
+        final DataSetRow row = new DataSetRow(rowContent).setTdpId(rowId);
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "line");
@@ -105,7 +104,7 @@ public class DeleteTest extends AbstractMetadataBaseTest<Delete> {
         assertThat(row.isDeleted(), is(false));
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertThat(row.isDeleted(), is(true));
@@ -120,8 +119,7 @@ public class DeleteTest extends AbstractMetadataBaseTest<Delete> {
         final Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "toto");
         rowContent.put("0001", "tata");
-        final DataSetRow row = new DataSetRow(rowContent);
-        row.setTdpId(rowId);
+        final DataSetRow row = new DataSetRow(rowContent).setTdpId(rowId);
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "line");
@@ -130,7 +128,7 @@ public class DeleteTest extends AbstractMetadataBaseTest<Delete> {
         assertThat(row.isDeleted(), is(false));
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         //then
         assertThat(row.isDeleted(), is(false));
@@ -146,17 +144,16 @@ public class DeleteTest extends AbstractMetadataBaseTest<Delete> {
         values.put("0000", "David Bowie");
         values.put("0001", "Paris");
         final DataSetRow original = new DataSetRow(values);
-        final List<DataSetRow> rows = Arrays.asList(original.clone(), original.clone(), original.clone(), original.clone());
-        for (long i = 0; i < rows.size(); i++) {
-            final DataSetRow dataSetRow = rows.get((int) i);
-            dataSetRow.setTdpId(i);
+        final List<DataSetRow> rows = new ArrayList<>();
+        for (long i = 0; i < 4; i++) {
+            rows.add(original.setTdpId(i));
         }
 
         //when
         parameters.put("row_id", "1");
-        ActionTestWorkbench.test(rows, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(rows, factory.create(action, parameters));
         parameters.put("row_id", "2");
-        ActionTestWorkbench.test(rows, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(rows, factory.create(action, parameters));
 
         // then
         assertFalse(rows.get(0).isDeleted());

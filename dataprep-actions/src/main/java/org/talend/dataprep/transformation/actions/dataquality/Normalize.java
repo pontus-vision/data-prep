@@ -16,6 +16,8 @@ package org.talend.dataprep.transformation.actions.dataquality;
 import static java.util.Collections.singletonList;
 
 import java.text.Normalizer;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
@@ -30,7 +32,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Lower case a column in a dataset row.
@@ -77,12 +79,13 @@ public class Normalize extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
         if (value != null) {
-            row.set(ActionsUtils.getTargetColumnId(context), normalize(value));
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), normalize(value)));
         }
+        return Collections.singletonList(row);
     }
 
     /**

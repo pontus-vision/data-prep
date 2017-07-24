@@ -35,8 +35,6 @@ import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.date.DateManipulator;
-import org.talend.dataprep.quality.AnalyzerService;
-import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.date.DateParser;
 import org.talend.dataprep.util.NumericHelper;
 
@@ -439,9 +437,6 @@ public class SimpleFilterService implements FilterService {
     }
 
     private synchronized DateParser getDateParser() {
-        if (dateParser == null) {
-            dateParser = new DateParser(Providers.get(AnalyzerService.class));
-        }
         return dateParser;
     }
 

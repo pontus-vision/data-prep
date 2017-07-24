@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.text;
 
@@ -19,21 +19,19 @@ import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
+import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 /**
@@ -90,12 +88,13 @@ public class UpperCaseTest extends AbstractMetadataBaseTest<UpperCase> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(expectedValues, row.values());
+        final DataSetRow actualRow = collected.get(0);
+        assertEquals(expectedValues, actualRow.values());
         ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0000_upper").type(Type.STRING).build();
-        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        ColumnMetadata actual = actualRow.getRowMetadata().getById("0003");
         assertEquals(expected, actual);
     }
 
@@ -112,29 +111,34 @@ public class UpperCaseTest extends AbstractMetadataBaseTest<UpperCase> {
         expectedValues.put("0001", "Canada");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(expectedValues, row.values());
+        final DataSetRow actualRow = collected.get(0);
+        assertEquals(expectedValues, actualRow.values());
     }
 
     @Test()
     public void should_do_nothing_since_column_does_not_exist() {
         // given
         final Map<String, String> values = new HashMap<>();
+        values.put("0000", "America");
         values.put("0001", "Canada");
         values.put("0002", "Ottawa");
         final DataSetRow row = new DataSetRow(values);
 
         final Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "America");
         expectedValues.put("0001", "Canada");
         expectedValues.put("0002", "Ottawa");
 
-        //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        // when
+        parameters.put(ImplicitParameters.COLUMN_ID.getKey(), "0003");
+        final List<DataSetRow> collected = ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
-        assertEquals(expectedValues, row.values());
+        final DataSetRow actualRow = collected.get(0);
+        assertEquals(expectedValues, actualRow.values());
     }
 
     @Test

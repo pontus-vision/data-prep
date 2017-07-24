@@ -14,7 +14,6 @@
 package org.talend.dataprep.api.dataset.row;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.StreamSupport.stream;
 import static org.talend.dataprep.api.dataset.row.FlagNames.INTERNAL_PROPERTY_PREFIX;
 import static org.talend.dataprep.api.dataset.row.FlagNames.TDP_INVALID;
 
@@ -69,7 +68,7 @@ public class DataSetRow implements Cloneable, Serializable {
      * Constructor with values.
      */
     public DataSetRow(RowMetadata rowMetadata) {
-        this.rowMetadata = rowMetadata;
+        this.rowMetadata = rowMetadata.clone();
         this.deleted = false;
     }
 
@@ -80,17 +79,19 @@ public class DataSetRow implements Cloneable, Serializable {
      */
     public DataSetRow(RowMetadata rowMetadata, Map<String, ?> values) {
         this(rowMetadata);
-        values.forEach((k, v) -> set(k, String.valueOf(v)));
+        initFromValues(values);
     }
 
-    public DataSetRow(Map<String, String> values) {
-        for (Map.Entry<String, String> entry : values.entrySet()) {
-            set(entry.getKey(), entry.getValue());
-        }
+    public DataSetRow(Map<String, ?> values) {
         List<ColumnMetadata> columns = values.keySet().stream() //
                 .map(columnName -> ColumnMetadata.Builder.column().name(columnName).type(Type.STRING).build()) //
                 .collect(Collectors.toList());
         rowMetadata = new RowMetadata(columns);
+        initFromValues(values);
+    }
+
+    private void initFromValues(Map<String, ?> values) {
+        values.forEach((k, v) -> internalSet(k, String.valueOf(v), this));
     }
 
     /**
@@ -100,8 +101,10 @@ public class DataSetRow implements Cloneable, Serializable {
         return rowMetadata;
     }
 
-    public void setRowMetadata(RowMetadata rowMetadata) {
-        this.rowMetadata = rowMetadata;
+    public DataSetRow setRowMetadata(RowMetadata rowMetadata) {
+        DataSetRow clone = clone();
+        clone.rowMetadata = rowMetadata.clone();
+        return clone;
     }
 
     /**
@@ -111,16 +114,20 @@ public class DataSetRow implements Cloneable, Serializable {
      * @param value - the value
      */
     public DataSetRow set(final String id, final String value) {
+        DataSetRow clone = clone();
+        internalSet(id, value, clone);
+        return clone;
+    }
+
+    private static void internalSet(String id, String value, DataSetRow row) {
         if (TDP_INVALID.equals(id)) {
             final List<String> ids = Arrays.asList(value.split(","));
-            invalidColumnIds.addAll(ids);
+            row.invalidColumnIds.addAll(ids);
         } else if (FlagNames.TDP_ID.equals(id)) {
-            setTdpId(Long.parseLong(value));
+            row.rowId = Long.parseLong(value);
         } else {
-            values.put(id, value);
+            row.values.put(id, value);
         }
-
-        return this;
     }
 
     /**
@@ -147,8 +154,10 @@ public class DataSetRow implements Cloneable, Serializable {
     /**
      * Set whether the row is deleted
      */
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    public DataSetRow setDeleted(boolean deleted) {
+        DataSetRow clone = clone();
+        clone.deleted = deleted;
+        return clone;
     }
 
     /**
@@ -156,8 +165,10 @@ public class DataSetRow implements Cloneable, Serializable {
      *
      * @param oldRow - the original row
      */
-    public void diff(final DataSetRow oldRow) {
-        this.oldValue = oldRow;
+    public DataSetRow diff(final DataSetRow oldRow) {
+        DataSetRow clone = clone();
+        clone.oldValue = oldRow.clone();
+        return clone;
     }
 
     /**
@@ -173,9 +184,9 @@ public class DataSetRow implements Cloneable, Serializable {
         final Map<String, Object> result = new LinkedHashMap<>(values.size() + 1);
 
         // put all invalid column ids
-        getInternalValues().entrySet().forEach(e -> {
-            if (!StringUtils.isEmpty(e.getValue())) {
-                values.put(e.getKey(), e.getValue());
+        getInternalValues().forEach((key, value) -> {
+            if (!StringUtils.isEmpty(value)) {
+                result.put(key, value);
             }
         });
 
@@ -203,27 +214,27 @@ public class DataSetRow implements Cloneable, Serializable {
         final Map<String, Object> originalValues = oldValue.values();
 
         // compute the new value (column is not found in old value)
-        values.entrySet().forEach(entry -> {
-            if (!originalValues.containsKey(entry.getKey())) {
-                diff.put(entry.getKey(), Flag.NEW.getValue());
+        values.forEach((key, value) -> {
+            if (!originalValues.containsKey(key)) {
+                diff.put(key, Flag.NEW.getValue());
             }
         });
 
         // compute the deleted values (column is deleted)
-        originalValues.entrySet().forEach(entry -> {
-            if (!values.containsKey(entry.getKey())) {
-                diff.put(entry.getKey(), Flag.DELETE.getValue());
+        originalValues.forEach((key, value) -> {
+            if (!values.containsKey(key)) {
+                diff.put(key, Flag.DELETE.getValue());
                 // put back the original entry so that the value can be displayed
-                set(entry.getKey(), (String) entry.getValue());
+                set(key, (String) value);
             }
         });
 
         // compute the update values (column is still here but value is different)
-        values.entrySet().forEach(entry -> {
-            if (originalValues.containsKey(entry.getKey())) {
-                final Object originalValue = originalValues.get(entry.getKey());
-                if (!StringUtils.equals(entry.getValue(), (String) originalValue)) {
-                    diff.put(entry.getKey(), Flag.UPDATE.getValue());
+        values.forEach((key, value) -> {
+            if (originalValues.containsKey(key)) {
+                final Object originalValue = originalValues.get(key);
+                if (!StringUtils.equals(value, (String) originalValue)) {
+                    diff.put(key, Flag.UPDATE.getValue());
                 }
             }
         });
@@ -248,12 +259,8 @@ public class DataSetRow implements Cloneable, Serializable {
      * Clear all values in this row and reset state as it was when created (e.g. {@link #isDeleted()} returns
      * <code>false</code>).
      */
-    public void clear() {
-        deleted = false;
-        oldValue = null;
-        rowId = null;
-        values.clear();
-        invalidColumnIds.clear();
+    public DataSetRow clear() {
+        return new DataSetRow(rowMetadata);
     }
 
     /**
@@ -261,10 +268,10 @@ public class DataSetRow implements Cloneable, Serializable {
      */
     @Override
     public DataSetRow clone() {
-        final DataSetRow clone = new DataSetRow(rowMetadata, values);
+        final DataSetRow clone = new DataSetRow(rowMetadata.clone(), values);
         clone.invalidColumnIds.addAll(invalidColumnIds);
-        clone.setDeleted(this.isDeleted());
-        clone.setTdpId(this.rowId);
+        clone.deleted = deleted;
+        clone.rowId = rowId;
         return clone;
     }
 
@@ -357,16 +364,13 @@ public class DataSetRow implements Cloneable, Serializable {
      * is unchanged and returns <tt>false</tt>.
      *
      * @param id the id of the value to be removed
-     * @return <tt>true</tt> if the specified column metadata is in this datasetrow and <tt>false</tt> otherwise
+     * @return the modified dataset row?
      */
-    public boolean deleteColumnById(String id) {
-        rowMetadata.deleteColumnById(id);
-
-        if (values.containsKey(id)) {
-            values.remove(id);
-            return true;
-        }
-        return false;
+    public DataSetRow deleteColumnById(String id) {
+        DataSetRow clone = clone();
+        clone.rowMetadata.deleteColumnById(id);
+        clone.values.remove(id);
+        return clone;
     }
 
     /**
@@ -378,24 +382,25 @@ public class DataSetRow implements Cloneable, Serializable {
      */
     @SafeVarargs
     public final String[] toArray(Predicate<Map.Entry<String, String>>... filters) {
-        Stream<Map.Entry<String, String>> stream = stream(values.entrySet().spliterator(), false);
+        Stream<Map.Entry<String, String>> stream = values.entrySet().stream();
         // Apply filters
         for (Predicate<Map.Entry<String, String>> filter : filters) {
             stream = stream.filter(filter);
         }
         // Get as string array the selected columns
-        final List<String> strings = stream.map(Map.Entry::getValue) //
+        return stream.map(Map.Entry::getValue) //
                 .map(String::valueOf) //
-                .collect(Collectors.toList());
-        return strings.toArray(new String[strings.size()]);
+                .toArray(String[]::new);
     }
 
     public Long getTdpId() {
         return rowId;
     }
 
-    public void setTdpId(Long tdpId) {
-        this.rowId = tdpId;
+    public DataSetRow setTdpId(Long tdpId) {
+        DataSetRow clone = clone();
+        clone.rowId = tdpId;
+        return clone;
     }
 
     /**
@@ -403,19 +408,7 @@ public class DataSetRow implements Cloneable, Serializable {
      * <code>false</code> otherwise.
      */
     public boolean isEmpty() {
-        return values.isEmpty() || values.values().stream().filter(s -> !StringUtils.isEmpty(s)).count() == 0;
-    }
-
-    /**
-     * @return A {@link DataSetRow} as 'unmodifiable': all previously set values cannot change (changes would be
-     * silently ignored), setting a new column will set empty string (value will be discarded).
-     */
-    public DataSetRow unmodifiable() {
-        return new UnmodifiableDataSetRow(this);
-    }
-
-    public DataSetRow modifiable() {
-        return this;
+        return values.isEmpty() || values.values().stream().allMatch(StringUtils::isEmpty);
     }
 
     public DataSetRow filter(List<ColumnMetadata> filteredColumns) {
@@ -452,8 +445,10 @@ public class DataSetRow implements Cloneable, Serializable {
      * @param columnId A column id in the line.
      * @see #unsetInvalid(String)
      */
-    public void setInvalid(String columnId) {
-        invalidColumnIds.add(columnId);
+    public DataSetRow setInvalid(String columnId) {
+        DataSetRow clone = clone();
+        clone.invalidColumnIds.add(columnId);
+        return clone;
     }
 
     /**
@@ -462,8 +457,10 @@ public class DataSetRow implements Cloneable, Serializable {
      * @param columnId A column id in the line.
      * @see #setInvalid(String)
      */
-    public void unsetInvalid(String columnId) {
-        invalidColumnIds.remove(columnId);
+    public DataSetRow unsetInvalid(String columnId) {
+        DataSetRow clone = clone();
+        clone.invalidColumnIds.remove(columnId);
+        return clone;
     }
 
     /**
@@ -474,129 +471,5 @@ public class DataSetRow implements Cloneable, Serializable {
         final Map<String, String> internalValues = new HashMap<>(1);
         internalValues.put(TDP_INVALID, invalidColumnIds.stream().collect(joining(",")));
         return internalValues;
-    }
-
-    /**
-     * A wrapper implementation of {@link DataSetRow} that prevents changes on previous values and set empty string for
-     * all new columns. This implementation allows modification on {@link RowMetadata}.
-     *
-     * @see #set(String, String)
-     */
-    private static class UnmodifiableDataSetRow extends DataSetRow {
-
-        private final DataSetRow delegate;
-
-        private final boolean deleted;
-
-        private UnmodifiableDataSetRow(DataSetRow delegate) {
-            super(delegate.rowMetadata);
-            this.delegate = delegate;
-            deleted = delegate.isDeleted();
-        }
-
-        @Override
-        public RowMetadata getRowMetadata() {
-            return delegate.getRowMetadata();
-        }
-
-        /**
-         * This method prevents changes on previous values and set empty string for all new columns.
-         *
-         * @param id - the key A column name.
-         * @param value - the value The value to be set for column name.
-         * @return This data set row for chaining calls.
-         */
-        @Override
-        public DataSetRow set(String id, String value) {
-            if (delegate.get(id) == null) {
-                return delegate.set(id, StringUtils.EMPTY);
-            }
-            return this;
-        }
-
-        @Override
-        public String get(String id) {
-            return delegate.get(id);
-        }
-
-        @Override
-        public boolean isDeleted() {
-            return deleted;
-        }
-
-        @Override
-        public void setDeleted(boolean deleted) {
-            // UnmodifiableDataSetRow means unmodifiable
-        }
-
-        @Override
-        public void diff(DataSetRow oldRow) {
-            delegate.diff(oldRow);
-        }
-
-        @Override
-        public Map<String, Object> values() {
-            return Collections.unmodifiableMap(delegate.values());
-        }
-
-        @Override
-        public Map<String, Object> valuesWithId() {
-            return Collections.unmodifiableMap(delegate.valuesWithId());
-        }
-
-        @Override
-        public void clear() {
-            // UnmodifiableDataSetRow means unmodifiable
-        }
-
-        @Override
-        public DataSetRow clone() { // NOSONAR
-            return this;
-        }
-
-        @Override
-        public boolean shouldWrite() {
-            return delegate.shouldWrite();
-        }
-
-        @Override
-        public boolean equals(Object o) { // NOSONAR
-            return delegate.equals(o);
-        }
-
-        @Override
-        public int hashCode() {
-            return delegate.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return delegate.toString();
-        }
-
-        @Override
-        public DataSetRow order(List<ColumnMetadata> columns) {
-            return delegate.order(columns);
-        }
-
-        @Override
-        public Long getTdpId() {
-            return delegate.getTdpId();
-        }
-
-        @Override
-        public void setTdpId(Long tdpId) {
-            // UnmodifiableDataSetRow means unmodifiable
-        }
-
-        @Override
-        public DataSetRow unmodifiable() {
-            return this;
-        }
-
-        @Override
-        public DataSetRow modifiable() {
-            return delegate;
-        }
     }
 }

@@ -23,11 +23,11 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -64,7 +64,7 @@ public class SquareRootTest extends AbstractMetadataBaseTest<SquareRoot> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -77,7 +77,7 @@ public class SquareRootTest extends AbstractMetadataBaseTest<SquareRoot> {
         DataSetRow row = getRow("2500%", "3", "Done !");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("5.0", row.get("0000"));
@@ -89,7 +89,7 @@ public class SquareRootTest extends AbstractMetadataBaseTest<SquareRoot> {
         DataSetRow row = getRow("25", "3", "Done !");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("5.0", row.get("0000"));
@@ -101,7 +101,7 @@ public class SquareRootTest extends AbstractMetadataBaseTest<SquareRoot> {
         DataSetRow row = getRow("5%46", "3", "Done !");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("", row.get("0000"));
@@ -114,7 +114,7 @@ public class SquareRootTest extends AbstractMetadataBaseTest<SquareRoot> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);
@@ -128,7 +128,7 @@ public class SquareRootTest extends AbstractMetadataBaseTest<SquareRoot> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertColumnWithResultCreated(row);

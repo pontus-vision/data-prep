@@ -2,34 +2,16 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.date;
-
-import org.apache.commons.lang.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.talend.daikon.exception.TalendRuntimeException;
-import org.talend.dataprep.api.action.ActionDefinition;
-import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.dataset.statistics.PatternFrequency;
-import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.parameters.SelectParameter;
-import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
-import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
-import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
-
-import java.io.IOException;
-import java.util.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
@@ -38,6 +20,24 @@ import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTes
 import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValuesBuilder.builder;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.*;
 import static org.talend.dataprep.transformation.actions.common.ActionsUtils.CREATE_NEW_COLUMN;
+
+import java.io.IOException;
+import java.util.*;
+
+import org.apache.commons.lang.StringUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.talend.daikon.exception.TalendRuntimeException;
+import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.api.dataset.statistics.PatternFrequency;
+import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.parameters.SelectParameter;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
+import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
+import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
+import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 /**
  * Unit test for the ChangeDatePattern action.
@@ -117,7 +117,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         missingParameters.put("column_id", "");
 
         //when
-        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), actionRegistry, factory.create(action, missingParameters));
+        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), factory.create(action, missingParameters));
     }
 
     @Test(expected = TalendRuntimeException.class)
@@ -128,7 +128,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         missingParameters.put(ChangeDatePattern.NEW_PATTERN, "toto");
 
         //when
-        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), actionRegistry, factory.create(action, missingParameters));
+        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), factory.create(action, missingParameters));
     }
 
     @Test(expected = TalendRuntimeException.class)
@@ -138,7 +138,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         insufficientParams.put("column_id", "0000");
 
         //when
-        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), actionRegistry, factory.create(action, insufficientParams));
+        ActionTestWorkbench.test(new DataSetRow(Collections.emptyMap()), factory.create(action, insufficientParams));
     }
 
     @Test
@@ -152,7 +152,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/1999", "tata", "25 - Apr - 1999");
@@ -170,7 +170,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "", "tata", "");
@@ -187,7 +187,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "25 - Apr - 1999", "tata");
@@ -203,7 +203,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(ChangeDatePattern.CUSTOM_PATTERN, "ff");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/1999", "tata");
@@ -220,7 +220,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/1999", "tata");
@@ -236,7 +236,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(ChangeDatePattern.CUSTOM_PATTERN, "");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "04/25/1999", "tata");
@@ -253,7 +253,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final List<PatternFrequency> patternFrequencies = row.getRowMetadata() //
@@ -282,7 +282,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final List<PatternFrequency> patternFrequencies = row.getRowMetadata() //
@@ -310,7 +310,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
                 .build();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "25 - Apr - 2009", "tata");
@@ -324,7 +324,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         setStatistics(row, "0001", getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "NA", "tata");
@@ -341,7 +341,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(ChangeDatePattern.FROM_CUSTOM_PATTERN, "MMM-dd-yy");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "Apr-25-09", "tata");
@@ -362,7 +362,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(ChangeDatePattern.FROM_CUSTOM_PATTERN, "MMM-dd-yy");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "25 - Apr - 2009", "tata");
@@ -379,7 +379,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(ChangeDatePattern.FROM_CUSTOM_PATTERN, "MMM-dd-yy");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "25 - Apr - 2009", "tata");
@@ -416,7 +416,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put("column_id", "0001");
 
         // when
-        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), factory.create(action, parameters));
 
         // then
         assertEquals("2015-06-12", row1.get("0001"));
@@ -437,7 +437,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(ChangeDatePattern.CUSTOM_PATTERN, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "Apr-25-09", "tata");
@@ -457,7 +457,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         parameters.put(ChangeDatePattern.CUSTOM_PATTERN, "yyyy-MM-dd'T'HH:mm:ss.SSS");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         final DataSetRow expectedRow = getRow("toto", "2009-04-25T00:00:00.000", "tata");
@@ -471,7 +471,7 @@ public class ChangeDatePatternTest extends BaseDateTest<ChangeDatePattern> {
         setStatistics(row, "0001", getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then (values should be unchanged)
         final DataSetRow expectedRow = getRow("toto", "", "tata");

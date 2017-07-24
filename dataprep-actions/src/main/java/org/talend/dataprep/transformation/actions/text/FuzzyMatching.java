@@ -36,7 +36,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Create a new column with Boolean result <code>true</code> if the Levenstein distance is less or equals the parameter
@@ -110,13 +110,13 @@ public class FuzzyMatching extends AbstractActionMetadata implements ColumnActio
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         Map<String, String> parameters = context.getParameters();
 
         int sensitivity = NumberUtils.toInt(parameters.get(SENSITIVITY));
 
         // create new column and append it after current column
-        RowMetadata rowMetadata = context.getRowMetadata();
+        RowMetadata rowMetadata = row.getRowMetadata();
 
         String value = row.get(context.getColumnId());
         String referenceValue;
@@ -129,7 +129,7 @@ public class FuzzyMatching extends AbstractActionMetadata implements ColumnActio
         }
 
         final String columnValue = toStringTrueFalse(fuzzyMatches(value, referenceValue, sensitivity));
-        row.set(ActionsUtils.getTargetColumnId(context), columnValue);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), columnValue));
     }
 
     private boolean fuzzyMatches(String value, String reference, int sensitivity) {

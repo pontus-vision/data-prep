@@ -26,12 +26,12 @@ import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
@@ -113,7 +113,7 @@ public class ExtractNumberTest extends AbstractMetadataBaseTest<ExtractNumber> {
         expectedValues.put("0002", "01/01/2015");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -182,8 +182,7 @@ public class ExtractNumberTest extends AbstractMetadataBaseTest<ExtractNumber> {
 
         // when
         ActionTestWorkbench.test(Collections.singletonList(row), //
-                analyzerService, // Test requires some analysis in asserts
-                actionRegistry,
+                // Test requires some analysis in asserts
                 factory.create(action, parameters));
 
         // then
@@ -248,8 +247,8 @@ public class ExtractNumberTest extends AbstractMetadataBaseTest<ExtractNumber> {
 
         // when
         ActionTestWorkbench.test(Collections.singletonList(row), //
-                analyzerService, // Test requires some analysis in asserts
-                actionRegistry, //
+                // Test requires some analysis in asserts
+                //
                 factory.create(action, parameters));
 
         // then

@@ -34,7 +34,6 @@ import org.talend.dataprep.command.dataset.DataSetGetMetadata;
 import org.talend.dataprep.command.preparation.PreparationDetailsGet;
 import org.talend.dataprep.command.preparation.PreparationGetActions;
 import org.talend.dataprep.security.SecurityProxy;
-import org.talend.dataprep.transformation.api.transformer.ExecutableTransformer;
 import org.talend.dataprep.transformation.api.transformer.Transformer;
 import org.talend.dataprep.transformation.api.transformer.TransformerFactory;
 import org.talend.dataprep.transformation.api.transformer.configuration.Configuration;
@@ -42,6 +41,7 @@ import org.talend.dataprep.cache.CacheKeyGenerator;
 import org.talend.dataprep.cache.TransformationCacheKey;
 import org.talend.dataprep.transformation.format.FormatRegistrationService;
 import org.talend.dataprep.transformation.format.JsonFormat;
+import org.talend.dataprep.transformation.pipeline.runtime.ExecutorRunnable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -111,7 +111,7 @@ public class PreparationExportStrategyTest {
         when(cacheKeyGenerator.generateContentKey(anyString(), anyString(), anyString(), anyString(), any(), any(),
                 anyString())).thenReturn(cacheKey);
 
-        final ExecutableTransformer executableTransformer = mock(ExecutableTransformer.class);
+        final ExecutorRunnable executableTransformer = mock(ExecutorRunnable.class);
         reset(transformer);
         when(transformer.buildExecutable(any(), any())).thenReturn(executableTransformer);
         when(factory.get(any())).thenReturn(transformer);

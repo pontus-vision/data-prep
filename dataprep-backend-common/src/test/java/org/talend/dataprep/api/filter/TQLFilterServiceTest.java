@@ -25,7 +25,7 @@ public class TQLFilterServiceTest extends FilterServiceTest {
 
     @Test
     public void testValueEquals() throws Exception {
-        row.set("0001", "test");
+        row = row.set("0001", "test");
 
         assertThatConditionIsTrue("0001 = 'test'");
         assertThatConditionIsFalse("0001 = 'my value'");
@@ -49,7 +49,7 @@ public class TQLFilterServiceTest extends FilterServiceTest {
 
     @Test
     public void testValueIsNotEqual() throws Exception {
-        row.set("0001", "my value");
+        row = row.set("0001", "my value");
 
         assertThatConditionIsTrue("0001 != 'test'");
         assertThatConditionIsFalse("0001 != 'my value'");
@@ -57,7 +57,7 @@ public class TQLFilterServiceTest extends FilterServiceTest {
 
     @Test
     public void testValueIsGreaterThan() throws Exception {
-        row.set("0001", "0");
+        row = row.set("0001", "0");
 
         assertThatConditionIsTrue("0001 > -1");
         assertThatConditionIsFalse("0001 > 0");
@@ -65,7 +65,7 @@ public class TQLFilterServiceTest extends FilterServiceTest {
 
     @Test
     public void testValueIsLessThan() throws Exception {
-        row.set("0001", "0");
+        row = row.set("0001", "0");
 
         assertThatConditionIsTrue("0001 < 1");
         assertThatConditionIsFalse("0001 < 0");
@@ -73,7 +73,7 @@ public class TQLFilterServiceTest extends FilterServiceTest {
 
     @Test
     public void testValueIsGreaterOrEqualThan() throws Exception {
-        row.set("0001", "1234");
+        row = row.set("0001", "1234");
 
         assertThatConditionIsTrue("0001 >= 1111");
         assertThatConditionIsTrue("0001 >= 1234");
@@ -82,7 +82,7 @@ public class TQLFilterServiceTest extends FilterServiceTest {
 
     @Test
     public void testValueIsLessOrEqualThan() throws Exception {
-        row.set("0001", "10");
+        row = row.set("0001", "10");
 
         assertThatConditionIsTrue("0001 <= 99");
         assertThatConditionIsTrue("0001 <= 10");

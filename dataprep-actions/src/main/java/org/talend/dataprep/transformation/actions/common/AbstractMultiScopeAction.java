@@ -11,13 +11,19 @@
 
 package org.talend.dataprep.transformation.actions.common;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
-/** AbstractMultiScopeAction is usefull for action with multiple scopes
- * the behavior of this class is to got less modifications when you want to add datascope to an existing class */
+/**
+ * AbstractMultiScopeAction is useful for action with multiple scopes.
+ *
+ * The behavior of this class is to got less modifications when you want to add datascope to an existing class
+ */
 public abstract class AbstractMultiScopeAction extends AbstractActionMetadata implements ColumnAction, DataSetAction {
 
     protected ScopeCategory scope;
@@ -27,20 +33,22 @@ public abstract class AbstractMultiScopeAction extends AbstractActionMetadata im
     }
 
     @Override
-    public void applyOnDataSet(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnDataSet(DataSetRow row, ActionContext context) {
         for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
             if (acceptField(column)) {
-                apply(row, column.getId(), column.getId(), context);
+                return apply(row, column.getId(), column.getId(), context);
             }
         }
+        return Collections.emptyList();
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        apply(row, context.getColumnId(), ActionsUtils.getTargetColumnId(context), context);
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
+        return apply(row, context.getColumnId(), ActionsUtils.getTargetColumnId(context), context);
     }
 
-    /** apply will be Override by action and will contain the function */
-    public abstract void apply(DataSetRow row, String columnId, String targetColumnId, ActionContext context);
+    /** apply will be overridden by action and will contain the function */
+    public abstract Collection<DataSetRow> apply(DataSetRow row, String columnId, String targetColumnId,
+            ActionContext context);
 
 }

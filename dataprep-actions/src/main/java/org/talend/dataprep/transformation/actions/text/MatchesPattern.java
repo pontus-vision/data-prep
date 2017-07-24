@@ -20,8 +20,8 @@ import static org.talend.dataprep.api.type.Type.STRING;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.REGEX;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
@@ -37,7 +37,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(MatchesPattern.MATCHES_PATTERN_ACTION_NAME)
 public class MatchesPattern extends AbstractActionMetadata implements ColumnAction {
@@ -136,11 +136,11 @@ public class MatchesPattern extends AbstractActionMetadata implements ColumnActi
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
         final String newValue = toStringTrueFalse(computeNewValue(value, context));
-        row.set(ActionsUtils.getTargetColumnId(context), newValue);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue));
     }
 
     /**
@@ -153,7 +153,7 @@ public class MatchesPattern extends AbstractActionMetadata implements ColumnActi
      */
     protected boolean computeNewValue(String value, ActionContext actionContext) {
         // There are direct calls to this method from unit tests, normally such checks are done during transformation.
-        if (actionContext.getActionStatus() != ActionContext.ActionStatus.OK) {
+        if (actionContext.getActionStatus() != OK) {
             return false;
         }
         final ReplaceOnValueHelper replaceOnValueParameter = actionContext.get(REGEX_HELPER_KEY);

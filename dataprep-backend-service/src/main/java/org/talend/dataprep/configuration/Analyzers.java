@@ -31,7 +31,7 @@ public class Analyzers implements DisposableBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(Analyzers.class);
 
     /** Where the data quality indexes are extracted (default to ${java.io.tmpdir}/tdp/org.talend.dataquality.semantic). */
-    @Value("${dataquality.indexes.file.location:${java.io.tmpdir}/tdp/org.talend.dataquality.semantic}")
+    @Value("${dataquality.indexes.file.location:tdp/org.talend.dataquality.semantic}")
     private String dataqualityIndexesLocation;
 
     @Value("#{'${luceneIndexStrategy:singleton}'}")

@@ -13,6 +13,8 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import java.util.Collection;
+import java.util.Collections;
 import static java.util.Collections.singletonList;
 import static org.talend.dataprep.transformation.actions.common.ActionsUtils.appendColumnCreationParameter;
 
@@ -31,7 +33,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(ProperCase.PROPER_CASE_ACTION_NAME)
 public class ProperCase extends AbstractActionMetadata implements ColumnAction {
@@ -72,12 +74,13 @@ public class ProperCase extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String toProperCase = row.get(columnId);
         if (toProperCase != null) {
-            row.set(ActionsUtils.getTargetColumnId(context), WordUtils.capitalizeFully(toProperCase));
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), WordUtils.capitalizeFully(toProperCase)));
         }
+        return Collections.singletonList(row);
     }
 
     @Override

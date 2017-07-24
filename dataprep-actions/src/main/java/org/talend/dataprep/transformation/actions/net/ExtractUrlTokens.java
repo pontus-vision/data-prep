@@ -24,13 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Split a cell value on a separator.
@@ -76,9 +77,11 @@ public class ExtractUrlTokens extends AbstractActionMetadata implements ColumnAc
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String originalValue = row.get(columnId);
+        final RowMetadata rowMetadata = row.getRowMetadata();
+        final ColumnMetadata column = rowMetadata.getById(columnId);
 
         URI url = null;
         try {
@@ -92,8 +95,9 @@ public class ExtractUrlTokens extends AbstractActionMetadata implements ColumnAc
         final Map<String, String> newColumns = ActionsUtils.getTargetColumnIds(context);
         for (UrlTokenExtractor urlTokenExtractor : UrlTokenExtractors.urlTokenExtractors) {
             final String tokenValue = url == null ? StringUtils.EMPTY : urlTokenExtractor.extractToken(url);
-            row.set(newColumns.get(urlTokenExtractor.getTokenName()), (tokenValue == null ? StringUtils.EMPTY : tokenValue));
+            row = row.set(newColumns.get(urlTokenExtractor.getTokenName()), (tokenValue == null ? StringUtils.EMPTY : tokenValue));
         }
+        return Collections.singletonList(row);
     }
 
     @Override

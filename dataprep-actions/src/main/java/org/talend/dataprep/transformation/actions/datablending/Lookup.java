@@ -21,6 +21,9 @@ import static org.talend.dataprep.parameters.ParameterType.STRING;
 import static org.talend.dataprep.transformation.actions.Providers.get;
 import static org.talend.dataprep.transformation.actions.category.ActionScope.HIDDEN_IN_ACTION_LIST;
 import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.COLUMN_ID;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.*;
 import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_ID;
 import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_NAME;
 import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_JOIN_ON;
@@ -52,7 +55,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.DataSetAction;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -191,7 +194,7 @@ public class Lookup extends AbstractActionMetadata implements DataSetAction {
      * @see DataSetAction#applyOnDataSet(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnDataSet(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnDataSet(DataSetRow row, ActionContext context) {
 
         // read parameters
         final Map<String, String> parameters = context.getParameters();
@@ -209,12 +212,14 @@ public class Lookup extends AbstractActionMetadata implements DataSetAction {
 
         // get the columns to add
         List<LookupSelectedColumnParameter> colsToAdd = getColsToAdd(parameters);
-        colsToAdd.forEach(toAdd -> {
+        Optional<DataSetRow> modifiedRow = colsToAdd.stream().map(toAdd -> {
             // get the new column
             String newColId = context.column(toAdd.getId());
             // insert new row value
-            row.set(newColId, matchingRow.get(toAdd.getId()));
-        });
+            return row.set(newColId, matchingRow.get(toAdd.getId()));
+        }).reduce((r1, r2) -> r2);
+
+        return modifiedRow.<Collection<DataSetRow>>map(Collections::singletonList).orElseGet(() -> Collections.singletonList(row));
     }
 
     /**

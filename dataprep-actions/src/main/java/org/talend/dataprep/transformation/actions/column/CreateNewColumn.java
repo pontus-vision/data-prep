@@ -20,7 +20,7 @@ import static org.talend.dataprep.parameters.ParameterType.STRING;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
 import static org.talend.dataprep.transformation.actions.category.ActionScope.COLUMN_METADATA;
 import static org.talend.dataprep.transformation.actions.category.ActionScope.HIDDEN_IN_ACTION_LIST;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,7 +43,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * duplicate a column
@@ -148,8 +148,8 @@ public class CreateNewColumn extends AbstractActionMetadata implements ColumnAct
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        final RowMetadata rowMetadata = context.getRowMetadata();
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
+        final RowMetadata rowMetadata = row.getRowMetadata();
         final Map<String, String> parameters = context.getParameters();
 
         String newValue = "";
@@ -167,7 +167,7 @@ public class CreateNewColumn extends AbstractActionMetadata implements ColumnAct
         default:
         }
 
-        row.set(ActionsUtils.getTargetColumnId(context), newValue);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue));
     }
 
     public List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {

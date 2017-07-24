@@ -34,8 +34,7 @@ public class ObjectBufferTest {
         values.put("0000", "David Bowie");
         values.put("0001", "N");
         values.put("0002", "Something");
-        final DataSetRow dataSetRow = new DataSetRow(values);
-        dataSetRow.setTdpId(1L);
+        final DataSetRow dataSetRow = new DataSetRow(values).setTdpId(1L);
 
         final ObjectToBuffer row = new ObjectToBuffer(dataSetRow);
 

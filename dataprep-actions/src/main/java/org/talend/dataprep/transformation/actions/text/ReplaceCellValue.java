@@ -20,8 +20,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.STRING;
 import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.ROW_ID;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
@@ -35,7 +35,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.CellAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Replace the content or part of a cell by a value.
@@ -129,20 +129,21 @@ public class ReplaceCellValue extends AbstractActionMetadata implements CellActi
      * @see CellAction#applyOnCell(DataSetRow, ActionContext)
      */
     @Override
-    public void applyOnCell(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnCell(DataSetRow row, ActionContext context) {
 
         if (!Objects.equals(context.get(TARGET_ROW_ID_KEY), row.getTdpId())) {
-            return;
+            return Collections.singletonList(row);
         }
 
         final String replacement = context.getParameters().get(NEW_VALUE_PARAMETER);
         final String columnId = context.getColumnId();
         final String oldValue = row.get(columnId);
-        row.set(ActionsUtils.getTargetColumnId(context), replacement);
+        row = row.set(ActionsUtils.getTargetColumnId(context), replacement);
         LOGGER.debug("{} replaced by {} in row {}, column {}", oldValue, replacement, row.getTdpId(), columnId);
 
         // all done
         context.setActionStatus(ActionContext.ActionStatus.DONE);
+        return Collections.singletonList(row);
     }
 
     @Override

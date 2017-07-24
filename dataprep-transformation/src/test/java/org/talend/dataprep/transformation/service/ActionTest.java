@@ -1,6 +1,5 @@
 // ============================================================================
-//
-// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -23,7 +22,7 @@ import static org.talend.dataprep.test.SameJSONFile.sameJSONAsFile;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.talend.dataprep.transformation.pipeline.ActionRegistry;
+import org.talend.dataprep.transformation.actions.ActionRegistry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

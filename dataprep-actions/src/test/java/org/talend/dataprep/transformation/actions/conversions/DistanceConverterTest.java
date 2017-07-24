@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 package org.talend.dataprep.transformation.actions.conversions;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 
 import org.hamcrest.core.Is;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
@@ -176,8 +176,7 @@ public class DistanceConverterTest extends AbstractMetadataBaseTest<DistanceConv
         Map<String, String> rowContent = new HashMap<>();
         rowContent.put("0000", "David");
         rowContent.put("0001", from);
-        final DataSetRow row1 = new DataSetRow(rowContent);
-        row1.setTdpId(123L);
+        final DataSetRow row1 = new DataSetRow(rowContent).setTdpId(123L);
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "column");
@@ -187,7 +186,7 @@ public class DistanceConverterTest extends AbstractMetadataBaseTest<DistanceConv
         parameters.put("precision", precision);
 
         // when
-        ActionTestWorkbench.test(Collections.singletonList(row1), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Collections.singletonList(row1), factory.create(action, parameters));
 
         // then
         assertEquals(expected, row1.get("0001"));
@@ -212,7 +211,7 @@ public class DistanceConverterTest extends AbstractMetadataBaseTest<DistanceConv
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(Collections.singletonList(row1), actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(Collections.singletonList(row1), factory.create(action, parameters));
 
         // then
         assertEquals("1.0", row1.get("0001"));

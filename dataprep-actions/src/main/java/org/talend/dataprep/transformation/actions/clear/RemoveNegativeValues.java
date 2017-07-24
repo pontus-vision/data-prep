@@ -11,7 +11,7 @@
 
 package org.talend.dataprep.transformation.actions.clear;
 
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.talend.dataprep.api.type.Type.NUMERIC;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.NUMBERS;
 
@@ -24,7 +24,7 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataquality.statistics.type.TypeInferenceUtils;
 
 

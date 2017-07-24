@@ -13,6 +13,23 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.ParameterType.INTEGER;
+import static org.talend.dataprep.parameters.ParameterType.STRING;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.actions.category.ActionCategory.SPLIT;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import javax.annotation.Nonnull;
+
 import org.apache.commons.lang.text.StrBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,26 +38,11 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
-
-import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-
-import static org.apache.commons.lang.StringUtils.EMPTY;
-import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.talend.dataprep.parameters.Parameter.parameter;
-import static org.talend.dataprep.parameters.ParameterType.INTEGER;
-import static org.talend.dataprep.parameters.ParameterType.STRING;
-import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.actions.category.ActionCategory.SPLIT;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Extract tokens from a String cell value based on regex matching groups.
@@ -171,7 +173,7 @@ public class ExtractStringTokens extends AbstractActionMetadata implements Colum
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final Map<String, String> parameters = context.getParameters();
         final String columnId = context.getColumnId();
 
@@ -180,7 +182,7 @@ public class ExtractStringTokens extends AbstractActionMetadata implements Colum
         // Set the split values in newly created columns
         final String originalValue = row.get(columnId);
         if (originalValue == null) {
-            return;
+            return Collections.singletonList(row);
         }
 
         Pattern pattern = context.get(PATTERN);
@@ -199,22 +201,23 @@ public class ExtractStringTokens extends AbstractActionMetadata implements Colum
         if (parameters.get(MODE_PARAMETER).equals(MULTIPLE_COLUMNS_MODE)) {
             for (int i = 0; i < newColumns.size(); i++) {
                 if (i < extractedValues.size()) {
-                    row.set(newColumns.get("" + Integer.toString(i)), extractedValues.get(i));
+                    row = row.set(newColumns.get(Integer.toString(i)), extractedValues.get(i));
                 } else {
                     // If we found less tokens than limit, we complete with empty entries
-                    row.set(newColumns.get("" + Integer.toString(i)), EMPTY);
+                    row = row.set(newColumns.get(Integer.toString(i)), EMPTY);
                 }
             }
+            return Collections.singletonList(row);
         } else {
             StrBuilder strBuilder = new StrBuilder();
             strBuilder.appendWithSeparators(extractedValues, parameters.get(PARAMETER_SEPARATOR));
-            row.set(ActionsUtils.getTargetColumnId(context), strBuilder.toString());
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), strBuilder.toString()));
         }
     }
 
     @Override
-    public Set<Behavior> getBehavior() {
-        return EnumSet.of(Behavior.METADATA_CREATE_COLUMNS);
+    public Set<ActionDefinition.Behavior> getBehavior() {
+        return EnumSet.of(ActionDefinition.Behavior.METADATA_CREATE_COLUMNS);
     }
 
 }

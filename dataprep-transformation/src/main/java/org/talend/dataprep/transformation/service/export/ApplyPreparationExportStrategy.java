@@ -19,7 +19,10 @@ import static org.talend.dataprep.transformation.format.JsonFormat.JSON;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -29,13 +32,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.talend.dataprep.api.dataset.DataSet;
+import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.export.ExportParameters;
+import org.talend.dataprep.api.filter.FilterService;
 import org.talend.dataprep.api.preparation.Preparation;
 import org.talend.dataprep.cache.ContentCache;
 import org.talend.dataprep.command.dataset.DataSetGet;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.TransformationErrorCodes;
 import org.talend.dataprep.format.export.ExportFormat;
+import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.api.transformer.configuration.Configuration;
 import org.talend.dataprep.cache.CacheKeyGenerator;
 import org.talend.dataprep.cache.TransformationCacheKey;
@@ -125,14 +132,15 @@ public class ApplyPreparationExportStrategy extends BaseSampleExportStrategy {
                     contentCache.put(key, ContentCache.TimeToLive.DEFAULT))) {
                 final Configuration.Builder configurationBuilder = Configuration.builder() //
                         .args(parameters.getArguments()) //
-                        .outFilter(rm -> filterService.build(parameters.getFilter(), rm)) //
-                        .sourceType(parameters.getFrom()).format(format.getName()) //
+                        .outFilter(new FilterPredicate(parameters.getFilter())) //
+                        .sourceType(parameters.getFrom()) //
+                        .format(format.getName()) //
                         .actions(actions) //
                         .preparation(getPreparation(preparationId)) //
                         .stepId(version) //
                         .volume(SMALL) //
                         .output(tee) //
-                        .limit(this.limit);
+                        .limit(limit);
 
                 // no need for statistics if it's not JSON output
                 if (!Objects.equals(format.getName(), JSON)) {
@@ -141,7 +149,7 @@ public class ApplyPreparationExportStrategy extends BaseSampleExportStrategy {
 
                 final Configuration configuration = configurationBuilder.build();
 
-                factory.get(configuration).buildExecutable(dataSet, configuration).execute();
+                factory.get(configuration).buildExecutable(dataSet, configuration).run();
                 tee.flush();
             } catch (Throwable e) { // NOSONAR
                 LOGGER.debug("evicting cache {}", key.getKey());
@@ -156,6 +164,20 @@ public class ApplyPreparationExportStrategy extends BaseSampleExportStrategy {
             if (!technicianIdentityReleased) {
                 securityProxy.releaseIdentity();
             }
+        }
+    }
+
+    private static class FilterFunction implements Function<RowMetadata, Predicate<DataSetRow>>, Serializable {
+
+        private final String filter;
+
+        private FilterFunction(String filter) {
+            this.filter = filter;
+        }
+
+        @Override
+        public Predicate<DataSetRow> apply(RowMetadata rowMetadata) {
+            return Providers.get(FilterService.class).build(filter, rowMetadata);
         }
     }
 }

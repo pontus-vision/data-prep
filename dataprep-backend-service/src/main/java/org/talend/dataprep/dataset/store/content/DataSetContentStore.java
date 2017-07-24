@@ -146,8 +146,7 @@ public abstract class DataSetContentStore {
         }) //
         .map(new InvalidMarker(columns, analyzer)) // Mark invalid columns as detected by provided analyzer.
         .map(r -> { //
-            r.setTdpId(tdpId.getAndIncrement());
-            return r;
+            return r.setTdpId(tdpId.getAndIncrement());
         }).onClose(() -> { //
             try {
                 inputStream.close();

@@ -13,24 +13,24 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+
+import java.util.*;
+
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
-
-import java.util.*;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 
 /**
  * Test class for RemoveRepeatedChars action. Creates one consumer, and test it.
@@ -111,7 +111,7 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest<RemoveRepe
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -139,7 +139,7 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest<RemoveRepe
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedValues, row.values());
@@ -157,7 +157,7 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest<RemoveRepe
         initParametersWhitespace();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("ab c d", row.get("0000"));
@@ -172,7 +172,7 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest<RemoveRepe
         initParametersWhitespace();
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(null, row.get("0000"));
@@ -189,7 +189,7 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest<RemoveRepe
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
         parameters.put(RemoveRepeatedChars.REMOVE_TYPE, "");
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("abcc", row.get("0000"));
@@ -203,7 +203,7 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest<RemoveRepe
         final DataSetRow row = new DataSetRow(values);
         initParameterCustom("a");
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("hand", row.get("0000"));
@@ -217,7 +217,7 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest<RemoveRepe
         final DataSetRow row = new DataSetRow(values);
         initParameterCustom(null);
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals("haand", row.get("0000"));

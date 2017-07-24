@@ -13,6 +13,11 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Set;
 import static org.talend.dataprep.transformation.actions.common.ActionsUtils.appendColumnCreationParameter;
 
 import java.util.*;
@@ -26,7 +31,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Uppercase a column in a row.
@@ -73,12 +78,13 @@ public class UpperCase extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String toUpperCase = row.get(columnId);
         if (toUpperCase != null) {
-            row.set(ActionsUtils.getTargetColumnId(context), toUpperCase.toUpperCase());
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), toUpperCase.toUpperCase()));
         }
+        return Collections.singletonList(row);
     }
 
     @Override

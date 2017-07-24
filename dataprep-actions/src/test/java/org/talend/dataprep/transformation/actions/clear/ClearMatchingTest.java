@@ -1,3 +1,15 @@
+// ============================================================================
+// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
+//
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
+//
+// ============================================================================
+
 package org.talend.dataprep.transformation.actions.clear;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -11,11 +23,11 @@ import java.util.*;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
@@ -81,7 +93,7 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest<ClearMatching> {
 
 
         // when
-        ActionTestWorkbench.test(rows, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(rows, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(rows.get(0).values()) //
@@ -129,7 +141,7 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest<ClearMatching> {
         parameters.put(ClearMatching.VALUE_PARAMETER, generateJson(".*Something", ReplaceOnValueHelper.REGEX_MODE));
 
         // when
-        ActionTestWorkbench.test(rows, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(rows, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(rows.get(0).values()) //
@@ -166,7 +178,7 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest<ClearMatching> {
         parameters.put(ClearMatching.VALUE_PARAMETER, generateJson("Badibada", ReplaceOnValueHelper.REGEX_MODE));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(row.values()) //
@@ -188,7 +200,7 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest<ClearMatching> {
         parameters.put(ClearMatching.VALUE_PARAMETER, Boolean.TRUE.toString());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(row.values()) //
@@ -210,7 +222,7 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest<ClearMatching> {
         parameters.put(ClearMatching.VALUE_PARAMETER, Boolean.FALSE.toString());
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(row.values()) //
@@ -232,7 +244,7 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest<ClearMatching> {
         parameters.put(ClearMatching.VALUE_PARAMETER, "tchoubidoo");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(row.values()) //
@@ -267,7 +279,7 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest<ClearMatching> {
         List<DataSetRow> rows = Arrays.asList(row1, row2, row3);
 
         // when
-        ActionTestWorkbench.test(rows, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(rows, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(rows.get(0).values()) //

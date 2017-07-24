@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 package org.talend.dataprep.transformation.actions.text;
 
 import static java.util.stream.Collectors.toList;
@@ -30,18 +30,18 @@ import java.util.Map;
 
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.TransformationContext;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
-import org.talend.dataprep.transformation.api.action.context.TransformationContext;
 
 /**
  * Test class for Replace value action
@@ -142,7 +142,7 @@ public class ReplaceOnValueTest extends AbstractMetadataBaseTest<ReplaceOnValue>
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertThat(row.get(columnId), is("James Hetfield"));
@@ -169,7 +169,7 @@ public class ReplaceOnValueTest extends AbstractMetadataBaseTest<ReplaceOnValue>
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), columnId);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertThat(row.get(columnId), is("Jimmy"));
@@ -192,7 +192,7 @@ public class ReplaceOnValueTest extends AbstractMetadataBaseTest<ReplaceOnValue>
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), columnId);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertThat(row.get(columnId), is("Jimmy"));
@@ -218,7 +218,7 @@ public class ReplaceOnValueTest extends AbstractMetadataBaseTest<ReplaceOnValue>
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), columnId);
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertThat(row.get(columnId), is("James Hetfield"));
@@ -333,7 +333,7 @@ public class ReplaceOnValueTest extends AbstractMetadataBaseTest<ReplaceOnValue>
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "no column here");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertThat(row.get(columnId), is("Toto"));

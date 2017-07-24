@@ -17,13 +17,10 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.talend.dataprep.api.type.Type.DATE;
 import static org.talend.dataprep.api.type.Type.get;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -38,7 +35,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataquality.semantic.datamasking.ValueDataMasker;
 
 /**
@@ -76,18 +73,19 @@ public class MaskDataByDomain extends AbstractActionMetadata implements ColumnAc
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
         if (StringUtils.isNotBlank(value)) {
             try {
                 final ValueDataMasker masker = context.get(MASKER);
-                row.set(columnId, masker.maskValue(value));
+                return Collections.singletonList(row.set(columnId, masker.maskValue(value)));
             } catch (Exception e) {
                 // Nothing to do, we let the original value as is
                 LOGGER.debug("Unable to process value '{}'.", value, e);
             }
         }
+        return Collections.singletonList(row);
     }
 
     @Override

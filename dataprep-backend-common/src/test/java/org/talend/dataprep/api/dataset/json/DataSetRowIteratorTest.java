@@ -78,7 +78,7 @@ public class DataSetRowIteratorTest {
 
     private DataSetRow getDataSetRow(final long tdpId, String... data) {
         DataSetRow row = getDataSetRow(data);
-        row.setTdpId(tdpId);
+        row = row.setTdpId(tdpId);
         return row;
     }
 

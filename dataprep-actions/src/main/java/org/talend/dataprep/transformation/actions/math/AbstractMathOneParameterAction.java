@@ -14,6 +14,8 @@ package org.talend.dataprep.transformation.actions.math;
 
 import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.*;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,7 +34,7 @@ import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Abstract Action for basic math action with one parameter (constant or an other column)
@@ -67,7 +69,7 @@ public abstract class AbstractMathOneParameterAction extends AbstractMathAction 
     protected abstract String calculateResult(String columnValue, String parameter);
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         String columnId = context.getColumnId();
         String colValue = row.get(columnId);
 
@@ -111,6 +113,6 @@ public abstract class AbstractMathOneParameterAction extends AbstractMathAction 
             LOGGER.debug(e.getMessage(), e);
         }
 
-        row.set(ActionsUtils.getTargetColumnId(context), result);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), result));
     }
 }

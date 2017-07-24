@@ -34,8 +34,8 @@ import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataprep.transformation.actions.math.AbstractMathNoParameterAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataprep.units.TemperatureImpl;
 
 /**

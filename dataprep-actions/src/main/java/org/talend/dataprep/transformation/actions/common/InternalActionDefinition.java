@@ -13,7 +13,7 @@
 
 package org.talend.dataprep.transformation.actions.common;
 
-import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 
 /**
  * Model an action to perform on a dataset.
@@ -22,7 +22,5 @@ import org.talend.dataprep.api.action.ActionDefinition;
  * actions not (yet) exposed in action API).
  */
 public interface InternalActionDefinition extends ActionDefinition {
-
-
 
 }

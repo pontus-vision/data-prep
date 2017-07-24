@@ -31,7 +31,6 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.dataset.statistics.PatternFrequency;
 import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.quality.AnalyzerService;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 
 /**
@@ -41,7 +40,7 @@ import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 public class DateParserTest {
 
     /** The action to test. */
-    private final DateParser action = new DateParser(new AnalyzerService());
+    private final DateParser action = new DateParser();
 
     protected InputStream getDateTestJsonAsStream(String testFileName) {
         return BaseDateTest.class.getResourceAsStream(testFileName);

@@ -22,10 +22,9 @@ import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.row.RowMetadataUtils;
+import org.talend.dataprep.api.dataset.row.AvroUtils;
 import org.talend.dataprep.transformation.actions.date.DateParser;
 import org.talend.dataquality.common.inference.Analyzer;
-import org.talend.dataquality.common.inference.Metadata;
 import org.talend.dataquality.common.inference.ResizableList;
 import org.talend.dataquality.statistics.type.DataTypeEnum;
 import org.talend.dataquality.statistics.type.TypeInferenceUtils;
@@ -88,7 +87,7 @@ public class StreamDateHistogramAnalyzer implements Analyzer<StreamDateHistogram
             final ColumnMetadata column = this.columns.get(index);
             final String value = record[index];
             if (type == DataTypeEnum.DATE) {
-                final String mostUsedDatePattern = RowMetadataUtils.getMostUsedDatePattern(column);
+                final String mostUsedDatePattern = AvroUtils.getMostUsedDatePattern(column);
                 if (!TypeInferenceUtils.isDate(value, Collections.singletonList(mostUsedDatePattern))) {
                     LOGGER.trace("Skip date value '{}' (not valid date)", value);
                     continue;

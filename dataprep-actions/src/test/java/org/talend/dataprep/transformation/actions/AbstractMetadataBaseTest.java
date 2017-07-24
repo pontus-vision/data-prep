@@ -15,6 +15,8 @@ package org.talend.dataprep.transformation.actions;
 
 import static org.junit.Assert.*;
 import static org.talend.dataprep.transformation.actions.common.ActionsUtils.CREATE_NEW_COLUMN;
+import static org.talend.dataprep.transformation.pipeline.Runtimes.AvailableRuntimes.BEAM;
+import static org.talend.dataprep.transformation.pipeline.Runtimes.AvailableRuntimes.JAVA;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,20 +26,18 @@ import java.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
-import org.talend.dataprep.ClassPathActionRegistry;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.dataset.statistics.Statistics;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.quality.AnalyzerService;
 import org.talend.dataprep.test.LocalizationRule;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionFactory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
-import org.talend.dataprep.transformation.pipeline.ActionRegistry;
+import org.talend.dataprep.transformation.pipeline.Runtimes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,12 +52,11 @@ public abstract class AbstractMetadataBaseTest<T extends AbstractActionMetadata>
 
     protected final ActionFactory factory = new ActionFactory();
 
-    protected final ActionRegistry actionRegistry = new ClassPathActionRegistry("org.talend.dataprep.transformation.actions");
-
-    protected final AnalyzerService analyzerService = new AnalyzerService();
-
     @Rule
     public LocalizationRule rule = new LocalizationRule(Locale.US);
+
+    @Rule
+    public Runtimes context = new Runtimes(JAVA, BEAM);
 
     /* The action to be tested: */
     protected T action;
@@ -239,9 +238,9 @@ public abstract class AbstractMetadataBaseTest<T extends AbstractActionMetadata>
             }
 
             final RowMetadata schema = new RowMetadata(new ArrayList<>(values.keySet()));
-            final DataSetRow dataSetRow = new DataSetRow(schema);
+            DataSetRow dataSetRow = new DataSetRow(schema);
             for (Map.Entry<ColumnMetadata, String> entry : values.entrySet()) {
-                dataSetRow.set(entry.getKey().getId(), entry.getValue());
+                dataSetRow = dataSetRow.set(entry.getKey().getId(), entry.getValue());
             }
             return dataSetRow;
         }

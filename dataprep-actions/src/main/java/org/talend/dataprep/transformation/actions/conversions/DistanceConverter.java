@@ -18,15 +18,12 @@ import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.INTEGER;
 import static org.talend.dataprep.parameters.SelectParameter.SelectParameterBuilder;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 import static org.talend.dataquality.converters.DistanceEnum.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -40,7 +37,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataquality.converters.DistanceEnum;
 
 /**
@@ -145,7 +142,7 @@ public class DistanceConverter extends AbstractActionMetadata implements ColumnA
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String columnValue = row.get(columnId);
 
@@ -166,7 +163,8 @@ public class DistanceConverter extends AbstractActionMetadata implements ColumnA
                 valueToString = columnValue;
             }
 
-            row.set(ActionsUtils.getTargetColumnId(context), valueToString);
+            return Collections.singletonList( row.set(ActionsUtils.getTargetColumnId(context), valueToString));
         }
+        return Collections.singletonList(row);
     }
 }

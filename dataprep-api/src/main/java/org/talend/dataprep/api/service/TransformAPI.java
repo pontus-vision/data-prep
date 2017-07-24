@@ -36,6 +36,7 @@ import org.talend.dataprep.command.CommandHelper;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.command.dataset.DataSetGet;
 import org.talend.dataprep.metrics.Timed;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 
 import com.netflix.hystrix.HystrixCommand;
 

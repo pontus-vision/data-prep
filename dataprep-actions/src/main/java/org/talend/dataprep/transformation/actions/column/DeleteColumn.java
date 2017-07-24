@@ -25,7 +25,7 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Deletes a column from a dataset. This action is available from column headers</b>
@@ -61,11 +61,10 @@ public class DeleteColumn extends AbstractActionMetadata implements ColumnAction
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         LOGGER.debug("DeleteColumn for columnId {}", columnId);
-        context.getRowMetadata().deleteColumnById(columnId);
-        row.deleteColumnById(columnId);
+        return Collections.singletonList(row.deleteColumnById(columnId));
     }
 
     @Override

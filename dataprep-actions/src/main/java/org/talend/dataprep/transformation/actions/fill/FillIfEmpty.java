@@ -18,11 +18,11 @@ import static org.talend.dataprep.transformation.actions.category.ActionCategory
 import java.util.Locale;
 
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.i18n.ActionsBundle;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 
 @Action(FillIfEmpty.FILL_EMPTY_ACTION_NAME)

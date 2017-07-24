@@ -17,8 +17,11 @@ import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataprep.util.NumericHelper;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Abstract Action for basic math action without parameter
@@ -31,7 +34,7 @@ public abstract class AbstractMathNoParameterAction extends AbstractMathAction i
     protected abstract String calculateResult(String columnValue, ActionContext context);
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         String columnId = context.getColumnId();
         String colValue = row.get(columnId);
 
@@ -47,7 +50,7 @@ public abstract class AbstractMathNoParameterAction extends AbstractMathAction i
             }
         }
 
-        row.set(ActionsUtils.getTargetColumnId(context), result);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), result));
     }
 
 }

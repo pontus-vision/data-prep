@@ -12,6 +12,7 @@
 
 package org.talend.dataprep.api.export;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Parameter for dataset/preparation format
  */
 @OneNotBlank({"preparationId", "datasetId"})
-public class ExportParameters implements AsyncGroupKey {
+public class ExportParameters implements AsyncGroupKey, Serializable {
 
     /**
      * Where should the data comes from.

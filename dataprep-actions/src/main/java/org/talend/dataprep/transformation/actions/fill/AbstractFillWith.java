@@ -18,7 +18,7 @@ import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.*;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
@@ -32,8 +32,8 @@ import org.talend.daikon.exception.ExceptionContext;
 import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.dataset.row.AvroUtils;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.dataset.row.RowMetadataUtils;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.exception.error.ActionErrorCodes;
 import org.talend.dataprep.parameters.Parameter;
@@ -41,8 +41,8 @@ import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataprep.transformation.actions.date.DatePattern;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 public abstract class AbstractFillWith extends AbstractActionMetadata implements OtherColumnParameters {
 
@@ -74,11 +74,10 @@ public abstract class AbstractFillWith extends AbstractActionMetadata implements
         }
     }
 
-    // TODO : utility Overriden methdo WTF
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
         final Map<String, String> parameters = context.getParameters();
         final String columnId = context.getColumnId();
-        final ColumnMetadata columnMetadata = context.getRowMetadata().getById(columnId);
+        final ColumnMetadata columnMetadata = row.getRowMetadata().getById(columnId);
 
         if (shouldBeProcessed(row, columnId)) {
             String newValue;
@@ -96,7 +95,7 @@ public abstract class AbstractFillWith extends AbstractActionMetadata implements
             if (type.equals(Type.DATE)) {
                 try {
                     final LocalDateTime date = Providers.get().parse(newValue, columnMetadata);
-                    final String mostUsedDatePattern = RowMetadataUtils.getMostUsedDatePattern(columnMetadata);
+                    final String mostUsedDatePattern = AvroUtils.getMostUsedDatePattern(columnMetadata);
                     DateTimeFormatter ourNiceFormatter = mostUsedDatePattern == null ? DEFAULT_FORMATTER
                             : new DatePattern(mostUsedDatePattern).getFormatter();
                     newValue = ourNiceFormatter.format(date);
@@ -107,8 +106,9 @@ public abstract class AbstractFillWith extends AbstractActionMetadata implements
             }
 
             // At the end, set the new value:
-            row.set(ActionsUtils.getTargetColumnId(context), newValue);
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue));
         }
+        return Collections.singletonList(row);
     }
 
     @Override

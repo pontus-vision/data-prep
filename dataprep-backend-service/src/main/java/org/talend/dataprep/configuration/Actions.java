@@ -23,13 +23,12 @@ import org.springframework.context.annotation.Import;
 import org.talend.dataprep.api.filter.FilterService;
 import org.talend.dataprep.api.filter.PolyglotFilterService;
 import org.talend.dataprep.i18n.ActionsBundle;
-import org.talend.dataprep.quality.AnalyzerService;
+import org.talend.dataprep.transformation.actions.ActionParser;
+import org.talend.dataprep.transformation.actions.ActionRegistry;
 import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.common.ActionFactory;
 import org.talend.dataprep.transformation.actions.date.DateParser;
-import org.talend.dataprep.transformation.api.action.ActionParser;
-import org.talend.dataprep.transformation.api.action.validation.ActionMetadataValidation;
-import org.talend.dataprep.transformation.pipeline.ActionRegistry;
+import org.talend.dataprep.transformation.actions.validation.ActionMetadataValidation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,8 +49,8 @@ public class Actions {
     }
 
     @Bean
-    public DateParser dateParser(AnalyzerService analyzerService) {
-        return new DateParser(analyzerService);
+    public DateParser dateParser() {
+        return new DateParser();
     }
 
     @Bean

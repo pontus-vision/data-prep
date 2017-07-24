@@ -19,10 +19,7 @@ import static org.talend.dataprep.parameters.ParameterType.INTEGER;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
@@ -33,7 +30,7 @@ import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 import org.talend.dataprep.util.NumericHelper;
 
 /**
@@ -75,7 +72,7 @@ public abstract class AbstractRound extends AbstractActionMetadata implements Co
     }
 
     @Override
-    public void applyOnColumn(final DataSetRow row, final ActionContext context) {
+    public Collection<DataSetRow> applyOnColumn(final DataSetRow row, final ActionContext context) {
         final String precisionAsString = context.getParameters().get(PRECISION);
 
         int precision = 0;
@@ -93,13 +90,14 @@ public abstract class AbstractRound extends AbstractActionMetadata implements Co
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
         if (value == null) {
-            return;
+            return Collections.singletonList(row);
         }
         if (NumericHelper.isBigDecimal(value)) {
             BigDecimal bd = BigDecimalParser.toBigDecimal(value);
             bd = bd.setScale(precision, getRoundingMode());
-            row.set(ActionsUtils.getTargetColumnId(context), String.valueOf(bd));
+            return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), String.valueOf(bd)));
         }
+        return Collections.singletonList(row);
     }
 
     protected abstract RoundingMode getRoundingMode();

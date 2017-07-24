@@ -12,15 +12,17 @@
 
 package org.talend.dataprep.transformation.actions.common;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
+import org.talend.dataprep.transformation.actions.DataSetRowAction;
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
-import org.talend.dataprep.transformation.api.action.DataSetRowAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 public class ApplyDataSetRowAction implements DataSetRowAction {
 
@@ -39,49 +41,48 @@ public class ApplyDataSetRowAction implements DataSetRowAction {
     }
 
     @Override
-    public DataSetRow apply(DataSetRow dataSetRow, ActionContext context) {
+    public Collection<DataSetRow> apply(DataSetRow dataSetRow, ActionContext context) {
         return handleRow(metadata, parameters, scope, dataSetRow, context);
     }
 
-    private DataSetRow handleRow(final ActionDefinition metadata, //
-            final Map<String, String> parameters, //
-            final ScopeCategory scope, //
-            final DataSetRow row, //
-            final ActionContext context) {
+    private Collection<DataSetRow> handleRow(final ActionDefinition metadata, //
+                                             final Map<String, String> parameters, //
+                                             final ScopeCategory scope, //
+                                             final DataSetRow row, //
+                                             final ActionContext context) {
         try {
-            final DataSetRow actionRow;
             final boolean implicitFilter = metadata.implicitFilter();
             if (implicitFilter && !context.getFilter().test(row)) {
                 // Return non-modifiable row since it didn't pass the filter (but metadata might be modified).
-                actionRow = row.unmodifiable();
-            } else {
-                actionRow = row;
+                return Collections.singletonList(row);
             }
+
             // Select the correct method to call depending on scope.
+            final Collection<DataSetRow> rows;
             switch (scope) {
-            case CELL:
-                ((CellAction) metadata).applyOnCell(actionRow, context);
+                case CELL:
+                rows = ((CellAction) metadata).applyOnCell(row, context);
                 break;
             case LINE:
-                ((RowAction) metadata).applyOnLine(actionRow, context);
+                rows = ((RowAction) metadata).applyOnLine(row, context);
                 break;
             case COLUMN:
-                ((ColumnAction) metadata).applyOnColumn(actionRow, context);
+                rows = ((ColumnAction) metadata).applyOnColumn(row, context);
                 break;
             case DATASET:
-                ((DataSetAction) metadata).applyOnDataSet(actionRow, context);
+                rows = ((DataSetAction) metadata).applyOnDataSet(row, context);
                 break;
             default:
                 LOGGER.warn("Is there a new action scope ??? {}", scope);
+                rows = Collections.emptyList();
                 break;
             }
-            // For following actions, returns the row as modifiable to allow further modifications.
-            return actionRow.modifiable();
+            return rows;
         } catch (Throwable e) {
             LOGGER.error("Unable to use action '{}' (parameters: {}) due to unexpected error.", metadata.getName(),
                     parameters, e);
             context.setActionStatus(ActionContext.ActionStatus.CANCELED);
-            return row.modifiable();
+            return Collections.singletonList(row);
         }
     }
 }

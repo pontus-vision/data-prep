@@ -19,7 +19,7 @@ import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.COLUMN;
 import static org.talend.dataprep.parameters.ParameterType.STRING;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
@@ -37,7 +37,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 /**
  * Create a new column with Boolean result <code>true</code> if the Levenstein distance is less or equals the parameter
@@ -122,8 +122,8 @@ public class Contains extends AbstractActionMetadata implements ColumnAction, Ot
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        final RowMetadata rowMetadata = context.getRowMetadata();
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
+        final RowMetadata rowMetadata = row.getRowMetadata();
         Map<String, String> parameters = context.getParameters();
 
         final String containsColumn = ActionsUtils.getTargetColumnId(context);
@@ -139,7 +139,7 @@ public class Contains extends AbstractActionMetadata implements ColumnAction, Ot
         }
 
         boolean contains = value.contains(referenceValue);
-        row.set(containsColumn, toStringTrueFalse(contains));
+        return Collections.singletonList(row.set(containsColumn, toStringTrueFalse(contains)));
     }
 
     /**

@@ -20,7 +20,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(Modulo.MODULO_NAME)
 public class Modulo extends AbstractMathOneParameterAction {

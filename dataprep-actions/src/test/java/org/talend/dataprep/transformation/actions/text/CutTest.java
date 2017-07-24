@@ -2,14 +2,14 @@
 //
 //  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.text;
 
@@ -25,11 +25,11 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
@@ -81,7 +81,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expectedRow, row);
@@ -97,7 +97,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
         DataSetRow expected = getRow("Wait for it...", "value that gets cut !", "Done !");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then
         assertEquals(expected, row);
@@ -114,7 +114,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
         regexpParameters.put("pattern", generateJson("The", "starts_with"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, regexpParameters));
+        ActionTestWorkbench.test(row, factory.create(action, regexpParameters));
 
         // then
         assertEquals(expected, row);
@@ -132,7 +132,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
         regexpParameters.put("pattern", generateJson("cut !", "ends_with"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, regexpParameters));
+        ActionTestWorkbench.test(row, factory.create(action, regexpParameters));
 
         // then
         assertEquals(expected, row);
@@ -152,7 +152,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
         regexpParameters.put("pattern", generateJson("(", "contains"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, regexpParameters));
+        ActionTestWorkbench.test(row, factory.create(action, regexpParameters));
 
         // then
         assertEquals(expected, row);
@@ -169,7 +169,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
         regexpParameters.put("pattern", generateJson(".*gets", "regex"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, regexpParameters));
+        ActionTestWorkbench.test(row, factory.create(action, regexpParameters));
 
         // then
         assertEquals(expected, row);
@@ -186,7 +186,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
         regexpParameters.put("pattern", generateJson("*", "regex"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, regexpParameters));
+        ActionTestWorkbench.test(row, factory.create(action, regexpParameters));
 
         // then
         assertEquals(expected, row);
@@ -204,7 +204,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
         regexpParameters.put("pattern", generateJson("", "regex"));
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, regexpParameters));
+        ActionTestWorkbench.test(row, factory.create(action, regexpParameters));
 
         // then
         assertEquals(expected, row);
@@ -218,7 +218,7 @@ public class CutTest extends AbstractMetadataBaseTest<Cut> {
 
         // when (apply on a column that does not exists)
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0010");
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row, factory.create(action, parameters));
 
         // then (row should not be changed)
         assertEquals(expected, row);

@@ -17,9 +17,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.talend.dataprep.preparation.service.MetadataChangesOnActionsGeneratorTest.CompileAnswer.answer;
 
 import java.util.List;
@@ -35,9 +33,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.preparation.StepDiff;
+import org.talend.dataprep.transformation.actions.DataSetRowAction;
 import org.talend.dataprep.transformation.actions.common.RunnableAction;
-import org.talend.dataprep.transformation.api.action.DataSetRowAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetadataChangesOnActionsGeneratorTest {

@@ -15,7 +15,7 @@ package org.talend.dataprep.transformation.actions.date;
 
 import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.OTHER_COLUMN_MODE;
 import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.SELECTED_COLUMN_PARAMETER;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
@@ -39,7 +39,7 @@ import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
 
 @Action(ComputeTimeSince.TIME_SINCE_ACTION_NAME)
 public class ComputeTimeSince extends AbstractDate implements ColumnAction {
@@ -153,8 +153,8 @@ public class ComputeTimeSince extends AbstractDate implements ColumnAction {
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        RowMetadata rowMetadata = context.getRowMetadata();
+    public Collection<DataSetRow> applyOnColumn(DataSetRow row, ActionContext context) {
+        RowMetadata rowMetadata = row.getRowMetadata();
         Map<String, String> parameters = context.getParameters();
         String columnId = context.getColumnId();
 
@@ -181,7 +181,7 @@ public class ComputeTimeSince extends AbstractDate implements ColumnAction {
                 newValue = StringUtils.EMPTY;
             } else {
                 String value = row.get(columnId);
-                LocalDateTime temporalAccessor = Providers.get().parse(value, context.getRowMetadata().getById(columnId));
+                LocalDateTime temporalAccessor = Providers.get().parse(value, row.getRowMetadata().getById(columnId));
                 Temporal valueAsDate = LocalDateTime.from(temporalAccessor);
                 newValue = String.valueOf(unit.between(valueAsDate, since));
             }
@@ -190,7 +190,7 @@ public class ComputeTimeSince extends AbstractDate implements ColumnAction {
             // Nothing to do: in this case, temporalAccessor is left null
             newValue = StringUtils.EMPTY;
         }
-        row.set(ActionsUtils.getTargetColumnId(context), newValue);
+        return Collections.singletonList(row.set(ActionsUtils.getTargetColumnId(context), newValue));
     }
 
     @Override
