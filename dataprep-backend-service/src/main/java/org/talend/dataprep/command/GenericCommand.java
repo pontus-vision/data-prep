@@ -159,7 +159,12 @@ public class GenericCommand<T> extends HystrixCommand<T> {
 
     @PostConstruct
     private void initSecurityToken() {
-        authenticationToken = context.getBean(Security.class).getAuthenticationToken();
+        authenticationToken = getAuthenticationToken();
+    }
+
+    /** Override this method to change security token source. Executed in post construct with all fields initialized. */
+    protected String getAuthenticationToken() {
+        return context.getBean(Security.class).getAuthenticationToken();
     }
 
     @Override

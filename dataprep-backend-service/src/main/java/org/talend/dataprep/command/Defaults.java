@@ -17,6 +17,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -29,6 +30,8 @@ import org.talend.dataprep.exception.error.CommonErrorCodes;
 import org.talend.dataprep.io.ReleasableInputStream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -170,6 +173,38 @@ public class Defaults {
                 return mapper.readerFor(typeReference).readValue(response.getEntity().getContent());
             } catch (Exception e) {
                 return errorHandler.apply(e);
+            } finally {
+                request.releaseConnection();
+            }
+        };
+    }
+
+    /**
+     * Read content from HTTP response and convert response to a {@link JsonNode}.
+     *
+     * @param mapper The mapper to use for creating the JSON tree.
+     * @return The response converted as a {@link JsonNode tree}.
+     */
+    public static BiFunction<HttpRequestBase, HttpResponse, JsonNode> toJson(ObjectMapper mapper) {
+        return (request, response) -> {
+            try {
+                return mapper.readTree(response.getEntity().getContent());
+            } catch (Exception e) {
+                throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
+            } finally {
+                request.releaseConnection();
+            }
+        };
+    }
+
+    public static <T, S> BiFunction<HttpRequestBase, HttpResponse, S> iterate(Class<T> clazz, ObjectMapper mapper, Function<Iterator<T>, S> convert) {
+        return (request, response) -> {
+            try (InputStream content = response.getEntity().getContent()){
+                try (MappingIterator<T> objects = mapper.readerFor(clazz).readValues(content)) {
+                    return convert.apply(objects);
+                }
+            } catch (Exception e) {
+                throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
             } finally {
                 request.releaseConnection();
             }
