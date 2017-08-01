@@ -24,9 +24,11 @@ import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.folder.Folder;
 import org.talend.dataprep.api.folder.FolderInfo;
 import org.talend.dataprep.api.folder.FolderTreeNode;
+import org.talend.dataprep.api.preparation.Preparation;
 import org.talend.dataprep.preparation.BasePreparationTest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -60,7 +62,11 @@ public class FolderServiceTest extends BasePreparationTest {
 
         long expectedNbPreparations = 12;
         for (int i = 0; i < expectedNbPreparations; i++) {
-            createPreparationWithAPI("{\"name\": \"prep_" + i + "\", \"dataSetId\": \"1234\"}", fooFolder.getId());
+            Preparation preparation = new Preparation();
+            preparation.setName("prep_" + i);
+            preparation.setDataSetId("1234");
+            preparation.setRowMetadata(new RowMetadata());
+            clientTest.createPreparation(preparation, fooFolder.getId());
         }
 
         // when
@@ -108,7 +114,11 @@ public class FolderServiceTest extends BasePreparationTest {
         // given
         createFolder(home.getId(), "foo");
         final Folder foo = getFolder(home.getId(), "foo");
-        createPreparationWithAPI("{\"name\": \"test_name\", \"dataSetId\": \"1234\"}", foo.getId());
+        Preparation preparation = new Preparation();
+        preparation.setName("test_name");
+        preparation.setDataSetId("1234");
+        preparation.setRowMetadata(new RowMetadata());
+        clientTest.createPreparation(preparation, foo.getId());
 
         // when
         final Response response = given() //
