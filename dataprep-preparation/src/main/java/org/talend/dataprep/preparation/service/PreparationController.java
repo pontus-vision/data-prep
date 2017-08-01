@@ -201,7 +201,7 @@ public class PreparationController {
     @ApiOperation(value = "Create a preparation", notes = "Returns the id of the updated preparation.")
     @Timed
     public String update(@ApiParam("id") @PathVariable("id") String id,
-                         @RequestBody @ApiParam("preparation") @Valid final PreparationMessage preparation) {
+                         @RequestBody @ApiParam("preparation") final PreparationMessage preparation) {
         return preparationService.update(id, preparation);
     }
 

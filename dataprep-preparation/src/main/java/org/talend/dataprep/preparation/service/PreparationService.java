@@ -17,6 +17,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 import static org.talend.daikon.exception.ExceptionContext.build;
 import static org.talend.dataprep.api.folder.FolderContentType.PREPARATION;
@@ -35,6 +36,9 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -137,6 +141,9 @@ public class PreparationService {
 
     @Autowired
     private PreparationUtils preparationUtils;
+
+    @Autowired
+    private Set<Validator> validators;
 
     /**
      * Create a preparation from the http request body.
@@ -503,6 +510,8 @@ public class PreparationService {
         LOGGER.debug("Updating preparation with id {}: {}", preparation.getId(), previousPreparation);
 
         Preparation updated = previousPreparation.merge(preparation);
+        validatePreparation(updated);
+
         if (!updated.id().equals(id)) {
             preparationRepository.remove(previousPreparation);
         }
@@ -513,6 +522,15 @@ public class PreparationService {
         LOGGER.info("Preparation {} updated -> {}", id, updated);
 
         return updated.id();
+    }
+
+    private void validatePreparation(Preparation updated) {
+        Set<ConstraintViolation<Preparation>> collect = validators.stream()
+                .flatMap(v -> v.validate(updated).stream())
+                .collect(toSet());
+        if (!collect.isEmpty()) {
+            throw new TDPException(INVALID_PREPARATION, build().put("message", collect));
+        }
     }
 
     /**

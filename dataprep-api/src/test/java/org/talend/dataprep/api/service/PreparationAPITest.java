@@ -321,7 +321,8 @@ public class PreparationAPITest extends ApiServiceTestBase {
         assertThat(longFormat.getList("id").size(), is(1));
         assertThat(longFormat.getList("id").get(0), is(preparationId));
 
-        Preparation preparation = testClient.getPreparation(preparationId);
+        Preparation preparation = new Preparation();
+        preparation.setId(preparationId);
         String newName = "updated_name";
         preparation.setName(newName);
 
