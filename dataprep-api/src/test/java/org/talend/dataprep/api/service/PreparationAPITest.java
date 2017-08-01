@@ -42,7 +42,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.talend.dataprep.StandalonePreparation;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
@@ -327,28 +326,12 @@ public class PreparationAPITest extends ApiServiceTestBase {
         preparation.setName(newName);
 
         // when
-        given().contentType(ContentType.JSON).body(preparation)
-                .put("/api/preparations/{id}", preparationId).asString();
+        given().contentType(ContentType.JSON).body(preparation).put("/api/preparations/{id}", preparationId).asString();
 
         // then
         longFormat = when().get("/api/preparations/?format=long").jsonPath();
         assertThat(longFormat.getList("name").size(), is(1));
         assertThat(longFormat.getList("name").get(0), is(newName));
-    }
-
-    @Test
-    public void testPreparationUpdate_shouldFail() throws Exception {
-        // given
-        String tagadaId = testClient.createDataset("dataset/dataset.csv", "tagada", "text/csv");
-        final String preparationId = testClient.createPreparationFromDataset(tagadaId, "original_name", home.getId());
-        Preparation preparation = testClient.getPreparation(preparationId);
-        preparation.setRowMetadata(null);
-
-        // when
-        given().contentType(ContentType.JSON)
-                .body(preparation)
-                .expect().statusCode(HttpStatus.BAD_REQUEST.value()).log().ifValidationFails()
-                .put("/api/preparations/{id}", preparationId);
     }
 
     @Test
