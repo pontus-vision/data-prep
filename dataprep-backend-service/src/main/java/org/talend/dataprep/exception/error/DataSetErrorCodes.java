@@ -40,7 +40,6 @@ public enum DataSetErrorCodes implements ErrorCode {
      * meaning all mandatory analysis prevents service to correctly
      * serve data set's content.
      *
-     * @see DataSetLifecycle#importing()
      */
     UNABLE_TO_SERVE_DATASET_CONTENT(BAD_REQUEST.value(), "id"),
     /**
@@ -194,8 +193,11 @@ public enum DataSetErrorCodes implements ErrorCode {
      * A lookup dataSet used by a preparation with a given name have not the expected format.
      */
     PREPARATION_LOOKUP_BAD_FORMAT(NOT_FOUND.value(), "name"),
-    UNAUTHORIZED_ACCESS_TO_TIC(UNAUTHORIZED.value())
-    ;
+    UNAUTHORIZED_ACCESS_TO_TIC(UNAUTHORIZED.value()),
+    /**
+     * A lookup dataSet used by a preparation with a given name have not the expected format.
+     */
+    INVALID_DATASET_NAME(BAD_REQUEST.value(), "name");
 
     /**
      * The http status to use.
