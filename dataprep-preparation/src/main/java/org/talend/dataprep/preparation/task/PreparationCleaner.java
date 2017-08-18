@@ -87,33 +87,33 @@ public class PreparationCleaner {
      */
     @Scheduled(fixedDelay = 60 * 60 * 1000, initialDelay = 60 * 60 * 1000) // Every hour
     public void removeOrphanSteps() {
-        securityProxy.asTechnicalUser();
-        try {
-            getCurrentOrphanSteps().forEach(step -> {
-                // Remove step
-                final Step stepToRemove = new Step();
-                stepToRemove.setId(step.getId());
-                repository.remove(stepToRemove);
+            securityProxy.asTechnicalUser();
+            try {
+                getCurrentOrphanSteps().forEach(step -> {
+                    // Remove step
+                    final Step stepToRemove = new Step();
+                    stepToRemove.setId(step.getId());
+                    repository.remove(stepToRemove);
 
-                // Remove actions linked to step
-                // if this step re-use an existing actions we don't delete the actions
-                boolean criterion = repository.exist(PersistentStep.class, "content" + "='" + step.getContent() + "'");
-                if (criterion) {
-                    LOGGER.info("Don't removing step content {} it still used by another step.", step.getContent());
-                } else {
-                    LOGGER.info("Removing step content {}.", step.getContent());
-                    final PreparationActions preparationActionsToRemove = new PreparationActions();
-                    preparationActionsToRemove.setId(step.getContent());
-                    repository.remove(preparationActionsToRemove);
-                }
+                    // Remove actions linked to step
+                    // if this step re-use an existing actions we don't delete the actions
+                    boolean criterion = repository.exist(PersistentStep.class, "contentId" + "='" + step.getContent() + "'");
+                    if (criterion) {
+                        LOGGER.info("Don't removing step content {} it still used by another step.", step.getContent());
+                    } else {
+                        LOGGER.info("Removing step content {}.", step.getContent());
+                        final PreparationActions preparationActionsToRemove = new PreparationActions();
+                        preparationActionsToRemove.setId(step.getContent());
+                        repository.remove(preparationActionsToRemove);
+                    }
 
-                // Remove metadata linked to step
-                final StepRowMetadata stepRowMetadataToRemove = new StepRowMetadata();
-                stepRowMetadataToRemove.setId(stepToRemove.getRowMetadata());
-                repository.remove(stepRowMetadataToRemove);
-            });
-        } finally {
-            securityProxy.releaseIdentity();
-        }
+                    // Remove metadata linked to step
+                    final StepRowMetadata stepRowMetadataToRemove = new StepRowMetadata();
+                    stepRowMetadataToRemove.setId(stepToRemove.getRowMetadata());
+                    repository.remove(stepRowMetadataToRemove);
+                });
+            } finally {
+                securityProxy.releaseIdentity();
+            }
     }
 }
