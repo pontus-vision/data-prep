@@ -478,10 +478,29 @@ public class PreparationService {
         // Ensure that the preparation is not locked elsewhere
         lock(id);
         preparationRepository.remove(preparationToDelete);
-        preparationCleaner.removeCurrentOrphanSteps();
+
+        for (Step step : preparationToDelete.getSteps()) {
+            if (!Step.ROOT_STEP.id().equals(step.id())) {
+                // Remove step metadata
+                final StepRowMetadata rowMetadata = new StepRowMetadata();
+                rowMetadata.setId(step.getRowMetadata());
+                preparationRepository.remove(rowMetadata);
+
+                // Remove preparation action (if it's the only step using these actions)
+                final Stream<Step> steps = preparationRepository.list(Step.class, "contentId='" + step.getContent() + "'");
+                if (steps.count() == 1) {
+                    // Remove action
+                    final PreparationActions preparationActions = new PreparationActions();
+                    preparationActions.setId(step.getContent());
+                    preparationRepository.remove(preparationActions);
+                }
+
+                // Remove step
+                preparationRepository.remove(step);
+            }
+        }
 
         // delete the associated folder entries
-        // TODO make this async?
         folderRepository.findFolderEntries(id, PREPARATION)
                 .forEach(e -> folderRepository.removeFolderEntry(e.getFolderId(), id, PREPARATION));
 
