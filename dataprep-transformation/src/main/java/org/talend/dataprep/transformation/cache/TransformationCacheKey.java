@@ -111,9 +111,9 @@ public class TransformationCacheKey implements ContentCacheKey {
         StringBuilder prefix = new StringBuilder(PREFIX);
         if (preparationId != null) {
             prefix.append("_").append(preparationId);
-        }
-        if (datasetId != null) {
-            prefix.append("_").append(datasetId);
+            if (datasetId != null) {
+                prefix.append("_").append(datasetId);
+            }
         }
         return prefix.toString();
     }
