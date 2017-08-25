@@ -24,7 +24,7 @@ import org.talend.dataprep.cache.ContentCacheKey;
  */
 public class TransformationMetadataCacheKey implements ContentCacheKey {
 
-    private static final String PREFIX = "transformation-metadata_";
+    private static final String PREFIX = "transformation-metadata";
 
     private final String preparationId;
 
@@ -46,12 +46,12 @@ public class TransformationMetadataCacheKey implements ContentCacheKey {
 
     @Override
     public String getKey() {
-        return PREFIX + preparationId + "_" + stepId + "_" + sourceType + "_" + userId;
+        return PREFIX + "_" + preparationId + "_" + stepId + "_" + sourceType + "_" + userId;
     }
 
     @Override
     public Predicate<String> getMatcher() {
-        final String regex = PREFIX
+        final String regex = PREFIX + '_'
                 + (preparationId == null ? ".*" : preparationId) + "_"
                 + (stepId == null ? ".*" : stepId) + "_"
                 + (sourceType == null ? ".*" : sourceType) + "_"

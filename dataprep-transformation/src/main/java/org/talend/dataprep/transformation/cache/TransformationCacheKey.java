@@ -26,7 +26,7 @@ import org.talend.dataprep.cache.ContentCacheKey;
  */
 public class TransformationCacheKey implements ContentCacheKey {
 
-    private static final String PREFIX = "transformation_";
+    private static final String PREFIX = "transformation";
 
     /** Format parameters (if any, if none, default to empty string) */
     private final String parameters;
@@ -102,7 +102,7 @@ public class TransformationCacheKey implements ContentCacheKey {
      */
     @Override
     public String getKey() {
-        return PREFIX + preparationId + "_" + datasetId + "_"
+        return PREFIX + '_' + preparationId + "_" + datasetId + "_"
                 + DigestUtils.sha1Hex(stepId + format + Objects.hash(parameters) + sourceType + userId);
     }
 
@@ -121,7 +121,7 @@ public class TransformationCacheKey implements ContentCacheKey {
     @Override
     public Predicate<String> getMatcher() {
         // Build a regular expression using transformation and dataset ids.
-        String regex = PREFIX;
+        String regex = PREFIX + "_";
         if (preparationId == null) {
             regex += ".*";
         } else {
