@@ -78,7 +78,8 @@ export default class DatasetImportCtrl {
 					return properties;
 				})
 				.then((formData) => {
-					const hasHiddenTestConnectionBtn = formData && !(formData.tdp_isTestConnectionEnabled || true);
+					const hasHiddenTestConnectionBtn = formData && !formData.tdp_isTestConnectionEnabled;
+					console.log('hasHiddenTestConnectionBtn', hasHiddenTestConnectionBtn);
 					if (hasHiddenTestConnectionBtn) {
 						return this._initDatasetForm(formData);
 					}
@@ -117,7 +118,7 @@ export default class DatasetImportCtrl {
 	_getDatastoreFormActions(properties) {
 		if (!this.datastoreFormActions) {
 			this.datastoreFormActions = [{
-				style: `info ${properties && !(properties.tdp_isTestConnectionEnabled || true) && 'sr-only'}`,
+				style: `info ${properties && !properties.tdp_isTestConnectionEnabled && 'sr-only'}`,
 				type: 'submit',
 				label: this.$translate.instant('DATASTORE_TEST_CONNECTION'),
 			}];
@@ -208,7 +209,7 @@ export default class DatasetImportCtrl {
 			});
 		}
 		// Datastore form submit without submit button
-		else if (this.datastoreForm && this.datastoreForm.properties && !(this.datastoreForm.properties.tdp_isTestConnectionEnabled || true)) {
+		else if (this.datastoreForm && this.datastoreForm.properties && !this.datastoreForm.properties.tdp_isTestConnectionEnabled) {
 			// From datastore form submit (i.e. submit with keyboard)
 			return false;
 		}
