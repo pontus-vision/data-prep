@@ -13,13 +13,13 @@
 
 import angular from 'angular';
 
-import TcompDatasetImportComponent from './tcomp/dataset-import-tcomp.component';
+import DatasetImportComponent from './dataset-import.component';
 
 import SERVICES_IMPORT_MODULE from '../../../services/import/import-module';
 
 const MODULE_NAME = 'data-prep.dataset-import';
 
 angular.module(MODULE_NAME, [SERVICES_IMPORT_MODULE])
-	.component('tcompDatasetImport', TcompDatasetImportComponent);
+	.component('datasetImport', DatasetImportComponent);
 
 export default MODULE_NAME;
