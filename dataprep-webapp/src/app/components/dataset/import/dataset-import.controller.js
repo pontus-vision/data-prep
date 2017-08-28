@@ -79,7 +79,6 @@ export default class DatasetImportCtrl {
 				})
 				.then((formData) => {
 					const hasHiddenTestConnectionBtn = formData && !formData.tdp_isTestConnectionEnabled;
-					console.log('hasHiddenTestConnectionBtn', hasHiddenTestConnectionBtn);
 					if (hasHiddenTestConnectionBtn) {
 						return this._initDatasetForm(formData);
 					}
