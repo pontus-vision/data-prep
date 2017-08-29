@@ -15,6 +15,7 @@ package org.talend.dataprep.api.service.test;
 
 import static com.jayway.restassured.RestAssured.*;
 import static com.jayway.restassured.http.ContentType.JSON;
+import static com.jayway.restassured.http.ContentType.TEXT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -82,7 +83,7 @@ public class APIClientTest {
         assertNotNull(resourceAsStream);
         final String datasetContent = IOUtils.toString(resourceAsStream, UTF_8);
         final Response post = given() //
-                .contentType(JSON) //
+                .contentType(TEXT) //
                 .body(datasetContent) //
                 .queryParam("name", name) //
                 .when() //
