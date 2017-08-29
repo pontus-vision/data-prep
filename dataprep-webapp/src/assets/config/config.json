@@ -2,7 +2,7 @@
   "serverUrl": "http://10.42.10.99:8888",
   "serverKeepAliveUrl": "",
   "enableDebug": false,
-  "version": "2.0.1-SNAPSHOT",
+  "version": "2.0.1",
   "copyRights": "© 2017 Talend. All Rights Reserved",
   "documentationSearchURL" : "https://www.talendforge.org/find/api/index.php?source=DATA%20PREP&condition=AND&max=5"
 }
