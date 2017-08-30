@@ -224,7 +224,7 @@ public class GenericCommand<T> extends HystrixCommand<T> {
 
         // handle response's HTTP status
         if (status.is4xxClientError() || status.is5xxServerError()) {
-            LOGGER.trace("request {} {} : response on error {}", request.getMethod(), request.getURI(), response.getStatusLine());
+            LOGGER.debug("request {} {} : response on error {}", request.getMethod(), request.getURI(), response.getStatusLine());
             // Http status >= 400 so apply onError behavior
             return callOnError(onError).apply(request, response);
         } else {
