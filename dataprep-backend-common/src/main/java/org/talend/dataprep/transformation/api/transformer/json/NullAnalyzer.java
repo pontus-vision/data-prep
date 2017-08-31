@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.talend.dataquality.common.inference.Analyzer;
 import org.talend.dataquality.common.inference.Analyzers;
+import org.talend.dataquality.common.inference.Metadata;
 
 public class NullAnalyzer implements Analyzer<Analyzers.Result> {
 
