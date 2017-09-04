@@ -62,6 +62,8 @@ module.exports = function (config) {
 
 		proxies: {
 			'/assets/': '/src/assets/',
-		}
+		},
+		
+		browserNoActivityTimeout: 120000,
 	});
 };
