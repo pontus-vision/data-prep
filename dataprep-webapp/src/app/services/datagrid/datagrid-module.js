@@ -12,6 +12,8 @@
  ============================================================================*/
 
 import angular from 'angular';
+import SERVICES_DATASET_MODULE from '../dataset/dataset-module';
+import SERVICES_PREPARATION_MODULE from '../preparation/preparation-module';
 import SERVICES_STATE_MODULE from '../state/state-module';
 import SERVICES_UTILS_MODULE from '../utils/utils-module';
 
@@ -23,11 +25,15 @@ const MODULE_NAME = 'data-prep.services.datagrid';
  * @ngdoc object
  * @name data-prep.services.datagrid
  * @description This module contains the services to load the playground
+ * @requires data-prep.services.dataset
+ * @requires data-prep.services.preparation
  * @requires data-prep.services.state
  * @requires data-prep.services.utils
  */
 angular.module(MODULE_NAME,
 	[
+		SERVICES_DATASET_MODULE,
+		SERVICES_PREPARATION_MODULE,
 		SERVICES_STATE_MODULE,
 		SERVICES_UTILS_MODULE,
 	])

@@ -12,6 +12,8 @@
  ============================================================================*/
 
 import _ from 'lodash';
+import RemoteModel from '../../components/datagrid/plugins/remote-model-plugin';
+import SingleColumnResizePlugin from '../../components/datagrid/plugins/single-column-resize-plugin';
 
 /**
  * @ngdoc service
@@ -24,7 +26,9 @@ import _ from 'lodash';
  * @requires data-prep.services.utils.service:ConverterService
  * @requires data-prep.services.utils.service:TextFormatService
  */
-export default function DatagridService(state, StateService, ConverterService, TextFormatService) {
+export default function DatagridService(state, StateService,
+                                        DatasetService, PreparationService,
+                                        ConverterService, TextFormatService) {
 	'ngInject';
 
 	const DELETE = 'DELETE';
@@ -34,27 +38,93 @@ export default function DatagridService(state, StateService, ConverterService, T
 	const service = {
 		focusedColumn: null, // TODO JSO : put this in state
 
-        // grid data
+		// grid model loader
+		createLazyDataLoader,
+		createLazyGrid,
+
+		// grid data
 		updateData, // updata data in the current dataset
 		getColumns,
 		getColumnsContaining,
 
-        // preview
+		// preview
 		execute,
 		previewDataExecutor,
 	};
 	return service;
 
-    //------------------------------------------------------------------------------------------------------
-    // ---------------------------------------------------DATA-----------------------------------------------
-    //------------------------------------------------------------------------------------------------------
-    /**
-     * @ngdoc method
-     * @name getLastNewColumnId
-     * @methodOf data-prep.services.playground.service:DatagridService
-     * @param {object} columns The new columns
-     * @description Get the last new created column
-     */
+	//----------------------------------------------------------------------------------------------
+	// -------------------------------------------LOADER--------------------------------------------
+	//----------------------------------------------------------------------------------------------
+	function getData({ pageSize, fromPage, toPage, filters }) {
+		console.log('GET DATA', pageSize, fromPage, toPage, filters);
+		const { preparation, dataset } = state.playground;
+
+		const getContent = preparation ?
+			PreparationService.getContent(preparation.id, 'head', `HEAD&fromPage=${fromPage}&toPage=${toPage}`) :
+			DatasetService.getContent(dataset.id, false);
+
+		if (fromPage === 0) {
+		//	pageSize = 100;
+		}
+
+		StateService.setGridLoading(true);
+		return getContent
+			.then(data => data.records)
+			.then(data => data.slice(fromPage * pageSize, (toPage + 1) * pageSize))
+			.finally(() => {
+				StateService.setGridLoading(false);
+			});
+	}
+
+	function createLazyDataLoader(pageSize = 1000, length = 10000) {
+		return new RemoteModel({
+			pageSize,
+			getData,
+			data: { length },
+			idKey: 'tdpId',
+		});
+	}
+
+	function createLazyGrid(elementId, options) {
+		// create model loader
+		const model = createLazyDataLoader(/* TODO JSO how to pass length */);
+		StateService.setDataModel(model);
+
+		// create grid
+		const grid = new Slick.Grid(elementId, model.data, [{ id: 'tdpId' }], options);
+		grid.registerPlugin(new Slick.AutoColumnSize());
+		grid.registerPlugin(SingleColumnResizePlugin);
+
+		// invalidate rows on new data lazy loaded
+		model.onDataLoaded.subscribe((e, args) => {
+			for (let i = args.from; i <= args.to; i++) {
+				grid.invalidateRow(i);
+			}
+			grid.updateRowCount();
+			grid.render();
+			// loadingIndicator.fadeOut();
+		});
+
+		// fetch data on scroll
+		grid.onViewportChanged.subscribe(() => {
+			const vp = grid.getViewport();
+			model.ensureData(vp.top, vp.bottom);
+		});
+
+		return grid;
+	}
+
+	//----------------------------------------------------------------------------------------------
+	// --------------------------------------------DATA---------------------------------------------
+	//----------------------------------------------------------------------------------------------
+	/**
+	 * @ngdoc method
+	 * @name getLastNewColumnId
+	 * @methodOf data-prep.services.playground.service:DatagridService
+	 * @param {object} columns The new columns
+	 * @description Get the last new created column
+	 */
 	function getLastNewColumnId(columns) {
 		const ancientColumnsIds = _.map(state.playground.data.metadata.columns, 'id');
 		const newColumnsIds = _.map(columns, 'id');
@@ -63,13 +133,13 @@ export default function DatagridService(state, StateService, ConverterService, T
 		return diffIds[diffIds.length - 1];
 	}
 
-    /**
-     * @ngdoc method
-     * @name updateData
-     * @methodOf data-prep.services.playground.service:DatagridService
-     * @param {Object} data - the new data (columns and records)
-     * @description Update the data in the datagrid
-     */
+	/**
+	 * @ngdoc method
+	 * @name updateData
+	 * @methodOf data-prep.services.playground.service:DatagridService
+	 * @param {Object} data - the new data (columns and records)
+	 * @description Update the data in the datagrid
+	 */
 	function updateData(data) {
 		if (state.playground.data.metadata.columns.length < data.metadata.columns.length) {
 			service.focusedColumn = getLastNewColumnId(data.metadata.columns);
@@ -78,18 +148,18 @@ export default function DatagridService(state, StateService, ConverterService, T
 		StateService.setCurrentData(data);
 	}
 
-    //------------------------------------------------------------------------------------------------------
-    // --------------------------------------------------PREVIEW---------------------------------------------
-    //------------------------------------------------------------------------------------------------------
-    /**
-     * @ngdoc method
-     * @name execute
-     * @methodOf data-prep.services.playground.service:DatagridService
-     * @param {Object} executor The info to apply on the dataset
-     * @description Update the data in the datagrid with a set of instructions and the column list to apply.
-     * This allows to update the dataset, with limited SlickGrid computation, for more performant operations than
-     * setItems which compute everything on the whole dataset.
-     */
+	//------------------------------------------------------------------------------------------------------
+	// --------------------------------------------------PREVIEW---------------------------------------------
+	//------------------------------------------------------------------------------------------------------
+	/**
+	 * @ngdoc method
+	 * @name execute
+	 * @methodOf data-prep.services.playground.service:DatagridService
+	 * @param {Object} executor The info to apply on the dataset
+	 * @description Update the data in the datagrid with a set of instructions and the column list to apply.
+	 * This allows to update the dataset, with limited SlickGrid computation, for more performant operations than
+	 * setItems which compute everything on the whole dataset.
+	 */
 	function execute(executor) {
 		if (!executor) {
 			return;
@@ -150,13 +220,13 @@ export default function DatagridService(state, StateService, ConverterService, T
 		return reverter;
 	}
 
-    /**
-     * @ngdoc method
-     * @name previewDataExecutor
-     * @methodOf data-prep.services.playground.service:DatagridService
-     * @param {Object} data The new preview data to insert
-     * @description Create an executor that reflect the provided preview data, in order to update the current dataset
-     */
+	/**
+	 * @ngdoc method
+	 * @name previewDataExecutor
+	 * @methodOf data-prep.services.playground.service:DatagridService
+	 * @param {Object} data The new preview data to insert
+	 * @description Create an executor that reflect the provided preview data, in order to update the current dataset
+	 */
 	function previewDataExecutor(data) {
 		const executor = {
 			metadata: data.metadata,
@@ -188,18 +258,18 @@ export default function DatagridService(state, StateService, ConverterService, T
 		return executor;
 	}
 
-    //------------------------------------------------------------------------------------------------------
-    // ------------------------------------------------DATA UTILS--------------------------------------------
-    //------------------------------------------------------------------------------------------------------
-    /**
-     * @ngdoc method
-     * @name getColumns
-     * @methodOf data-prep.services.playground.service:DatagridService
-     * @param {boolean} excludeNumeric - filter the numeric columns
-     * @param {boolean} excludeBoolean - filter the boolean columns
-     * @description Filter the column ids
-     * @returns {Object[]} - the column list that match the desired filters (id & name)
-     */
+	//------------------------------------------------------------------------------------------------------
+	// ------------------------------------------------DATA UTILS--------------------------------------------
+	//------------------------------------------------------------------------------------------------------
+	/**
+	 * @ngdoc method
+	 * @name getColumns
+	 * @methodOf data-prep.services.playground.service:DatagridService
+	 * @param {boolean} excludeNumeric - filter the numeric columns
+	 * @param {boolean} excludeBoolean - filter the boolean columns
+	 * @description Filter the column ids
+	 * @returns {Object[]} - the column list that match the desired filters (id & name)
+	 */
 	function getColumns(excludeNumeric, excludeBoolean) {
 		let cols = state.playground.data.metadata.columns;
 
@@ -221,13 +291,13 @@ export default function DatagridService(state, StateService, ConverterService, T
 		});
 	}
 
-    /**
-     * @ngdoc method
-     * @name getColumnsContaining
-     * @methodOf data-prep.services.playground.service:DatagridService
-     * @description Return the column id list that has a value that match the regexp
-     * @returns {Object[]} The column list that contains a value that match the regexp (col.id & col.name)
-     */
+	/**
+	 * @ngdoc method
+	 * @name getColumnsContaining
+	 * @methodOf data-prep.services.playground.service:DatagridService
+	 * @description Return the column id list that has a value that match the regexp
+	 * @returns {Object[]} The column list that contains a value that match the regexp (col.id & col.name)
+	 */
 	function getColumnsContaining(phrase) {
 		const results = [];
 
@@ -242,8 +312,8 @@ export default function DatagridService(state, StateService, ConverterService, T
 		const data = state.playground.data.records;
 		let potentialColumns = getColumns(!canBeNumeric, !canBeBoolean);
 
-        // we loop over data while there is data and potential columns that can contains the searched term
-        // if a col value for a row contains the term, we add it to result
+		// we loop over data while there is data and potential columns that can contains the searched term
+		// if a col value for a row contains the term, we add it to result
 		let dataIndex = 0;
 		while (dataIndex < data.length && potentialColumns.length) {
 			const record = data[dataIndex];

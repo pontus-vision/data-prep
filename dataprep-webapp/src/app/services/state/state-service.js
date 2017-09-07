@@ -93,7 +93,9 @@ export function StateService(RouteStateService, routeState,
 		setRecipeAllowDistributedRun: PlaygroundStateService.setRecipeAllowDistributedRun,
 
 		// playground - grid
+		setGridLoading: PlaygroundStateService.setGridLoading,
 		setColumnFocus: PlaygroundStateService.setColumnFocus,
+		setDataModel: PlaygroundStateService.setDataModel,
 		setGridSelection: PlaygroundStateService.setGridSelection,
 		toggleColumnSelection: PlaygroundStateService.toggleColumnSelection,
 		changeRangeSelection: PlaygroundStateService.changeRangeSelection,

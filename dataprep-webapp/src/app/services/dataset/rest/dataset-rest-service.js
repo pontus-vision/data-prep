@@ -208,7 +208,7 @@ export default function DatasetRestService($rootScope, $upload, $http, RestURLs)
      * @returns {Promise} The GET promise
      */
 	function getContent(datasetId, metadata) {
-		const url = RestURLs.datasetUrl + '/' + datasetId + '?metadata=' + metadata + '&includeTechnicalProperties=true';
+		const url = RestURLs.datasetUrl + '/' + datasetId + '?fullContent=' + metadata + '&includeTechnicalProperties=true';
 		return $http.get(url).then(response => response.data);
 	}
 
@@ -239,7 +239,7 @@ export default function DatasetRestService($rootScope, $upload, $http, RestURLs)
      */
 	function getSheetPreview(datasetId, sheetName) {
 		$rootScope.$emit('talend.loading.start');
-		return $http.get(RestURLs.datasetUrl + '/preview/' + datasetId + '?metadata=true' + (sheetName ? '&sheetName=' + encodeURIComponent(sheetName) : ''))
+		return $http.get(RestURLs.datasetUrl + '/preview/' + datasetId + '?fullContent=true' + (sheetName ? '&sheetName=' + encodeURIComponent(sheetName) : ''))
             .then(response => response.data)
             .finally(() => {
 	$rootScope.$emit('talend.loading.stop');

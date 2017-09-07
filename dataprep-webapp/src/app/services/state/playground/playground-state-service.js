@@ -73,7 +73,9 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		setRecipeAllowDistributedRun: RecipeStateService.setAllowDistributedRun,
 
         // datagrid
+		setGridLoading: GridStateService.setLoading,
 		setColumnFocus: GridStateService.setColumnFocus,
+		setDataModel: GridStateService.setDataModel,
 		setGridSelection: GridStateService.setGridSelection,
 		toggleColumnSelection: GridStateService.toggleColumnSelection,
 		changeRangeSelection: GridStateService.changeRangeSelection,

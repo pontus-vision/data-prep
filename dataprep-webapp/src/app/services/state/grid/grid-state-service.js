@@ -15,7 +15,9 @@ import angular from 'angular';
 import { chain, find, map, sortBy } from 'lodash';
 
 export const gridState = {
+	loading: false,
 	dataView: new Slick.Data.DataView({ inlineFilters: false }),
+	dataModel: null,
 	numericColumns: [],
 	columns: [],
 	selectedColumns: [],
@@ -38,10 +40,12 @@ export function GridStateService() {
 		reset,
 
 		changeRangeSelection,
+		setLoading,
 		setColumnFocus,
 		setSemanticDomains,
 		setPrimitiveTypes,
 		setData,
+		setDataModel,
 		setFilter,
 		setGridSelection,
 		toggleColumnSelection,
@@ -188,6 +192,10 @@ export function GridStateService() {
 		updateNumericColumns(data);
 	}
 
+	function setDataModel(model) {
+		gridState.dataModel = model;
+	}
+
 	/**
 	 * @ngdoc method
 	 * @name updateSelectedColumnLine
@@ -318,6 +326,10 @@ export function GridStateService() {
 		}
 	}
 
+	function setLoading(loading) {
+		gridState.loading = loading;
+	}
+
 	/**
 	 * @ngdoc method
 	 * @name updateNumericColumns
@@ -355,6 +367,7 @@ export function GridStateService() {
 	 * @description Reset the grid internal values
 	 */
 	function reset() {
+		gridState.loading = false;
 		gridState.columnFocus = null;
 		gridState.selectedColumns = [];
 		gridState.semanticDomains = null;
