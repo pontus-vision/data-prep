@@ -1,15 +1,14 @@
-//  ============================================================================
+// ============================================================================
+// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
-//
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.command.dataset;
 
@@ -17,6 +16,8 @@ import static org.talend.dataprep.command.Defaults.asNull;
 import static org.talend.dataprep.command.Defaults.convertResponse;
 
 import java.io.IOException;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.http.client.methods.HttpGet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,18 +32,18 @@ import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 
-import javax.annotation.PostConstruct;
-
 @Component
 @Scope("prototype")
 public class DataSetGetMetadata extends GenericCommand<DataSetMetadata> {
 
     private final String dataSetId;
+
     @Autowired
     private DataSetContentLimit limit;
 
     /**
      * Private constructor to ensure the use of IoC
+     *
      * @param dataSetId the dataset id to get.
      */
     private DataSetGetMetadata(final String dataSetId) {
@@ -55,10 +56,9 @@ public class DataSetGetMetadata extends GenericCommand<DataSetMetadata> {
 
     @PostConstruct
     private void initConfiguration() {
-        if(limit.limitContentSize()) {
+        if (limit.limitContentSize()) {
             this.configureLimitedDataset(dataSetId);
-        }
-        else {
+        } else {
             this.configureSampleDataset(dataSetId);
         }
     }
@@ -72,8 +72,7 @@ public class DataSetGetMetadata extends GenericCommand<DataSetMetadata> {
                 return dataSet.getMetadata();
             } catch (IOException e) {
                 throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
-            }
-            finally {
+            } finally {
                 req.releaseConnection();
             }
         });

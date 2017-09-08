@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -148,7 +147,7 @@ public class ActionsBundle implements MessagesBundle {
         }
         if (actionToResourceBundle.containsKey(action.getClass())) {
             final ResourceBundle resourceBundle = actionToResourceBundle.get(action.getClass());
-            LOGGER.debug("Cache hit for action '{}': '{}'", action, resourceBundle);
+            LOGGER.trace("Cache hit for action '{}': '{}'", action, resourceBundle);
             return resourceBundle;
         }
         // Lookup for resource bundle in package hierarchy

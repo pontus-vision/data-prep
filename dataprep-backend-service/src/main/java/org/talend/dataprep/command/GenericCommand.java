@@ -198,6 +198,9 @@ public class GenericCommand<T> extends HystrixCommand<T> {
         // update request header with security token
         if (StringUtils.isNotBlank(getAuthenticationToken())) {
             request.addHeader(AUTHORIZATION, getAuthenticationToken());
+        } else {
+            // Intentionally left as debug to prevent log flood in open source edition.
+            LOGGER.debug("No current authentication token for {}.", this.getClass());
         }
 
         final HttpResponse response;
