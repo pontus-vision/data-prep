@@ -174,7 +174,7 @@ public class PreparationAPI extends APIService {
         PreparationCreate preparationCreate = getCommand(PreparationCreate.class, preparation, folder);
         final String preparationId = preparationCreate.execute();
 
-        LOG.info("New Preparation #{}, name : {}, created in folder {}", preparationId, preparation.getName(), folder);
+        LOG.info("New Preparation #{}, name: {}, created in folder {}", preparationId, preparation.getName(), folder);
 
         return preparationId;
     }
