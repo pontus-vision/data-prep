@@ -12,7 +12,9 @@
 
 package org.talend.dataprep.dataset.service;
 
-import static com.jayway.restassured.RestAssured.*;
+import static com.jayway.restassured.RestAssured.expect;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.when;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static com.jayway.restassured.path.json.JsonPath.from;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -21,9 +23,23 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.http.HttpStatus.OK;
 import static org.talend.dataprep.test.SameJSONFile.sameJSONAsFile;
 import static org.talend.dataprep.util.SortAndOrderHelper.Sort.LAST_MODIFICATION_DATE;
@@ -32,13 +48,23 @@ import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
@@ -50,8 +76,13 @@ import org.talend.dataprep.api.dataset.statistics.SemanticDomain;
 import org.talend.dataprep.api.dataset.statistics.Statistics;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.api.user.UserData;
+import org.talend.dataprep.cache.ContentCache;
 import org.talend.dataprep.dataset.DataSetBaseTest;
 import org.talend.dataprep.dataset.DataSetMetadataBuilder;
+import org.talend.dataprep.dataset.service.cache.UpdateDataSetCacheKey;
+import org.talend.dataprep.dataset.store.QuotaService;
+import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.exception.error.DataSetErrorCodes;
 import org.talend.dataprep.lock.DistributedLock;
 import org.talend.dataprep.schema.csv.CSVFormatFamily;
 
@@ -60,6 +91,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.response.Response;
 
 public class DataSetServiceTest extends DataSetBaseTest {
+
+    @Autowired
+    private ContentCache cacheManager;
+
+    @MockBean
+    private QuotaService quotaService;
+
+    @Before
+    public void datasetServiceSetup() throws Exception {
+        Mockito.when(quotaService.getAvailableSpace()).thenReturn(Long.MAX_VALUE);
+    }
 
     @Test
     public void CORSHeaders() throws Exception {
@@ -428,6 +470,58 @@ public class DataSetServiceTest extends DataSetBaseTest {
     }
 
     @Test
+    public void createShouldFailBecauseSizeHasInvalidValue() throws Exception {
+        // when
+        final Response response = given() //
+                .body(IOUtils.toString(this.getClass().getResourceAsStream(T_SHIRT_100_CSV), UTF_8)) //
+                .queryParam("Content-Type", "text/csv") //
+                .queryParam("name", "kamoulox") //
+                .queryParam("size", -1L) // negative size value
+                .post("/datasets");
+
+        // then
+        assertEquals(400, response.getStatusCode());
+    }
+
+    @Test
+    public void createShouldFailBecauseNotEnoughSpaceAvailable() throws Exception {
+        // given
+        Mockito.reset(quotaService);
+        TDPException exception = new TDPException(DataSetErrorCodes.MAX_STORAGE_MAY_BE_EXCEEDED);
+        doThrow(exception).when(quotaService).checkIfAddingSizeExceedsAvailableStorage(500L);
+
+        // when
+        final InputStream content = this.getClass().getResourceAsStream(T_SHIRT_100_CSV);
+        final Response post = given() //
+                .body(IOUtils.toString(content, UTF_8)) //
+                .queryParam("Content-Type", "text/csv") //
+                .queryParam("name", "cespasfaux") //
+                .queryParam("size", 500L) //
+                .post("/datasets");
+
+        // then
+        assertEquals(413, post.getStatusCode());
+    }
+
+    @Test
+    public void createShouldFailBecauseNotEnoughSpaceAvailableEvenIfTheFrontEndDidNotSendTheSize() throws Exception {
+        // given
+        Mockito.reset(quotaService);
+        Mockito.when(quotaService.getAvailableSpace()).thenReturn(10L);
+
+        // when
+        final InputStream content = this.getClass().getResourceAsStream(T_SHIRT_100_CSV);
+        final Response post = given() //
+                .body(IOUtils.toString(content, UTF_8)) //
+                .queryParam("Content-Type", "text/csv") //
+                .queryParam("name", "cespasfaux") //
+                .post("/datasets");
+
+        // then
+        assertEquals(413, post.getStatusCode());
+    }
+
+    @Test
     public void shouldSearchDatasets() throws Exception {
         // given
         final boolean strict = true;
@@ -614,7 +708,10 @@ public class DataSetServiceTest extends DataSetBaseTest {
 
     @Test
     public void updateRawContent() throws Exception {
-        String dataSetId = "123456";
+        String dataSetId = UUID.randomUUID().toString();
+        DataSetMetadata dataSetMetadata = metadataBuilder.metadata().id(dataSetId).build();
+        dataSetMetadataRepository.save(dataSetMetadata);
+
         given().body(IOUtils.toString(this.getClass().getResourceAsStream(TAGADA_CSV), UTF_8)).when()
                 .put("/datasets/{id}/raw", dataSetId).then().statusCode(OK.value());
         List<String> ids = from(when().get("/datasets").asString()).get("id");
@@ -629,9 +726,64 @@ public class DataSetServiceTest extends DataSetBaseTest {
     }
 
     @Test
+    public void updateRawContentShouldNotAcceptInvalidSize() throws IOException {
+
+        // when
+        final Response response = given() //
+                .body(IOUtils.toString(this.getClass().getResourceAsStream(TAGADA_CSV), UTF_8)).when() //
+                .queryParam("size", -1) //
+                .put("/datasets/{id}/raw", 123456);
+
+        // then
+        assertEquals(413, response.getStatusCode());
+    }
+
+    @Test
+    public void updateRawContentShouldCheckDataSetSize() throws Exception {
+
+        // given
+        final String datasetId = createCSVDataSet(this.getClass().getResourceAsStream("../avengers.csv"), "dataset2");
+
+        Mockito.reset(quotaService);
+        TDPException exception = new TDPException(DataSetErrorCodes.MAX_STORAGE_MAY_BE_EXCEEDED);
+        doThrow(exception).when(quotaService).checkIfAddingSizeExceedsAvailableStorage(Math.abs(113L - 298L));
+
+        // when
+        final Response response = given() //
+                .body(IOUtils.toString(this.getClass().getResourceAsStream(TAGADA_CSV), UTF_8)).when() //
+                .queryParam("size", 113).put("/datasets/{id}/raw", datasetId);
+
+        // then
+        assertEquals(413, response.getStatusCode());
+        assertFalse(cacheManager.has(new UpdateDataSetCacheKey(datasetId)));
+    }
+
+    @Test
+    public void updateRawContentShouldCheckAvailableSpaceEvenIfTheSizeIsNotProvidedByFrontEnd() throws Exception {
+
+        // given
+        final String datasetId = createCSVDataSet(this.getClass().getResourceAsStream("../avengers.csv"), "dataset2");
+
+        Mockito.reset(quotaService);
+        Mockito.when(quotaService.getAvailableSpace()).thenReturn(10L);
+
+        // when
+        final Response response = given() //
+                .body(IOUtils.toString(this.getClass().getResourceAsStream(TAGADA_CSV), UTF_8)).when() //
+                .put("/datasets/{id}/raw", datasetId);
+
+        // then
+        assertEquals(413, response.getStatusCode());
+        assertFalse(cacheManager.has(new UpdateDataSetCacheKey(datasetId)));
+    }
+
+    @Test
     public void updateRawContent_should_preserve_non_content_related_metadata_except_last_modification_date() throws Exception {
         // given
-        final String dataSetId = "123456";
+        String dataSetId = UUID.randomUUID().toString();
+        DataSetMetadata dataSetMetadata = metadataBuilder.metadata().id(dataSetId).build();
+        dataSetMetadataRepository.save(dataSetMetadata);
+
         given().body(IOUtils.toString(this.getClass().getResourceAsStream(TAGADA_CSV), UTF_8)).when()
                 .put("/datasets/{id}/raw", dataSetId).then().statusCode(OK.value());
 
@@ -659,7 +811,10 @@ public class DataSetServiceTest extends DataSetBaseTest {
 
     @Test
     public void updateRawContentWithDifferentSchema() throws Exception {
-        String dataSetId = "123456";
+        String dataSetId = UUID.randomUUID().toString();
+        DataSetMetadata dataSetMetadata = metadataBuilder.metadata().id(dataSetId).build();
+        dataSetMetadataRepository.save(dataSetMetadata);
+
         given().body(IOUtils.toString(this.getClass().getResourceAsStream(TAGADA_CSV), UTF_8)).when()
                 .put("/datasets/{id}/raw", dataSetId).then().statusCode(OK.value());
         final DataSetMetadata dataSetMetadataBeforeUpdate = dataSetMetadataRepository.get(dataSetId);
@@ -674,7 +829,10 @@ public class DataSetServiceTest extends DataSetBaseTest {
     @Test
     public void test_TDP_2052() throws Exception {
         // given
-        final String dataSetId = "123456";
+        String dataSetId = UUID.randomUUID().toString();
+        DataSetMetadata dataSetMetadata = metadataBuilder.metadata().id(dataSetId).build();
+        dataSetMetadataRepository.save(dataSetMetadata);
+
         given().body(IOUtils.toString(this.getClass().getResourceAsStream(TAGADA_CSV), UTF_8)).when()
                 .put("/datasets/{id}/raw?name=original", dataSetId).then().statusCode(OK.value());
 
@@ -1530,6 +1688,7 @@ public class DataSetServiceTest extends DataSetBaseTest {
             ReflectionTestUtils.setField(dataSetService, "maximumInputStreamSize", l);
         }
     }
+
 
     private String insertEmptyDataSet() {
         String datasetId = UUID.randomUUID().toString();

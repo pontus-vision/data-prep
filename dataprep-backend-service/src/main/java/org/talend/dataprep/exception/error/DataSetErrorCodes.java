@@ -12,7 +12,13 @@
 
 package org.talend.dataprep.exception.error;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,6 +46,7 @@ public enum DataSetErrorCodes implements ErrorCode {
      * meaning all mandatory analysis prevents service to correctly
      * serve data set's content.
      *
+     * @see DataSetLifecycle#importing()
      */
     UNABLE_TO_SERVE_DATASET_CONTENT(BAD_REQUEST.value(), "id"),
     /**
@@ -193,11 +200,19 @@ public enum DataSetErrorCodes implements ErrorCode {
      * A lookup dataSet used by a preparation with a given name have not the expected format.
      */
     PREPARATION_LOOKUP_BAD_FORMAT(NOT_FOUND.value(), "name"),
+    /**
+     * A user tries to run a live dataset without any TIC access.
+     */
     UNAUTHORIZED_ACCESS_TO_TIC(UNAUTHORIZED.value()),
     /**
      * A lookup dataSet used by a preparation with a given name have not the expected format.
      */
-    INVALID_DATASET_NAME(BAD_REQUEST.value(), "name");
+    INVALID_DATASET_NAME(BAD_REQUEST.value(), "name"),
+    /**
+     * A create operation on a dataset lead to exceeding storage quota.
+     */
+    MAX_STORAGE_MAY_BE_EXCEEDED(PAYLOAD_TOO_LARGE.value(), "size");
+
 
     /**
      * The http status to use.

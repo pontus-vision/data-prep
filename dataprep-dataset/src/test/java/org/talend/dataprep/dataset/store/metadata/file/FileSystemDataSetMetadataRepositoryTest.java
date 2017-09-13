@@ -13,7 +13,12 @@
 
 package org.talend.dataprep.dataset.store.metadata.file;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -114,7 +119,7 @@ public class FileSystemDataSetMetadataRepositoryTest extends DataSetBaseTest {
             // then
             assertNull(actual);
         } finally {
-            metadataFile.delete();
+            assertTrue(metadataFile.delete());
         }
     }
 
@@ -238,6 +243,7 @@ public class FileSystemDataSetMetadataRepositoryTest extends DataSetBaseTest {
         File hidden = new File("target/test/store/metadata/.hidden_file");
         FileOutputStream fos = new FileOutputStream(hidden);
         fos.write("hello".getBytes());
+        fos.close();
 
         // then
         final DataSetMetadata dataSetMetadata = repository.get(".hidden");
@@ -262,6 +268,34 @@ public class FileSystemDataSetMetadataRepositoryTest extends DataSetBaseTest {
     @Test
     public void shouldOnlyReturnDataSetWithSimilarSchema() {
         DataSetMetadataRepositoryTestUtils.ensureThatOnlyCompatibleDataSetsAreReturned(repository, metadataBuilder);
+    }
+
+    @Test
+    public void testCountAllDataSetsSizeReturnsZeroWhenRepoIsEmpty() {
+
+        // when
+        long totalSize = repository.countAllDataSetsSize();
+
+        // then
+        assertThat(totalSize, is(0L));
+    }
+
+    @Test
+    public void testCountAllDataSetsSizeWhenRepoContainsMultipleElements() throws Exception {
+        // given
+        // info: data set size for test is 120345 in its metadata
+        for (int i = 1; i <= 3; i++) {
+            repository.save(getMetadata(String.valueOf(i)));
+        }
+        DataSetMetadata metadataWithDifferentDataSetSize = getMetadata("4");
+        metadataWithDifferentDataSetSize.setDataSetSize(5127892);
+        repository.save(metadataWithDifferentDataSetSize);
+
+        // when
+        long totalSize = repository.countAllDataSetsSize();
+
+        // then
+        assertThat(totalSize, is(5488927L));
     }
 
 }
