@@ -123,6 +123,11 @@ public class GenericCommand<T> extends HystrixCommand<T> {
 
     private HttpStatus status;
 
+    private static final HttpStatus[] INFO_STATUS = Stream.of(HttpStatus.values()) //
+            .filter(HttpStatus::is1xxInformational) //
+            .collect(Collectors.toList()) //
+            .toArray(new HttpStatus[0]);
+
     private static final HttpStatus[] SUCCESS_STATUS = Stream.of(HttpStatus.values()) //
             .filter(HttpStatus::is2xxSuccessful) //
             .collect(Collectors.toList()) //
@@ -133,8 +138,13 @@ public class GenericCommand<T> extends HystrixCommand<T> {
             .collect(Collectors.toList()) //
             .toArray(new HttpStatus[0]);
 
-    private static final HttpStatus[] INFO_STATUS = Stream.of(HttpStatus.values()) //
-            .filter(HttpStatus::is1xxInformational) //
+    private static final HttpStatus[] USER_ERROR_STATUS = Stream.of(HttpStatus.values()) //
+            .filter(HttpStatus::is4xxClientError) //
+            .collect(Collectors.toList()) //
+            .toArray(new HttpStatus[0]);
+
+    private static final HttpStatus[] SERVER_ERROR_STATUS = Stream.of(HttpStatus.values()) //
+            .filter(HttpStatus::is5xxServerError) //
             .collect(Collectors.toList()) //
             .toArray(new HttpStatus[0]);
 
@@ -328,6 +338,26 @@ public class GenericCommand<T> extends HystrixCommand<T> {
      */
     protected BehaviorBuilder onRedirect() {
         return on(REDIRECT_STATUS);
+    }
+
+    /**
+     * Starts declaration of behavior(s) to adopt when HTTP response has status code of 4xx.
+     *
+     * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
+     * @see BehaviorBuilder#then(BiFunction)
+     */
+    protected BehaviorBuilder onUserErrors() {
+        return on(USER_ERROR_STATUS);
+    }
+
+    /**
+     * Starts declaration of behavior(s) to adopt when HTTP response has status code of 5xx.
+     *
+     * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
+     * @see BehaviorBuilder#then(BiFunction)
+     */
+    protected BehaviorBuilder onServerErrors() {
+        return on(SERVER_ERROR_STATUS);
     }
 
     /**
