@@ -70,7 +70,7 @@ describe('Playground controller', () => {
 				recipe: { current: { steps: [] } },
 			},
 			inventory: {
-				homeFolderId: 'LW==',
+				homeFolder: { id: 'LW==' },
 				currentFolder: { path: 'test' },
 				folder: {
 					metadata: {
@@ -82,7 +82,7 @@ describe('Playground controller', () => {
 		$provide.constant('state', stateMock);
 	}));
 
-	beforeEach(inject(($rootScope, $q, $controller, $state, PlaygroundService, PreparationService) => {
+	beforeEach(inject(($rootScope, $q, $controller, $state, PlaygroundService, PreparationService, StateService) => {
 		scope = $rootScope.$new();
 
 		createController = () => {
@@ -93,6 +93,11 @@ describe('Playground controller', () => {
 		spyOn(PreparationService, 'setName').and.returnValue($q.when());
 		spyOn(PreparationService, 'move').and.returnValue($q.when());
 		spyOn($state, 'go').and.returnValue();
+
+		spyOn(StateService, 'setIsPreprationPickerVisible').and.returnValue();
+		spyOn(StateService, 'setIsNameValidationVisible').and.returnValue();
+		spyOn(StateService, 'setIsSavingPreparationFoldersLoading').and.returnValue();
+		spyOn(StateService, 'setSavingPreparationFolders').and.returnValue();
 	}));
 
 	afterEach(inject(($stateParams) => {
@@ -245,17 +250,17 @@ describe('Playground controller', () => {
 	});
 
 	describe('apply other preparation steps', () => {
-		it('should display modal', () => {
+		it('should display modal', inject((StateService) => {
 			// given
 			const ctrl = createController();
-			ctrl.displayPreparationPicker = false;
+			expect(StateService.setIsPreprationPickerVisible).not.toHaveBeenCalled();
 
 			// when
 			ctrl.showPreparationPicker();
 
 			// then
-			expect(ctrl.displayPreparationPicker).toBe(true);
-		});
+			expect(StateService.setIsPreprationPickerVisible).toHaveBeenCalledWith(true);
+		}));
 
 		it('should fetch compatible preparations', inject((DatasetService) => {
 			// given
@@ -285,19 +290,18 @@ describe('Playground controller', () => {
 			expect(PlaygroundService.copySteps).toHaveBeenCalledWith(referenceId);
 		}));
 
-		it('should hide picker after steps copy', inject(($q, PlaygroundService) => {
+		it('should hide picker after steps copy', inject(($q, PlaygroundService, StateService) => {
 			// given
 			const ctrl = createController();
-			ctrl.displayPreparationPicker = true;
-
 			spyOn(PlaygroundService, 'copySteps').and.returnValue($q.when());
+			expect(StateService.setIsPreprationPickerVisible).not.toHaveBeenCalled();
 
 			// when
 			ctrl.applySteps();
 			scope.$digest();
 
 			// then
-			expect(ctrl.displayPreparationPicker).toBe(false);
+			expect(StateService.setIsPreprationPickerVisible).toHaveBeenCalledWith(false);
 		}));
 	});
 
@@ -332,13 +336,14 @@ describe('Playground controller', () => {
 
 			it('should show preparation save/discard modal with implicit preparation if there are steps', () => {
 				// given
-				expect(ctrl.showNameValidation).toBeFalsy();
+				spyOn(ctrl, 'showNameValidationModal').and.returnValue();
 				stateMock.playground.recipe.current.steps = [{ id: '000' }];
+
 				// when
 				ctrl.beforeClose();
 
 				// then
-				expect(ctrl.showNameValidation).toBe(true);
+				expect(ctrl.showNameValidationModal).toHaveBeenCalled();
 			});
 
 			it('should discard the preparation if there are no steps', () => {
@@ -398,6 +403,33 @@ describe('Playground controller', () => {
 		});
 
 		describe('save preparation', () => {
+			it('should determinate if submit is disabled', () => {
+				// given
+				ctrl.savePreparationForm = {
+					'$invalid': false,
+				};
+				stateMock.playground.isSavingPreparationFoldersLoading = true;
+				// when
+				const isSubmitDisabled = ctrl.isSubmitDisabled();
+
+				// then
+				expect(isSubmitDisabled).toBeTruthy();
+			});
+
+			it('should determinate if submit is enabled', () => {
+				// given
+				ctrl.savePreparationForm = {
+					'$invalid': false,
+				};
+				stateMock.playground.isSavingPreparationFoldersLoading = false;
+
+				// when
+				const isSubmitDisabled = ctrl.isSubmitDisabled();
+
+				// then
+				expect(isSubmitDisabled).toBeFalsy();
+			});
+
 			it('should change preparation name when destination is home', inject((PreparationService) => {
 				// given
 				ctrl.destinationFolder = { id: 'LW==', path: '' };
@@ -441,6 +473,17 @@ describe('Playground controller', () => {
 				expect(StateService.resetPlayground).toHaveBeenCalled();
 				expect($state.go).toHaveBeenCalledWith(HOME_PREPARATIONS_ROUTE, undefined);
 			}));
+
+			it('should determinate when submit is loading', () => {
+				// given
+				stateMock.playground.isSavingPreparation = true;
+
+				// when
+				const isSubmitLoading = ctrl.isSubmitLoading();
+
+				// then
+				expect(isSubmitLoading).toBeTruthy();
+			});
 
 			it('should manage isSaving flag', inject((StateService) => {
 				// given
@@ -566,4 +609,46 @@ describe('Playground controller', () => {
 			expect(PreviewService.previewInProgress).toHaveBeenCalled();
 		}));
 	});
+
+	describe('Name Validation Modal', () => {
+		it('should show Name Validation modal', inject(($q, StateService, FolderService) => {
+			// given
+			spyOn(FolderService, 'tree').and.returnValue($q.when());
+			const ctrl = createController();
+
+			// when
+			ctrl.showNameValidationModal();
+
+			// then
+			expect(StateService.setIsNameValidationVisible).toHaveBeenCalledWith(true);
+			expect(StateService.setIsSavingPreparationFoldersLoading).toHaveBeenCalledWith(true);
+		}));
+
+		it('should fetch folders', inject(($q, StateService, FolderService) => {
+			// given
+			spyOn(FolderService, 'tree').and.returnValue($q.when());
+			const ctrl = createController();
+
+			// when
+			ctrl.showNameValidationModal();
+
+			// then
+			expect(FolderService.tree).toHaveBeenCalled();
+		}));
+
+		it('should store folders after fetching', inject(($q, StateService, FolderService) => {
+			// given
+			spyOn(FolderService, 'tree').and.returnValue($q.when({folders: []}));
+			const ctrl = createController();
+
+			// when
+			ctrl.showNameValidationModal();
+			scope.$digest();
+
+			// then
+			expect(StateService.setSavingPreparationFolders).toHaveBeenCalledWith({folders: []});
+			expect(StateService.setIsSavingPreparationFoldersLoading).toHaveBeenCalledWith(false);
+		}));
+	});
+
 });

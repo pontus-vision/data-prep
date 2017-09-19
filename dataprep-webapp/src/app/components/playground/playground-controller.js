@@ -28,12 +28,13 @@ import { PLAYGROUND_PREPARATION_ROUTE } from '../../index-route';
 export default function PlaygroundCtrl($state, $stateParams, state, StateService,
                                        PlaygroundService, DatasetService, PreparationService,
                                        PreviewService, FilterManagerService,
-                                       OnboardingService, LookupService) {
+                                       OnboardingService, LookupService, FolderService) {
 	'ngInject';
 
 	const vm = this;
 	vm.$stateParams = $stateParams;
 	vm.state = state;
+	vm.destinationFolder = this.state.inventory.homeFolder;
 
 	vm.openFeedbackForm = () => StateService.showFeedback();
 	vm.toggleParameters = () => StateService.toggleDatasetParameters();
@@ -41,22 +42,6 @@ export default function PlaygroundCtrl($state, $stateParams, state, StateService
 	vm.startOnBoarding = tourId => OnboardingService.startTour(tourId);
 	vm.fetchCompatiblePreparations = datasetId => DatasetService.getCompatiblePreparations(datasetId);
 	vm.removeAllFilters = () => FilterManagerService.removeAllFilters();
-
-	/**
-	 * @ngdoc property
-	 * @name showNameValidation
-	 * @propertyOf data-prep.playground.controller:PlaygroundCtrl
-	 * @description Flag that controls the display of the save/discard window on implicit preparation close.
-	 */
-	vm.showNameValidation = false;
-
-	/**
-	 * @ngdoc property
-	 * @name displayPreprationPicker
-	 * @propertyOf data-prep.playground.controller:PlaygroundCtrl
-	 * @description Flag that controls the display of preparation picker form.
-	 */
-	vm.displayPreprationPicker = false;
 
 	//--------------------------------------------------------------------------------------------------------------
 	// --------------------------------------------------PREPARATION PICKER------------------------------------------
@@ -68,7 +53,7 @@ export default function PlaygroundCtrl($state, $stateParams, state, StateService
 	 * @description Toggle preparation picker modal
 	 */
 	vm.showPreparationPicker = () => {
-		vm.displayPreparationPicker = true;
+		StateService.setIsPreprationPickerVisible(true);
 	};
 
 	/**
@@ -81,7 +66,7 @@ export default function PlaygroundCtrl($state, $stateParams, state, StateService
 	vm.applySteps = (preparationId) => {
 		return PlaygroundService.copySteps(preparationId)
 			.then(() => {
-				vm.displayPreparationPicker = false;
+				StateService.setIsPreprationPickerVisible(false);
 			});
 	};
 
@@ -151,7 +136,7 @@ export default function PlaygroundCtrl($state, $stateParams, state, StateService
 		const isDraft = state.playground.preparation && state.playground.preparation.draft;
 		if (isDraft) {
 			if (state.playground.recipe.current.steps.length) {
-				vm.showNameValidation = true;
+				vm.showNameValidationModal();
 			}
 			else {
 				vm.discardSaveOnClose();
@@ -160,6 +145,44 @@ export default function PlaygroundCtrl($state, $stateParams, state, StateService
 		else {
 			PlaygroundService.close();
 		}
+	};
+
+	/**
+	 * @ngdoc method
+	 * @name showNameValidationModal
+	 * @methodOf data-prep.playground.controller:PlaygroundCtrl
+	 * @description Show showNameValidationModal to create/save a new preparation
+	 */
+	vm.showNameValidationModal = () => {
+		StateService.setIsNameValidationVisible(true);
+		StateService.setIsSavingPreparationFoldersLoading(true);
+		FolderService.tree()
+			.then(tree => StateService.setSavingPreparationFolders(tree))
+			.finally(() => {
+				StateService.setIsSavingPreparationFoldersLoading(false);
+			});
+	};
+
+	/**
+	 * @ngdoc method
+	 * @name isSubmitDisabled
+	 * @methodOf data-prep.playground.controller:PlaygroundCtrl
+	 * @description Know if submit button is disabled
+	 */
+	vm.isSubmitDisabled = () => {
+		return vm.state.playground.isSavingPreparationFoldersLoading
+			|| vm.savePreparationForm.$invalid
+			|| vm.isSubmitLoading();
+	};
+
+	/**
+	 * @ngdoc method
+	 * @name isSubmitLoading
+	 * @methodOf data-prep.playground.controller:PlaygroundCtrl
+	 * @description Know if submit button has loading state
+	 */
+	vm.isSubmitLoading = () => {
+		return vm.state.playground.isSavingPreparation;
 	};
 
 	/**
@@ -189,8 +212,8 @@ export default function PlaygroundCtrl($state, $stateParams, state, StateService
 		const prepId = state.playground.preparation.id;
 		const destinationId = vm.destinationFolder.id;
 		const cleanName = vm.state.playground.preparationName.trim();
-		if (destinationId !== state.inventory.homeFolderId) {
-			operation = PreparationService.move(prepId, state.inventory.homeFolderId, destinationId, cleanName);
+		if (destinationId !== state.inventory.homeFolder.id) {
+			operation = PreparationService.move(prepId, state.inventory.homeFolder.id, destinationId, cleanName);
 		}
 		else {
 			operation = PreparationService.setName(prepId, cleanName);
