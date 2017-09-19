@@ -11,18 +11,13 @@
 
  ============================================================================*/
 
-import FolderSelectionCtrl from './folder-selection-controller';
+import angular from 'angular';
 
-import template from './folder-selection.html';
+import Loader from './loader.component';
 
-const FolderSelection = {
-	bindings: {
-		selectedFolder: '=ngModel',
-		isLoading: '<',
-		tree: '<',
-	},
-	controller: FolderSelectionCtrl,
-	templateUrl: template,
-};
+const MODULE_NAME = 'data-prep.loader';
 
-export default FolderSelection;
+angular.module(MODULE_NAME, [])
+	.component('loader', Loader);
+
+export default MODULE_NAME;

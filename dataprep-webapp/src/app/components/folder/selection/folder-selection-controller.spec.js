@@ -12,287 +12,267 @@
  ============================================================================*/
 
 describe('Folder selection controller', () => {
-    let createController;
-    let scope;
-    let tree;
+	let createController;
+	let scope;
+	const tree = {
+		folder: { // HOME
+			id: '1',
+			name: 'HOME',
+			path: '/',
+		},
+		children: [
+			{
+				folder: { // /folder1
+					id: '2',
+					name: 'folder1',
+					path: '/folder1',
+				},
+				children: [
+					{
+						folder: { // /folder1/subfolder1
+							id: '4',
+							name: 'subfolder1',
+							path: '/folder1/subfolder1',
+						},
+						children: [],
+					},
+					{
+						folder: { // /folder1/subfolder2
+							id: '5',
+							name: 'subfolder2',
+							path: '/folder1/subfolder2',
+						},
+						children: [],
+					},
+				],
+			},
+			{
+				folder: { // /folder2
+					id: '3',
+					name: 'folder2',
+					path: '/folder2',
+				},
+				children: [
+					{
+						folder: { // /folder2/subfolder3
+							id: '6',
+							name: 'subfolder3',
+							path: '/folder2/subfolder3',
+						},
+						children: [],
+					},
+				],
+			},
+		],
+	};
 
-    beforeEach(angular.mock.module('data-prep.folder-selection'));
+	beforeEach(angular.mock.module('data-prep.folder-selection'));
 
-    beforeEach(inject(($rootScope, $componentController) => {
-        scope = $rootScope.$new();
+	beforeEach(inject(($rootScope, $componentController) => {
+		scope = $rootScope.$new();
 
-        createController = (selectedFolder) => {
-            return $componentController('folderSelection',
-                { $scope: scope },
-                { selectedFolder: selectedFolder });
-        };
-    }));
+		createController = (selectedFolder, tree) => {
+			return $componentController('folderSelection',
+				{ $scope: scope },
+				{ selectedFolder: selectedFolder, isLoading: false, tree: tree })
+		}
+	}));
 
-    beforeEach(inject(($q, FolderService) => {
-        tree = {
-            folder: { // HOME
-                id: '1',
-                name: 'HOME',
-                path: '/',
-            },
-            children: [
-                {
-                    folder: { // /folder1
-                        id: '2',
-                        name: 'folder1',
-                        path: '/folder1',
-                    },
-                    children: [
-                        {
-                            folder: { // /folder1/subfolder1
-                                id: '4',
-                                name: 'subfolder1',
-                                path: '/folder1/subfolder1',
-                            },
-                            children: [],
-                        },
-                        {
-                            folder: { // /folder1/subfolder2
-                                id: '5',
-                                name: 'subfolder2',
-                                path: '/folder1/subfolder2',
-                            },
-                            children: [],
-                        },
-                    ],
-                },
-                {
-                    folder: { // /folder2
-                        id: '3',
-                        name: 'folder2',
-                        path: '/folder2',
-                    },
-                    children: [
-                        {
-                            folder: { // /folder2/subfolder3
-                                id: '6',
-                                name: 'subfolder3',
-                                path: '/folder2/subfolder3',
-                            },
-                            children: [],
-                        },
-                    ],
-                },
-            ],
-        };
-        spyOn(FolderService, 'tree').and.returnValue($q.when(tree));
-    }));
+	describe('initialization', () => {
+		it('should open path to selected folder', () => {
+			// given
+			const currentFolder = { id: '5' };
+			const ctrl = createController(currentFolder, tree);
 
-    describe('initialization', () => {
-        it('should fetch folder tree', inject((FolderService) => {
-            // given
-            const currentFolder = { id: '5' };
-            const ctrl = createController(currentFolder);
-            expect(FolderService.tree).not.toHaveBeenCalled();
+			// when
+			ctrl.$onChanges();
+			scope.$digest();
 
-            // when
-            ctrl.$onInit();
-            scope.$digest();
+			// then
+			expect(ctrl.tree.folder.opened).toBe(true);
+			expect(ctrl.tree.children[0].folder.opened).toBe(true);
+			expect(ctrl.tree.children[1].folder.opened).toBeFalsy();
+		});
 
-            // then
-            expect(FolderService.tree).toHaveBeenCalled();
-            expect(ctrl.tree).toBe(tree);
-        }));
+		it('should update selected folder', () => {
+			// given
+			const currentFolder = { id: '5' };
+			const ctrl = createController(currentFolder, tree);
 
-        it('should open path to selected folder', () => {
-            // given
-            const currentFolder = { id: '5' };
-            const ctrl = createController(currentFolder);
+			// when
+			ctrl.$onChanges();
+			scope.$digest();
 
-            // when
-            ctrl.$onInit();
-            scope.$digest();
+			// then
+			expect(ctrl.tree.children[0].children[1].folder.selected).toBe(true);
+			expect(ctrl.selectedFolder).toBe(tree.children[0].children[1].folder);
+		});
 
-            // then
-            expect(ctrl.tree.folder.opened).toBe(true);
-            expect(ctrl.tree.children[0].folder.opened).toBe(true);
-            expect(ctrl.tree.children[1].folder.opened).toBeFalsy();
-        });
+		it('should select HOME when ngModel is not set', () => {
+			// given
+			const ctrl = createController(null, tree);
 
-        it('should update selected folder', () => {
-            // given
-            const currentFolder = { id: '5' };
-            const ctrl = createController(currentFolder);
+			// when
+			ctrl.$onChanges();
+			scope.$digest();
 
-            // when
-            ctrl.$onInit();
-            scope.$digest();
+			// then
+			expect(ctrl.tree.folder.selected).toBe(true);
+			expect(ctrl.selectedFolder).toBe(tree.folder);
+		});
 
-            // then
-            expect(ctrl.tree.children[0].children[1].folder.selected).toBe(true);
-            expect(ctrl.selectedFolder).toBe(tree.children[0].children[1].folder);
-        });
+		it('should select HOME when ngModel folder id not in tree', () => {
+			// given
+			const currentFolder = { id: 'unknown' };
+			const ctrl = createController(currentFolder, tree);
 
-        it('should select HOME when ngModel is not set', () => {
-            // given
-            const ctrl = createController();
+			// when
+			ctrl.$onChanges();
+			scope.$digest();
 
-            // when
-            ctrl.$onInit();
-            scope.$digest();
+			// then
+			expect(ctrl.tree.folder.selected).toBe(true);
+			expect(ctrl.selectedFolder).toBe(tree.folder);
+		});
+	});
 
-            // then
-            expect(ctrl.tree.folder.selected).toBe(true);
-            expect(ctrl.selectedFolder).toBe(tree.folder);
-        });
+	describe('toggle', () => {
+		it('should toggle the folder opened flag', () => {
+			// given
+			const ctrl = createController(null, tree);
+			const node = { folder: { opened: false } };
 
-        it('should select HOME when ngModel folder id not in tree', () => {
-            // given
-            const currentFolder = { id: 'unknown' };
-            const ctrl = createController(currentFolder);
+			// when
+			ctrl.toggle(node);
 
-            // when
-            ctrl.$onInit();
-            scope.$digest();
+			// then
+			expect(node.folder.opened).toBe(true);
+		});
+	});
 
-            // then
-            expect(ctrl.tree.folder.selected).toBe(true);
-            expect(ctrl.selectedFolder).toBe(tree.folder);
-        });
-    });
+	describe('choose folder', () => {
+		it('should unselect previous folder', () => {
+			// given
+			const ctrl = createController(null, tree);
+			const previousFolder = { selected: true };
+			ctrl.selectedFolder = previousFolder;
+			const nextFolder = { selected: false };
 
-    describe('toggle', () => {
-        it('should toggle the folder opened flag', () => {
-            // given
-            const ctrl = createController();
-            const node = { folder: { opened: false } };
+			// when
+			ctrl.chooseFolder(nextFolder);
 
-            // when
-            ctrl.toggle(node);
+			// then
+			expect(previousFolder.selected).toBe(false);
+		});
 
-            // then
-            expect(node.folder.opened).toBe(true);
-        });
-    });
+		it('should update selectedFolder', () => {
+			// given
+			const ctrl = createController(null, tree);
+			ctrl.selectedFolder = { selected: true };
+			const nextFolder = { selected: false };
 
-    describe('choose folder', () => {
-        it('should unselect previous folder', () => {
-            // given
-            const ctrl = createController();
-            const previousFolder = { selected: true };
-            ctrl.selectedFolder = previousFolder;
-            const nextFolder = { selected: false };
+			// when
+			ctrl.chooseFolder(nextFolder);
 
-            // when
-            ctrl.chooseFolder(nextFolder);
+			// then
+			expect(ctrl.selectedFolder).toBe(nextFolder);
+		});
 
-            // then
-            expect(previousFolder.selected).toBe(false);
-        });
+		it('should update new selected folder flag', () => {
+			// given
+			const ctrl = createController(null, tree);
+			ctrl.selectedFolder = { selected: true };
+			const nextFolder = { selected: false };
 
-        it('should update selectedFolder', () => {
-            // given
-            const ctrl = createController();
-            ctrl.selectedFolder = { selected: true };
-            const nextFolder = { selected: false };
+			// when
+			ctrl.chooseFolder(nextFolder);
 
-            // when
-            ctrl.chooseFolder(nextFolder);
+			// then
+			expect(nextFolder.selected).toBe(true);
+		});
+	});
 
-            // then
-            expect(ctrl.selectedFolder).toBe(nextFolder);
-        });
+	describe('search', () => {
+		let ctrl;
 
-        it('should update new selected folder flag', () => {
-            // given
-            const ctrl = createController();
-            ctrl.selectedFolder = { selected: true };
-            const nextFolder = { selected: false };
+		beforeEach(() => {
+			ctrl = createController(null, tree);
+			ctrl.$onChanges();
+			scope.$digest();
+		});
 
-            // when
-            ctrl.chooseFolder(nextFolder);
+		it('should init search items with search result', () => {
+			// given
+			ctrl.searchFolderQuery = 'folder1';
 
-            // then
-            expect(nextFolder.selected).toBe(true);
-        });
-    });
+			// when
+			ctrl.performSearch();
 
-    describe('search', () => {
-        let ctrl;
+			// then
+			expect(ctrl.searchItems).toEqual([tree.children[0], tree.children[0].children[0]]);
+		});
 
-        beforeEach(() => {
-            ctrl = createController();
-            ctrl.$onInit();
-            scope.$digest();
-        });
+		it('should init perform search with empty array when search result is empty', () => {
+			// given
+			ctrl.searchFolderQuery = 'toto';
 
-        it('should init search items with search result', () => {
-            // given
-            ctrl.searchFolderQuery = 'folder1';
+			// when
+			ctrl.performSearch();
 
-            // when
-            ctrl.performSearch();
+			// then
+			expect(ctrl.searchItems).toEqual([]);
+		});
 
-            // then
-            expect(ctrl.searchItems).toEqual([tree.children[0], tree.children[0].children[0]]);
-        });
+		it('should save previously selected folder', () => {
+			// given
+			ctrl.searchFolderQuery = 'folder1';
+			expect(ctrl.selectedFolder).toBe(tree.folder);
+			expect(ctrl.lastTreeSelection).toBeUndefined();
 
-        it('should init perform search with empty array when search result is empty', () => {
-            // given
-            ctrl.searchFolderQuery = 'toto';
+			// when
+			ctrl.performSearch();
 
-            // when
-            ctrl.performSearch();
+			// then
+			expect(ctrl.lastTreeSelection).toBe(tree.folder);
+		});
 
-            // then
-            expect(ctrl.searchItems).toEqual([]);
-        });
+		it('should select first folder in result', () => {
+			// given
+			ctrl.searchFolderQuery = 'folder1';
+			expect(ctrl.selectedFolder).toBe(tree.folder);
 
-        it('should save previously selected folder', () => {
-            // given
-            ctrl.searchFolderQuery = 'folder1';
-            expect(ctrl.selectedFolder).toBe(tree.folder);
-            expect(ctrl.lastTreeSelection).toBeUndefined();
+			// when
+			ctrl.performSearch();
 
-            // when
-            ctrl.performSearch();
+			// then
+			expect(ctrl.selectedFolder).toBe(tree.children[0].folder);
+		});
 
-            // then
-            expect(ctrl.lastTreeSelection).toBe(tree.folder);
-        });
+		it('should reset search items when search query is empty', () => {
+			// given
+			ctrl.searchFolderQuery = '';
+			ctrl.searchItems = [];
+			ctrl.lastTreeSelection = { id: '5', selected: true };
 
-        it('should select first folder in result', () => {
-            // given
-            ctrl.searchFolderQuery = 'folder1';
-            expect(ctrl.selectedFolder).toBe(tree.folder);
+			// when
+			ctrl.performSearch();
 
-            // when
-            ctrl.performSearch();
+			// then
+			expect(ctrl.searchItems).toBe(null);
+		});
 
-            // then
-            expect(ctrl.selectedFolder).toBe(tree.children[0].folder);
-        });
+		it('should set back saved folder as selected when search query is empty', () => {
+			// given
+			ctrl.searchFolderQuery = '';
+			const savedFolder = { id: '5', selected: true };
+			ctrl.lastTreeSelection = savedFolder;
 
-        it('should reset search items when search query is empty', () => {
-            // given
-            ctrl.searchFolderQuery = '';
-            ctrl.searchItems = [];
-            ctrl.lastTreeSelection = { id: '5', selected: true };
+			// when
+			ctrl.performSearch();
 
-            // when
-            ctrl.performSearch();
-
-            // then
-            expect(ctrl.searchItems).toBe(null);
-        });
-
-        it('should set back saved folder as selected when search query is empty', () => {
-            // given
-            ctrl.searchFolderQuery = '';
-            const savedFolder = { id: '5', selected: true };
-            ctrl.lastTreeSelection = savedFolder;
-
-            // when
-            ctrl.performSearch();
-
-            // then
-            expect(ctrl.selectedFolder).toBe(savedFolder);
-            expect(ctrl.lastTreeSelection).toBe(null);
-        });
-    });
+			// then
+			expect(ctrl.selectedFolder).toBe(savedFolder);
+			expect(ctrl.lastTreeSelection).toBe(null);
+		});
+	});
 });

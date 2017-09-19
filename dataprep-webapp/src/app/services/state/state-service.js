@@ -53,6 +53,8 @@ export function StateService(RouteStateService, routeState,
 
 		// home
 		setBuilds: HomeStateService.setBuilds,
+		setCopyMoveTree: HomeStateService.setCopyMoveTree,
+		setCopyMoveTreeLoading: HomeStateService.setCopyMoveTreeLoading,
 		setHomeSidePanelDock: HomeStateService.setSidePanelDock,
 		toggleHomeSidepanel: HomeStateService.toggleSidepanel,
 		toggleCopyMovePreparation: HomeStateService.toggleCopyMovePreparation,
@@ -75,6 +77,10 @@ export function StateService(RouteStateService, routeState,
 		setCurrentSampleType: PlaygroundStateService.setSampleType,
 		setPlaygroundReadOnlyMode: PlaygroundStateService.setReadOnlyMode,
 		setStepInEditionMode: PlaygroundStateService.setStepInEditionMode,
+		setIsNameValidationVisible: PlaygroundStateService.setIsNameValidationVisible,
+		setIsPreprationPickerVisible: PlaygroundStateService.setIsPreprationPickerVisible,
+		setSavingPreparationFolders: PlaygroundStateService.setSavingPreparationFolders,
+		setIsSavingPreparationFoldersLoading: PlaygroundStateService.setIsSavingPreparationFoldersLoading,
 
 		// playground - dataset parameters
 		toggleDatasetParameters: PlaygroundStateService.toggleDatasetParameters,

@@ -92,8 +92,8 @@
 <talend-modal
         class="preparation-modal preparation-save-discard-modal"
         fullscreen="false"
-        ng-if="playgroundCtrl.showNameValidation"
-        state="playgroundCtrl.showNameValidation"
+        ng-if="playgroundCtrl.state.playground.isNameValidationVisible"
+        state="playgroundCtrl.state.playground.isNameValidationVisible"
         disable-enter="true"
         close-button="true">
     <div class="modal-title" translate-once="SAVE_CHANGE"></div>
@@ -107,7 +107,11 @@
           ng-submit="playgroundCtrl.savePreparationForm.$valid && playgroundCtrl.confirmSaveOnClose()">
 
         <folder-selection
-                ng-model="playgroundCtrl.destinationFolder"></folder-selection>
+            ng-model="playgroundCtrl.destinationFolder"
+            is-loading="playgroundCtrl.state.playground.isSavingPreparationFoldersLoading"
+            tree="playgroundCtrl.state.playground.savingPreparationFolders"
+        >
+        </folder-selection>
 
         <div class="modal-form-row">
             <label class="param-name" translate-once="PREPARATION_NAME"></label>
@@ -127,10 +131,11 @@
                     translate-once="NO_THANKS">
             </button>
 
-            <talend-button-loader button-class="btn modal-primary-button btn-primary"
-                                  disable-condition="playgroundCtrl.savePreparationForm.$invalid || playgroundCtrl.state.playground.isSavingPreparation"
-                                  loading="playgroundCtrl.state.playground.isSavingPreparation"
-                                  loading-class="icon">
+            <talend-button-loader button-class="btn modal-primary-button btn-primary {{playgroundCtrl.isSubmitDisabled() ? 'disabled' : ''}}"
+                                  disable-condition="playgroundCtrl.isSubmitDisabled()"
+                                  loading="playgroundCtrl.isSubmitLoading()"
+                                  loading-class="icon"
+                                  title="{{(playgroundCtrl.isSubmitDisabled() ? 'WAITING_FOLDERS_TITLE' : 'SAVE_PREPARATION_TITLE') | translate}}">
                 <span translate-once="SAVE_IT"></span>
             </talend-button-loader>
         </div>
