@@ -12,6 +12,9 @@
 
 package org.talend.dataprep.preparation.store;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -20,9 +23,6 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 import org.talend.ServiceBaseTest;
 import org.talend.dataprep.api.preparation.Preparation;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
 
 public abstract class PreparationRepositoryTest extends ServiceBaseTest {
 
@@ -101,7 +101,7 @@ public abstract class PreparationRepositoryTest extends ServiceBaseTest {
         getRepository().add(prep2);
 
         // when
-        final boolean result = getRepository().exist(Preparation.class, "dataSetId = " + datasetId);
+        final boolean result = getRepository().exist(Preparation.class, "dataSetId = '" + datasetId + "'");
 
         // then
         assertThat(result, is(false));
