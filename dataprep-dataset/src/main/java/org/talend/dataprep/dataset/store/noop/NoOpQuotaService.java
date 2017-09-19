@@ -13,7 +13,12 @@
 
 package org.talend.dataprep.dataset.store.noop;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -28,10 +33,19 @@ import org.talend.dataprep.dataset.store.QuotaService;
 @Conditional(NoOpQuotaService.class)
 public class NoOpQuotaService implements QuotaService, Condition {
 
+    /** This class' logger. */
+    private static final Logger LOGGER = getLogger(NoOpQuotaService.class);
+
+    @PostConstruct
+    public void init() {
+        LOGGER.info("No quota applied");
+    }
+
     @Override
     public void checkIfAddingSizeExceedsAvailableStorage(long size) {
         // Do nothing
     }
+
 
     /**
      * @return true if 'dataset.quota.check.enabled' is not set to 'true'

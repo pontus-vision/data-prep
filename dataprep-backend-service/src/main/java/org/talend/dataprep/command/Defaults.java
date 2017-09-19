@@ -13,6 +13,7 @@
 package org.talend.dataprep.command;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.talend.daikon.exception.ExceptionContext.build;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class Defaults {
             if (e instanceof RuntimeException) {
                 return (RuntimeException) e;
             } else {
-                return new TDPException(CommonErrorCodes.UNEXPECTED_SERVICE_EXCEPTION, e);
+                return new TDPException(CommonErrorCodes.UNEXPECTED_SERVICE_EXCEPTION, e, build().put("message", e.getMessage()));
             }
         };
     }

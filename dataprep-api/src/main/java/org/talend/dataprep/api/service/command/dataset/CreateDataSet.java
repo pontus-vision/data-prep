@@ -13,7 +13,8 @@
 
 package org.talend.dataprep.api.service.command.dataset;
 
-import static org.talend.dataprep.command.Defaults.*;
+import static org.talend.dataprep.command.Defaults.asString;
+import static org.talend.dataprep.command.Defaults.emptyString;
 
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -27,7 +28,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
-import org.talend.dataprep.exception.error.APIErrorCodes;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 
 /**
@@ -47,12 +47,6 @@ public class CreateDataSet extends GenericCommand<String> {
     private CreateDataSet(String name, String tag, String contentType, long size, InputStream dataSetContent) {
         super(GenericCommand.DATASET_GROUP);
         execute(() -> onExecute(name, tag, contentType, size, dataSetContent));
-        onError(e -> {
-            if (e instanceof TDPException) {
-                return passthrough().apply(e);
-            }
-            return new TDPException(APIErrorCodes.UNABLE_TO_CREATE_DATASET, e);
-        });
         on(HttpStatus.NO_CONTENT, HttpStatus.ACCEPTED).then(emptyString());
         on(HttpStatus.OK).then(asString());
     }
@@ -64,7 +58,7 @@ public class CreateDataSet extends GenericCommand<String> {
             uriBuilder.addParameter("tag", tag);
             uriBuilder.addParameter("size", String.valueOf(size));
             final HttpPost post = new HttpPost(uriBuilder.build());
-            post.addHeader("Content-Type", contentType); //$NON-NLS-1$
+            post.addHeader("Content-Type", contentType);
             post.setEntity(new InputStreamEntity(dataSetContent));
             return post;
         } catch (URISyntaxException e) {

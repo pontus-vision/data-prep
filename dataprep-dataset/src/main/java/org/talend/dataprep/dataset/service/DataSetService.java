@@ -18,16 +18,33 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.StreamSupport.stream;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import static org.talend.daikon.exception.ExceptionContext.build;
 import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_CONTENT;
-import static org.talend.dataprep.exception.error.DataSetErrorCodes.*;
+import static org.talend.dataprep.exception.error.DataSetErrorCodes.MAX_STORAGE_MAY_BE_EXCEEDED;
+import static org.talend.dataprep.exception.error.DataSetErrorCodes.UNABLE_CREATE_DATASET;
+import static org.talend.dataprep.exception.error.DataSetErrorCodes.UNABLE_TO_CREATE_OR_UPDATE_DATASET;
+import static org.talend.dataprep.exception.error.DataSetErrorCodes.UNSUPPORTED_CONTENT;
 import static org.talend.dataprep.quality.AnalyzerService.Analysis.SEMANTIC;
 import static org.talend.dataprep.util.SortAndOrderHelper.getDataSetMetadataComparator;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -36,6 +53,7 @@ import java.util.stream.Stream;
 import javax.annotation.Resource;
 
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,11 +62,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.talend.daikon.exception.ExceptionContext;
-import org.talend.dataprep.api.dataset.*;
+import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.DataSetGovernance.Certification;
+import org.talend.dataprep.api.dataset.DataSetLocation;
+import org.talend.dataprep.api.dataset.DataSetMetadata;
+import org.talend.dataprep.api.dataset.Import;
 import org.talend.dataprep.api.dataset.Import.ImportBuilder;
+import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.location.DataSetLocationService;
 import org.talend.dataprep.api.dataset.location.LocalStoreLocation;
 import org.talend.dataprep.api.dataset.location.locator.DataSetLocatorService;
@@ -345,8 +375,12 @@ public class DataSetService extends BaseDataSetService {
             LOG.debug(marker, "Created!");
             return id;
         } catch (StrictlyBoundedInputStream.InputStreamTooLargeException e) {
-            hypotheticalException = new TDPException(LOCAL_DATA_SET_INPUT_STREAM_TOO_LARGE, e,
-                    build().put("limit", e.getMaxSize()));
+            // because the client might still be writing the request content, closing the connexion right now
+            // might end up in a 'connection reset' or a 'broken pipe' error in API.
+            //
+            // So, let's read fully the request content before closing the connection.
+            dataSetContentToNull(content);
+            hypotheticalException = new TDPException(MAX_STORAGE_MAY_BE_EXCEEDED, e, build().put("limit", e.getMaxSize()));
         } catch (TDPException e) {
             hypotheticalException = e;
         } catch (Exception e) {
@@ -508,6 +542,12 @@ public class DataSetService extends BaseDataSetService {
             // check that the name is not already taken
             checkIfNameIsAvailable(newName);
 
+            // check that there's enough space
+            final long maxDataSetSizeAllowed = getMaxDataSetSizeAllowed();
+            if (maxDataSetSizeAllowed < original.getDataSetSize()) {
+                throw new TDPException(MAX_STORAGE_MAY_BE_EXCEEDED, build().put("limit", maxDataSetSizeAllowed));
+            }
+
             // Create copy (based on original data set metadata)
             final String newId = UUID.randomUUID().toString();
             final Marker marker = Markers.dataset(newId);
@@ -569,7 +609,7 @@ public class DataSetService extends BaseDataSetService {
         // just like the creation, let's make sure invalid size forbids dataset creation
         if (size < 0) {
             LOG.warn("invalid size provided {}", size);
-            throw new TDPException(LOCAL_DATA_SET_INPUT_STREAM_TOO_LARGE, build().put("size", size));
+            throw new TDPException(UNSUPPORTED_CONTENT);
         }
 
         // check the size if it's available (quick win)
@@ -609,7 +649,7 @@ public class DataSetService extends BaseDataSetService {
             Runnable r = () -> {
                 try (final InputStream input = cacheManager.get(cacheKey)) {
                     IOUtils.copy(input, fromCache);
-                    fromCache.close(); // it's important to close this stream
+                    fromCache.close(); // it's important to close this stream, otherwise the piped stream will never close
                 } catch (IOException e) {
                     throw new TDPException(UNABLE_TO_CREATE_OR_UPDATE_DATASET, e);
                 }
@@ -625,8 +665,14 @@ public class DataSetService extends BaseDataSetService {
             publisher.publishEvent(new DataSetRawContentUpdateEvent(dataSetMetadata));
 
         } catch (StrictlyBoundedInputStream.InputStreamTooLargeException e) {
+            // because the client might still be writing the request content, closing the connexion right now
+            // might end up in a 'connection reset' or a 'broken pipe' error in API.
+            //
+            // So, let's read fully the request content before closing the connection.
+            dataSetContentToNull(dataSetContent);
+
             LOG.warn("Dataset update {} cannot be done, new content is too big", dataSetId);
-            throw new TDPException(LOCAL_DATA_SET_INPUT_STREAM_TOO_LARGE, e, build().put("limit", e.getMaxSize()));
+            throw new TDPException(MAX_STORAGE_MAY_BE_EXCEEDED, e, build().put("limit", e.getMaxSize()));
         } catch (IOException e) {
             LOG.error("Error updating the dataset", e);
             throw new TDPException(UNABLE_TO_CREATE_OR_UPDATE_DATASET, e);
@@ -639,6 +685,19 @@ public class DataSetService extends BaseDataSetService {
         }
         // Content was changed, so queue events (format analysis, content indexing for search...)
         analyzeDataSet(dataSetId, true, emptyList());
+    }
+
+    /**
+     * Fully read the given input stream to /dev/null.
+     *
+     * @param content some content
+     */
+    private void dataSetContentToNull(InputStream content) {
+        try {
+            IOUtils.copy(content, new NullOutputStream());
+        } catch (IOException ioe) {
+            // no op
+        }
     }
 
     /**

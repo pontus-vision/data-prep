@@ -637,6 +637,25 @@ public class DataSetServiceTest extends DataSetBaseTest {
     }
 
     @Test
+    public void copyDataSetShouldCheckIfThereIsEnoughSpaceAvailable() throws Exception {
+
+        // given
+        final String datasetId = createCSVDataSet(this.getClass().getResourceAsStream("../avengers.csv"), "dataset2");
+
+        Mockito.reset(quotaService);
+        Mockito.when(quotaService.getAvailableSpace()).thenReturn(10L);
+
+        // when
+        final Response response = given() //
+                .queryParam("copyName", "copy") //
+                .post("/datasets/{id}/copy", datasetId);
+
+        // then
+        assertEquals(413, response.getStatusCode());
+        assertFalse(cacheManager.has(new UpdateDataSetCacheKey(datasetId)));
+    }
+
+    @Test
     public void copyNothingShouldReturnNothing() throws Exception {
         // when
         final Response response = given() //
@@ -735,7 +754,7 @@ public class DataSetServiceTest extends DataSetBaseTest {
                 .put("/datasets/{id}/raw", 123456);
 
         // then
-        assertEquals(413, response.getStatusCode());
+        assertEquals(400, response.getStatusCode());
     }
 
     @Test
@@ -1680,7 +1699,7 @@ public class DataSetServiceTest extends DataSetBaseTest {
                 .expect().statusCode(413).log().ifValidationFails() //
                 .post("/datasets") //
             .then()
-                .body("code", equalTo("TDP_DSS_LOCAL_DATA_SET_INPUT_STREAM_TOO_LARGE"));
+                    .body("code", equalTo("TDP_DSS_MAX_STORAGE_MAY_BE_EXCEEDED"));
             // Then
             assertThat("(", not(is("[]"))); // There should be some exports available
         }
