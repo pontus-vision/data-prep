@@ -815,8 +815,8 @@
         "type": "string",
         "implicit": false,
         "canBeBlank": true,
-        "description": "The current cell value",
-        "label": "Current",
+        "description": "The current value",
+        "label": "Search for",
         "default": ""
       },
       {
@@ -825,13 +825,13 @@
         "implicit": false,
         "canBeBlank": true,
         "description": "The new value to set",
-        "label": "Replace",
+        "label": "Replace with",
         "default": ""
       }
     ],
     "dynamic": false,
-    "description": "Replace cells that have a specific value",
-    "label": "Replace cells that match..."
+    "description": "Replace cells or parts of cells which contain a specific value",
+    "label": "Search and replace"
   },
   {
     "category": "strings advanced",
