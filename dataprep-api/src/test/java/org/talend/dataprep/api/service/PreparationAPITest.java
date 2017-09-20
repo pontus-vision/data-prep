@@ -12,14 +12,21 @@
 
 package org.talend.dataprep.api.service;
 
-import static com.jayway.restassured.RestAssured.*;
+import static com.jayway.restassured.RestAssured.expect;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.when;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.talend.dataprep.api.export.ExportParameters.SourceType.FILTER;
@@ -36,7 +43,13 @@ import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -44,6 +57,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.dataprep.StandalonePreparation;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.folder.Folder;
 import org.talend.dataprep.api.folder.FolderEntry;
@@ -693,15 +707,21 @@ public class PreparationAPITest extends ApiServiceTestBase {
     @Test
     public void testPreparationInitialMetadata() throws Exception {
         // given
-        final String preparationId = testClient.createPreparationFromFile("dataset/dataset.csv", "testPreparationContentGet", home.getId());
-
-        final InputStream expected = PreparationAPITest.class.getResourceAsStream("dataset/expected_dataset_with_columns.json");
+        final String preparationName = "testPreparationContentGet";
+        final String preparationId = testClient.createPreparationFromFile("dataset/dataset.csv", preparationName, home.getId());
 
         // when
         final String content = when().get("/api/preparations/{id}/metadata", preparationId).asString();
 
         // then
-        assertThat(content, sameJSONAsFile(expected));
+        final DataSetMetadata actual = mapper.readerFor(DataSetMetadata.class).readValue(content);
+        assertNotNull(actual);
+        final List<ColumnMetadata> columns = actual.getRowMetadata().getColumns();
+        assertEquals(6, columns.size());
+        final List<String> expectedColumns = Arrays.asList("id", "firstname", "lastname", "age", "date-of-birth", "alive");
+        for (ColumnMetadata column : columns) {
+            assertTrue(expectedColumns.contains(column.getName()));
+        }
     }
 
     @Test
