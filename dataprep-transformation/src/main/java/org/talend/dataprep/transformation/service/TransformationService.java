@@ -146,7 +146,7 @@ public class TransformationService extends BaseTransformationService {
     private ActionRegistry actionRegistry;
 
     /**
-     * he aggregation service.
+     * the aggregation service.
      */
     @Autowired
     private AggregationService aggregationService;
@@ -197,6 +197,53 @@ public class TransformationService extends BaseTransformationService {
             @ApiParam(value = "Preparation id to apply.") @RequestBody @Valid final ExportParameters parameters) {
         return executeSampleExportStrategy(parameters);
     }
+
+    @RequestMapping(value = "/apply/preparation/{preparationId}/{stepId}/metadata", method = GET)
+    @ApiOperation(value = "Run the transformation given the provided export parameters", notes = "This operation transforms the dataset or preparation using parameters in export parameters.")
+    @VolumeMetered
+    public DataSetMetadata executeMetadata(@PathVariable("preparationId") String preparationId,
+                                           @PathVariable("stepId") String stepId) {
+
+        LOG.debug("getting preparation metadata for #{}, step {}", preparationId, stepId);
+
+        final Preparation preparation = getPreparation(preparationId);
+        if (preparation.getSteps().size() > 1) {
+            String headId = "head".equalsIgnoreCase(stepId) ? preparation.getHeadId() : stepId;
+            final TransformationMetadataCacheKey cacheKey = cacheKeyGenerator.generateMetadataKey(preparationId, headId, HEAD);
+
+            // No metadata in cache, recompute it
+            if (!contentCache.has(cacheKey)) {
+                try {
+                    LOG.debug("Metadata not available for preparation '{}' at step '{}'", preparationId, headId);
+                    final ExportParameters parameters = new ExportParameters();
+                    parameters.setPreparationId(preparationId);
+                    parameters.setExportType("JSON");
+                    parameters.setStepId(headId);
+                    parameters.setFrom(HEAD);
+                    execute(parameters);
+                } catch (Exception e) {
+                    throw new TDPException(TransformationErrorCodes.METADATA_NOT_FOUND, e);
+                }
+            }
+
+            // Return transformation cached content (after sanity check)
+            if (!contentCache.has(cacheKey)) {
+                // Not expected: We've just ran a transformation, yet no metadata cached?
+                throw new TDPException(TransformationErrorCodes.METADATA_NOT_FOUND);
+            }
+            try (InputStream stream = contentCache.get(cacheKey)) {
+                return mapper.readerFor(DataSetMetadata.class).readValue(stream);
+            } catch (IOException e) {
+                throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
+            }
+        } else {
+            LOG.debug("No step in preparation '{}', falls back to get dataset metadata (id: {})", preparationId, preparation.getDataSetId());
+            DataSetGetMetadata getMetadata = context.getBean(DataSetGetMetadata.class, preparation.getDataSetId());
+            return getMetadata.execute();
+        }
+
+    }
+
 
     /**
      * Apply the preparation to the dataset out of the given IDs.
@@ -514,15 +561,15 @@ public class TransformationService extends BaseTransformationService {
 
     private void applyActionsOnMetadata(RowMetadata metadata, String actionsAsJson) {
         List<RunnableAction> actions = actionParser.parse(actionsAsJson);
-        TransformationContext context = new TransformationContext();
+        TransformationContext transformationContext = new TransformationContext();
         try {
             for (RunnableAction action : actions) {
-                final ActionContext actionContext = context.create(action.getRowAction(), metadata);
+                final ActionContext actionContext = transformationContext.create(action.getRowAction(), metadata);
                 action.getRowAction().compile(actionContext);
             }
         } finally {
             // cleanup the transformation context is REALLY important as it can close open http connections
-            context.cleanup();
+            transformationContext.cleanup();
         }
     }
 
