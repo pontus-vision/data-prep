@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -40,7 +40,12 @@ public class HeaderbarHelpConfigurer extends AppSettingsConfigurer<ActionSetting
     @Override
     public ActionSettings configure(final ActionSettings actionSettings) {
         return ActionSplitDropdownSettings.from((ActionSplitDropdownSettings) actionSettings) //
-                .items(Arrays.asList(externalHelpActionsProvider.getExternalHelpAction().getId(), ONBOARDING_PREPARATION.getId(), MODAL_ABOUT.getId(), MODAL_FEEDBACK.getId())) //
+                .items(Arrays.asList( //
+                        externalHelpActionsProvider.getExternalHelpAction().getId(), //
+                        externalHelpActionsProvider.getExternalCommunityAction().getId(), //
+                        ONBOARDING_PREPARATION.getId(), //
+                        MODAL_ABOUT.getId(), //
+                        MODAL_FEEDBACK.getId())) //
                 .build();
     }
 }
