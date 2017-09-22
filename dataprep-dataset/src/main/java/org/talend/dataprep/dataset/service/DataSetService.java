@@ -331,11 +331,6 @@ public class DataSetService extends BaseDataSetService {
         // check that the name is not already taken
         checkIfNameIsAvailable(name);
 
-        // if the size is provided, let's check if the quota will not be exceeded
-        if (size > 0) {
-            quotaService.checkIfAddingSizeExceedsAvailableStorage(size);
-        }
-
         // get the location out of the content type and the request body
         final DataSetLocation location;
         try {
@@ -346,6 +341,12 @@ public class DataSetService extends BaseDataSetService {
         DataSetMetadata dataSetMetadata = null;
         final TDPException hypotheticalException;
         try {
+
+            // if the size is provided, let's check if the quota will not be exceeded
+            if (size > 0) {
+                quotaService.checkIfAddingSizeExceedsAvailableStorage(size);
+            }
+
             dataSetMetadata = metadataBuilder.metadata() //
                     .id(id) //
                     .name(name) //
@@ -375,16 +376,17 @@ public class DataSetService extends BaseDataSetService {
             LOG.debug(marker, "Created!");
             return id;
         } catch (StrictlyBoundedInputStream.InputStreamTooLargeException e) {
-            // because the client might still be writing the request content, closing the connexion right now
-            // might end up in a 'connection reset' or a 'broken pipe' error in API.
-            //
-            // So, let's read fully the request content before closing the connection.
-            dataSetContentToNull(content);
             hypotheticalException = new TDPException(MAX_STORAGE_MAY_BE_EXCEEDED, e, build().put("limit", e.getMaxSize()));
         } catch (TDPException e) {
             hypotheticalException = e;
         } catch (Exception e) {
             hypotheticalException = new TDPException(UNABLE_CREATE_DATASET, e);
+        } finally {
+            // because the client might still be writing the request content, closing the connexion right now
+            // might end up in a 'connection reset' or a 'broken pipe' error in API.
+            //
+            // So, let's read fully the request content before closing the connection.
+            dataSetContentToNull(content);
         }
         dataSetMetadataRepository.remove(id);
         if (dataSetMetadata != null) {
@@ -612,16 +614,17 @@ public class DataSetService extends BaseDataSetService {
             throw new TDPException(UNSUPPORTED_CONTENT);
         }
 
-        // check the size if it's available (quick win)
-        if (size > 0 && currentDataSetMetadata != null) {
-            quotaService.checkIfAddingSizeExceedsAvailableStorage(Math.abs(size - currentDataSetMetadata.getDataSetSize()));
-        }
-
         final UpdateDataSetCacheKey cacheKey = new UpdateDataSetCacheKey(dataSetId);
 
         final DistributedLock lock = dataSetMetadataRepository.createDatasetMetadataLock(dataSetId);
         try {
             lock.lock();
+
+            // check the size if it's available (quick win)
+            if (size > 0 && currentDataSetMetadata != null) {
+                quotaService.checkIfAddingSizeExceedsAvailableStorage(Math.abs(size - currentDataSetMetadata.getDataSetSize()));
+            }
+
             final DataSetMetadataBuilder datasetBuilder = metadataBuilder.metadata().id(dataSetId);
             final DataSetMetadata metadataForUpdate = dataSetMetadataRepository.get(dataSetId);
             if (metadataForUpdate != null) {
@@ -665,18 +668,13 @@ public class DataSetService extends BaseDataSetService {
             publisher.publishEvent(new DataSetRawContentUpdateEvent(dataSetMetadata));
 
         } catch (StrictlyBoundedInputStream.InputStreamTooLargeException e) {
-            // because the client might still be writing the request content, closing the connexion right now
-            // might end up in a 'connection reset' or a 'broken pipe' error in API.
-            //
-            // So, let's read fully the request content before closing the connection.
-            dataSetContentToNull(dataSetContent);
-
             LOG.warn("Dataset update {} cannot be done, new content is too big", dataSetId);
             throw new TDPException(MAX_STORAGE_MAY_BE_EXCEEDED, e, build().put("limit", e.getMaxSize()));
         } catch (IOException e) {
             LOG.error("Error updating the dataset", e);
             throw new TDPException(UNABLE_TO_CREATE_OR_UPDATE_DATASET, e);
         } finally {
+            dataSetContentToNull(dataSetContent);
             // whatever the outcome the cache needs to be cleaned
             if (cacheManager.has(cacheKey)) {
                 cacheManager.evict(cacheKey);
