@@ -65,6 +65,9 @@ public class Preparation extends Identifiable implements Serializable {
     /** List of the steps id for this preparation. */
     private List<Step> steps = Collections.singletonList(Step.ROOT_STEP);
 
+    /** The user locking the preparation. */
+    private BasicUserLock lock;
+
     /**
      * Default empty constructor.
      */
@@ -118,7 +121,6 @@ public class Preparation extends Identifiable implements Serializable {
 
     /**
      * @return List of the steps id for this preparation.
-     * @see org.talend.dataprep.preparation.store.PreparationRepository#get(String, Class)
      */
     public List<Step> getSteps() {
         return steps;
@@ -207,6 +209,14 @@ public class Preparation extends Identifiable implements Serializable {
         this.appVersion = appVersion;
     }
 
+    public BasicUserLock getLock() {
+        return lock;
+    }
+
+    public void setLock(BasicUserLock lock) {
+        this.lock = lock;
+    }
+
     public void updateLastModificationDate() {
         this.lastModificationDate = System.currentTimeMillis();
     }
@@ -220,6 +230,7 @@ public class Preparation extends Identifiable implements Serializable {
         merge.creationDate = min(other.creationDate, creationDate);
         merge.lastModificationDate = max(other.lastModificationDate, lastModificationDate);
         merge.headId = other.headId != null ? other.headId : headId;
+        merge.lock = other.lock != null ? other.lock : lock;
         return merge;
     }
 

@@ -13,13 +13,15 @@
 
 package org.talend.dataprep.lock.store;
 
-import java.util.Collection;
-import java.util.Collections;
+import static org.talend.daikon.exception.ExceptionContext.build;
+import static org.talend.dataprep.exception.error.PreparationErrorCodes.PREPARATION_DOES_NOT_EXIST;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.api.preparation.Identifiable;
-import org.talend.dataprep.lock.store.LockedResource.LockUserInfo;
+import org.talend.dataprep.api.preparation.Preparation;
+import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.preparation.store.PreparationRepository;
 
 /**
  * No op implementation of the LockedResourceRepository.
@@ -28,76 +30,19 @@ import org.talend.dataprep.lock.store.LockedResource.LockUserInfo;
 @ConditionalOnProperty(name = "lock.preparation.store", havingValue = "none", matchIfMissing = true)
 public class NoOpLockedResourceRepository implements LockedResourceRepository {
 
-    /**
-     * @see LockedResourceRepository#tryLock(Identifiable, LockUserInfo)
-     */
+    @Autowired
+    private PreparationRepository preparationRepository;
+
     @Override
-    public LockedResource tryLock(Identifiable resource, LockUserInfo userInfo) {
-        checkArguments(resource, userInfo);
-        return new LockedResource(resource.getId(), userInfo, 0);
+    public Preparation tryLock(String preparationId, String userId, String displayName) {
+        Preparation preparation = preparationRepository.get(preparationId, Preparation.class);
+        if (preparation == null) {
+            throw new TDPException(PREPARATION_DOES_NOT_EXIST, build().put("id", preparationId));
+        }
+        return preparation;
     }
 
-    /**
-     * @see LockedResourceRepository#tryUnlock(Identifiable, LockUserInfo)
-     */
     @Override
-    public LockedResource tryUnlock(Identifiable resource, LockUserInfo userInfo) {
-        return null;
-    }
+    public void unlock(String preparationId, String userId) {}
 
-    /**
-     * @see LockedResourceRepository#get(Identifiable)
-     */
-    @Override
-    public LockedResource get(Identifiable resource) {
-        return null;
-    }
-
-    /**
-     * @see LockedResourceRepository#listAll()
-     */
-    @Override
-    public Collection<LockedResource> listAll() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * @see LockedResourceRepository#listByUser(String)
-     */
-    @Override
-    public Collection<LockedResource> listByUser(String userId) {
-        return Collections.emptyList();
-    }
-
-    /**
-     * @see LockedResourceRepository#clear()
-     */
-    @Override
-    public void clear() {
-        // Does nothing
-    }
-
-    /**
-     * @see LockedResourceRepository#remove(Identifiable)
-     */
-    @Override
-    public void remove(Identifiable resource) {
-        // Does nothing
-    }
-
-    /**
-     * @see LockedResourceRepository#lockOwned(LockedResource, String)
-     */
-    @Override
-    public boolean lockOwned(LockedResource lockedResource, String userId) {
-        return true;
-    }
-
-    /**
-     * @see LockedResourceRepository#lockReleased(LockedResource)
-     */
-    @Override
-    public boolean lockReleased(LockedResource lockedResource) {
-        return true;
-    }
 }
