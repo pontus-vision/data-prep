@@ -15,8 +15,13 @@ package org.talend.dataprep.info;
 /**
  * A provider of {@link ManifestInfo} that may read from any source (a file, for example).
  */
-@FunctionalInterface
 public interface ManifestInfoProvider {
+
+    /**
+     * @return A non-null name for the source that can be used later on for identifying manifest info source (e.g. for
+     * ordering).
+     */
+    String getName();
 
     /**
      * @return An instance of {@link ManifestInfo} that corresponds to current context.

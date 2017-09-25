@@ -26,11 +26,11 @@ public class Versions {
 
     @Bean
     public ManifestInfoProvider baseProvider() {
-        return new ClassPathManifestInfoProvider("/dataprep-git.properties");
+        return new ClassPathManifestInfoProvider("/dataprep-git.properties", "OS");
     }
 
     @Bean
     public ManifestInfoProvider opsProvider() {
-        return new ClassPathManifestInfoProvider("/dataprep-ops-git.properties");
+        return new ClassPathManifestInfoProvider("/dataprep-ops-git.properties", "OPS");
     }
 }

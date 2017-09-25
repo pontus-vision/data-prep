@@ -12,8 +12,10 @@
 
 package org.talend.dataprep.api.service.info;
 
+import static java.util.Arrays.asList;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,7 +69,14 @@ public class VersionService {
     @Timed
     @PublicAPI
     public Version version() {
+        List<String> preferredOrder = asList("OS", "EE", "OPS");
         String buildId = manifestInfoProviders.stream() //
+                .sorted(Comparator.comparingInt(provider -> {
+                    if (provider.getName() != null) {
+                        return preferredOrder.indexOf(provider.getName().toUpperCase());
+                    }
+                    return 0;
+                })) //
                 .map(ManifestInfoProvider::getManifestInfo) //
                 .map(ManifestInfo::getBuildId) //
                 .collect(Collectors.joining("-"));

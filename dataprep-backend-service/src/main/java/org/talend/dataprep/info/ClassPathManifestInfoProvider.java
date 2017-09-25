@@ -26,8 +26,16 @@ public class ClassPathManifestInfoProvider implements ManifestInfoProvider {
 
     private final String resource;
 
-    public ClassPathManifestInfoProvider(String resource) {
+    private final String name;
+
+    public ClassPathManifestInfoProvider(String resource, String name) {
         this.resource = resource;
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

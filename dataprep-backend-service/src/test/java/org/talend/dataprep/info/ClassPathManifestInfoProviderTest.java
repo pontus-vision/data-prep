@@ -21,7 +21,7 @@ public class ClassPathManifestInfoProviderTest {
     @Test
     public void shouldReadFromFile() throws Exception {
         // given
-        final ClassPathManifestInfoProvider provider = new ClassPathManifestInfoProvider("/git.properties");
+        final ClassPathManifestInfoProvider provider = new ClassPathManifestInfoProvider("/git.properties", "source1");
 
         // when
         final ManifestInfo manifestInfo = provider.getManifestInfo();
@@ -34,7 +34,7 @@ public class ClassPathManifestInfoProviderTest {
     @Test
     public void shouldReadFromMissingFile() throws Exception {
         // given
-        final ClassPathManifestInfoProvider provider = new ClassPathManifestInfoProvider("/intentionally_missing_file.properties");
+        final ClassPathManifestInfoProvider provider = new ClassPathManifestInfoProvider("/intentionally_missing_file.properties", "source2");
 
         // when
         final ManifestInfo manifestInfo = provider.getManifestInfo();
