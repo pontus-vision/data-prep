@@ -13,9 +13,11 @@
 
 package org.talend.dataprep.lock.store;
 
+import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.daikon.exception.ExceptionContext.build;
 import static org.talend.dataprep.exception.error.PreparationErrorCodes.PREPARATION_DOES_NOT_EXIST;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -30,8 +32,14 @@ import org.talend.dataprep.preparation.store.PreparationRepository;
 @ConditionalOnProperty(name = "lock.preparation.store", havingValue = "none", matchIfMissing = true)
 public class NoOpLockedResourceRepository implements LockedResourceRepository {
 
+    private static final Logger LOGGER = getLogger(NoOpLockedResourceRepository.class);
+
     @Autowired
     private PreparationRepository preparationRepository;
+
+    public NoOpLockedResourceRepository() {
+        LOGGER.info("Preparation lock engine: none");
+    }
 
     @Override
     public Preparation tryLock(String preparationId, String userId, String displayName) {

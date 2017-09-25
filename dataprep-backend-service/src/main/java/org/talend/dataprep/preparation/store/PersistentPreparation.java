@@ -171,6 +171,14 @@ public class PersistentPreparation extends PersistentIdentifiable {
         this.lock = lock;
     }
 
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("id", id).append("dataSetId", dataSetId).append("author", author)
