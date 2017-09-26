@@ -1,34 +1,25 @@
-//  ============================================================================
+// ============================================================================
+// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
-//
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.format;
 
 import static org.talend.dataprep.exception.error.TransformationErrorCodes.UNABLE_TO_PERFORM_EXPORT;
 import static org.talend.dataprep.transformation.format.XlsFormat.XLSX;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
+import java.io.*;
 import java.util.Collections;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
@@ -38,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.type.Type;
@@ -45,6 +37,7 @@ import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.TransformationErrorCodes;
 import org.talend.dataprep.transformation.api.transformer.AbstractTransformerWriter;
 import org.talend.dataprep.util.FilesHelper;
+import org.talend.dataprep.util.NumericHelper;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -127,11 +120,11 @@ public class XlsWriter extends AbstractTransformerWriter {
                             case DOUBLE:
                             case FLOAT:
                                 try {
-                                    if (!StringUtils.isEmpty(val)) {
-                                        cell.setCellValue(Double.valueOf(val));
+                                    if (NumericHelper.isBigDecimal(val)) {
+                                        cell.setCellValue(BigDecimalParser.toBigDecimal(val).doubleValue());
                                     }
                                 } catch (NumberFormatException e) {
-                                    LOGGER.debug("Skip NumberFormatException and use string for value '{}' row '{}' column '{}'", //
+                                    LOGGER.trace("Skip NumberFormatException and use string for value '{}' row '{}' column '{}'", //
                                             val, rowIdx - 1, cellIdx - 1);
                                     cell.setCellValue(val);
                                 }
