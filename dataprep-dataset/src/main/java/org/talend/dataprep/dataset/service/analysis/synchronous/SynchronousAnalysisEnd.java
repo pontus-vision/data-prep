@@ -29,7 +29,7 @@ import org.talend.dataprep.lock.DistributedLock;
 @Component
 public class SynchronousAnalysisEnd implements SynchronousDataSetAnalyzer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ContentAnalysis.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SynchronousAnalysisEnd.class);
 
     @Autowired
     DataSetMetadataRepository repository;
