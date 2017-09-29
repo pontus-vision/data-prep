@@ -371,7 +371,8 @@ public class TransformationService extends BaseTransformationService {
                 previewParameters.getPreparationId(), //
                 rootStep.id(), //
                 JSON, //
-                previewParameters.getSourceType() //
+                previewParameters.getSourceType(), //
+                "" // no filters for preview
         );
 
         try (final InputStream metadata = contentCache.get(metadataKey); //
@@ -446,7 +447,8 @@ public class TransformationService extends BaseTransformationService {
                     previewParameters.getPreparationId(), //
                     rootStep.id(), //
                     JSON, //
-                    previewParameters.getSourceType() //
+                    previewParameters.getSourceType(), //
+                    "" // no filter for preview parameters
             );
 
             return contentCache.has(metadataKey) && contentCache.has(contentKey);

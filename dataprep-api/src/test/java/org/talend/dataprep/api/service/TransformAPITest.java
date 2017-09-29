@@ -15,7 +15,11 @@ package org.talend.dataprep.api.service;
 import static com.jayway.restassured.RestAssured.given;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.talend.dataprep.api.export.ExportParameters.SourceType.HEAD;
 import static org.talend.dataprep.test.SameJSONFile.sameJSONAsFile;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
@@ -38,11 +42,11 @@ import org.talend.dataprep.cache.ContentCache;
 import org.talend.dataprep.dataset.event.DataSetMetadataBeforeUpdateEvent;
 import org.talend.dataprep.transformation.cache.CacheKeyGenerator;
 import org.talend.dataprep.transformation.cache.TransformationCacheKey;
+import org.talend.dataquality.semantic.broadcast.TdqCategories;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
-import org.talend.dataquality.semantic.broadcast.TdqCategories;
 
 /**
  * Unit test for Transformation API.
@@ -415,7 +419,9 @@ public class TransformAPITest extends ApiServiceTestBase {
                 preparationId, //
                 preparation.getHeadId(), //
                 "JSON", //
-                HEAD);
+                HEAD, //
+                "" // no filter
+        );
         assertTrue(contentCache.has(transformationCacheKey));
 
         // when

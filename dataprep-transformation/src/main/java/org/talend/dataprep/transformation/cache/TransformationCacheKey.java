@@ -26,6 +26,8 @@ import org.talend.dataprep.cache.ContentCacheKey;
  */
 public class TransformationCacheKey implements ContentCacheKey {
 
+    private static final String PREFIX = "transformation";
+
     /** Format parameters (if any, if none, default to empty string) */
     private final String parameters;
 
@@ -47,6 +49,9 @@ public class TransformationCacheKey implements ContentCacheKey {
     /** The transformation format. */
     private String format;
 
+    /** Transformation filter. */
+    private String filter;
+
     /**
      * Create a cache key for transformation result content
      * @param preparationId The preparation id.
@@ -64,10 +69,12 @@ public class TransformationCacheKey implements ContentCacheKey {
             final String stepId,
             final String parameters,
             final ExportParameters.SourceType sourceType,
-            final String userId) {
+            final String userId, final String filter) {
+
         if (StringUtils.equals("head", stepId)) {
             throw new IllegalArgumentException("'head' is not allowed as step id for cache key");
         }
+
         this.preparationId = preparationId;
         this.datasetId = datasetId;
         this.format = format;
@@ -75,6 +82,7 @@ public class TransformationCacheKey implements ContentCacheKey {
         this.parameters = parameters;
         this.sourceType = sourceType;
         this.userId = userId;
+        this.filter = filter;
     }
 
     /**
@@ -90,6 +98,7 @@ public class TransformationCacheKey implements ContentCacheKey {
                 + ", parameters='" + parameters + '\''
                 + ", sourceType='" + sourceType + '\''
                 + ", userId='" + userId + '\''
+                + ", filter='" + filter + '\''
                 + '}';
     }
 
@@ -100,8 +109,8 @@ public class TransformationCacheKey implements ContentCacheKey {
      */
     @Override
     public String getKey() {
-        return "transformation_" + preparationId + "_" + datasetId + "_"
-                + DigestUtils.sha1Hex(stepId + format + Objects.hash(parameters) + sourceType + userId);
+        return PREFIX + '_' + preparationId + "_" + datasetId + "_"
+                + DigestUtils.sha1Hex(stepId + format + Objects.hash(parameters) + sourceType + userId + filter);
     }
 
     @Override

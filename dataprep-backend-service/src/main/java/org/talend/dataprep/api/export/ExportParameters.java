@@ -76,10 +76,6 @@ public class ExportParameters implements AsyncGroupKey {
     @JsonRawValue
     private Object filter;
 
-    @JsonProperty("outFilter")
-    @JsonRawValue
-    private Object outFilter;
-
     private Map<String, String> unmappedProperties = new HashMap<>();
 
     private DataSet content;
@@ -167,19 +163,6 @@ public class ExportParameters implements AsyncGroupKey {
         }
     }
 
-    @JsonRawValue
-    public String getOutFilter() {
-        return outFilter == null ? null : outFilter.toString();
-    }
-
-    public void setOutFilter(JsonNode outFilter) {
-        if (outFilter == null || outFilter.isNull()) {
-            this.outFilter = null;
-        } else {
-            this.outFilter = outFilter;
-        }
-    }
-
     public Map<String, String> any() {
         return unmappedProperties;
     }
@@ -217,7 +200,6 @@ public class ExportParameters implements AsyncGroupKey {
                 ", exportName='" + exportName + '\'' + //
                 ", arguments=" + arguments + //
                 ", filter=" + filter + //
-                ", outFilter=" + outFilter + //
                 '}';
     }
 }
