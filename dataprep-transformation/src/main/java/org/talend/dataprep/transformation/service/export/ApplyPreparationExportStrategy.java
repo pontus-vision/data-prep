@@ -13,9 +13,11 @@
 package org.talend.dataprep.transformation.service.export;
 
 import static org.talend.dataprep.transformation.api.transformer.configuration.Configuration.Volume.SMALL;
+import static org.talend.dataprep.transformation.format.JsonFormat.JSON;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -84,7 +86,8 @@ public class ApplyPreparationExportStrategy extends BaseSampleExportStrategy {
         boolean technicianIdentityReleased = false;
         securityProxy.asTechnicalUser();
         // get the dataset content (in an auto-closable block to make sure it is properly closed)
-        final DataSetGet dataSetGet = applicationContext.getBean(DataSetGet.class, dataSetId, true, true);
+        final boolean fullContent = parameters.getFrom() == ExportParameters.SourceType.FILTER;
+        final DataSetGet dataSetGet = applicationContext.getBean(DataSetGet.class, dataSetId, fullContent, true);
 
         try (final InputStream datasetContent = dataSetGet.execute();
                 final JsonParser parser = mapper.getFactory().createParser(datasetContent)) {
@@ -102,13 +105,20 @@ public class ApplyPreparationExportStrategy extends BaseSampleExportStrategy {
             final String actions = getActions(preparationId, version);
 
             // create tee to broadcast to cache + service output
-            final TransformationCacheKey key = cacheKeyGenerator.generateContentKey(dataSetId, preparationId, version, formatName,
-                    parameters.getFrom(), parameters.getArguments());
+            final TransformationCacheKey key = cacheKeyGenerator.generateContentKey( //
+                    dataSetId, //
+                    preparationId, //
+                    version, //
+                    formatName, //
+                    parameters.getFrom(), //
+                    parameters.getArguments(), //
+                    parameters.getFilter() //
+            );
             LOGGER.debug("Cache key: " + key.getKey());
             LOGGER.debug("Cache key details: " + key.toString());
             try (final TeeOutputStream tee = new TeeOutputStream(outputStream,
                     contentCache.put(key, ContentCache.TimeToLive.DEFAULT))) {
-                final Configuration configuration = Configuration.builder() //
+                final Configuration.Builder configurationBuilder = Configuration.builder() //
                         .args(parameters.getArguments()) //
                         .outFilter(rm -> filterService.build(parameters.getFilter(), rm)) //
                         .sourceType(parameters.getFrom()).format(format.getName()) //
@@ -117,7 +127,15 @@ public class ApplyPreparationExportStrategy extends BaseSampleExportStrategy {
                         .stepId(version) //
                         .volume(SMALL) //
                         .output(tee) //
-                        .build();
+                        .limit(this.limit);
+
+                // no need for statistics if it's not JSON output
+                if (!Objects.equals(format.getName(), JSON)) {
+                    configurationBuilder.globalStatistics(false);
+                }
+
+                final Configuration configuration = configurationBuilder.build();
+
                 factory.get(configuration).buildExecutable(dataSet, configuration).execute();
                 tee.flush();
             } catch (Throwable e) { // NOSONAR
