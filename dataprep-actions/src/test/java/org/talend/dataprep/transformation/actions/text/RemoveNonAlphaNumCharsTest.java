@@ -96,7 +96,7 @@ public class RemoveNonAlphaNumCharsTest extends AbstractMetadataBaseTest {
         assertEquals("voiciuntest", action.apply("-voici_un#test"));
 
         assertEquals("àéïOù23", action.apply("àéïOù&~23"));
-        assertEquals("", action.apply("£µ§€¥"));
+        assertEquals("µ", action.apply("£µ§€¥"));
     }
 
     @Test
@@ -124,4 +124,12 @@ public class RemoveNonAlphaNumCharsTest extends AbstractMetadataBaseTest {
         assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.VALUES_COLUMN));
     }
 
+    @Test
+    public void test_special_values() {
+        assertEquals("ÃƒÂÃÂÂšÃÂ105k", action.apply("ÃƒÂ¢Ã¢Â€ÂšÃ‚Â¬10.5k"));
+        assertEquals("aaßaa", action.apply("aaßaa"));
+        assertEquals("aa亜亜亜aa", action.apply("aa亜亜亜aa"));
+        assertEquals("aaあああaa", action.apply("aaあああaa"));
+    }
 }
+

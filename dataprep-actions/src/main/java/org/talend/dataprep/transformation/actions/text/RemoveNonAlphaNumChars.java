@@ -60,7 +60,7 @@ public class RemoveNonAlphaNumChars extends AbstractActionMetadata implements Co
         if (from == null) {
             return StringUtils.EMPTY;
         }
-        return from.replaceAll("[\\p{Punct}£µ§€¥]", "");
+        return from.replaceAll("[[^\\p{IsAlnum}]&&[^\\p{IsWhite_Space}]]", "");
     }
 
     @Override
