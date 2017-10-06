@@ -37,10 +37,15 @@ public class NoOpForAll implements ForAll {
 
     @Override
     public void execute(Supplier<Boolean> condition, Runnable runnable) {
-        if (condition.get()) {
-            runnable.run();
-        } else {
-            LoggerFactory.getLogger(ForAll.class).debug("Unable to run '{}' (condition disallowed run of it).", runnable);
+        try {
+            if (condition.get()) {
+                runnable.run();
+            } else {
+                LOGGER.debug("Unable to run '{}' (condition disallowed run of it).", runnable);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Unable to execute run '{}'. Skip execution.");
+            LOGGER.debug("Unable to execute run '{}'. Skip execution error.", e);
         }
     }
 
