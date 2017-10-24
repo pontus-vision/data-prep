@@ -218,9 +218,22 @@ export default function DatasetRestService($rootScope, $upload, $http, RestURLs)
      * @param {boolean} metadata If false, the metadata will not be returned
      * @returns {Promise} The GET promise
      */
-	function getContent(datasetId, metadata) {
-		const url = RestURLs.datasetUrl + '/' + datasetId + '?metadata=' + metadata + '&includeTechnicalProperties=true';
-		return $http.get(url).then(response => response.data);
+	function getContent(datasetId, metadata, tql) {
+		const url = `${RestURLs.datasetUrl}/${datasetId}`;
+		const params = {
+			metadata,
+			includeTechnicalProperties: true,
+		};
+		if (tql) {
+			params.filter = encodeURIComponent(tql);
+		}
+		return $http(
+			{
+				url,
+				method: 'GET',
+				params,
+			}
+		).then(response => response.data);
 	}
 
     /**
@@ -251,10 +264,10 @@ export default function DatasetRestService($rootScope, $upload, $http, RestURLs)
 	function getSheetPreview(datasetId, sheetName) {
 		$rootScope.$emit('talend.loading.start');
 		return $http.get(RestURLs.datasetUrl + '/preview/' + datasetId + '?metadata=true' + (sheetName ? '&sheetName=' + encodeURIComponent(sheetName) : ''))
-            .then(response => response.data)
-            .finally(() => {
-	$rootScope.$emit('talend.loading.stop');
-});
+			.then(response => response.data)
+			.finally(() => {
+				$rootScope.$emit('talend.loading.stop');
+			});
 	}
 
     //--------------------------------------------------------------------------------------------------------------

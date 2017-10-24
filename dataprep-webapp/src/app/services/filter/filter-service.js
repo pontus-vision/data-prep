@@ -11,7 +11,21 @@
 
  ============================================================================*/
 
-import { find, chain, isEqual, some, remove } from 'lodash';
+import { chain, find, isEqual, remove, some } from 'lodash';
+
+import { EMPTY_RECORDS_LABEL } from './adapter/tql-filter-adapter-service';
+
+export const RANGE_SEPARATOR = ' .. ';
+export const INTERVAL_SEPARATOR = ',';
+export const VALUES_SEPARATOR = '|';
+export const SHIFT_KEY_NAME = 'shift';
+export const CTRL_KEY_NAME = 'ctrl';
+
+const emptyFilterValue = {
+	label: EMPTY_RECORDS_LABEL,
+	value: '',
+	isEmpty: true,
+};
 
 /**
  * @ngdoc service
@@ -27,21 +41,24 @@ import { find, chain, isEqual, some, remove } from 'lodash';
  */
 export default class FilterService {
 
-	constructor(state, StateService, FilterAdapterService, ConverterService, TextFormatService, DateService, StorageService) {
+	constructor(state, StateService, FilterAdapterService, TqlFilterAdapterService, ConverterService, TextFormatService, DateService, StorageService) {
 		'ngInject';
 
-		this.RANGE_SEPARATOR = ' .. ';
-		this.INTERVAL_SEPARATOR = ',';
-		this.VALUES_SEPARATOR = '|';
-		this.SHIFT_KEY_NAME = 'shift';
-		this.CTRL_KEY_NAME = 'ctrl';
 		this.state = state;
 		this.StateService = StateService;
 		this.FilterAdapterService = FilterAdapterService;
+		this.TqlFilterAdapterService = TqlFilterAdapterService;
 		this.ConverterService = ConverterService;
 		this.TextFormatService = TextFormatService;
 		this.DateService = DateService;
 		this.StorageService = StorageService;
+
+		this.TQL_ENABLED = false;
+		const { playground } = state;
+		if (playground) {
+			const { filter } = playground;
+			this.TQL_ENABLED = filter && filter.isTQL;
+		}
 	}
 
 	//----------------------------------------------------------------------------------------------
@@ -59,7 +76,7 @@ export default class FilterService {
 	initFilters(dataset, preparation) {
 		const filters = this.StorageService.getFilter(preparation ? preparation.id : dataset.id);
 		filters.forEach((filter) => {
-			this.addFilter(filter.type, filter.colId, filter.colName, filter.args);
+			this.addFilter(filter.type, filter.colId, filter.colName, filter.args, null, '');
 		});
 	}
 
@@ -89,12 +106,6 @@ export default class FilterService {
 		let hasEmptyRecordsExactFilter;
 		let hasEmptyRecordsMatchFilter;
 
-		const emptyFilterValue = {
-			label: this.FilterAdapterService.EMPTY_RECORDS_LABEL,
-			value: '',
-			isEmpty: true,
-		};
-
 		switch (type) {
 		case 'contains': {
 			// If we want to select records and a empty filter is already applied to that column
@@ -102,7 +113,7 @@ export default class FilterService {
 			const sameColEmptyFilter = this._getEmptyFilter(colId);
 			if (sameColEmptyFilter) {
 				this.removeFilter(sameColEmptyFilter);
-				if (keyName === this.CTRL_KEY_NAME) {
+				if (keyName === CTRL_KEY_NAME) {
 					args.phrase = [emptyFilterValue].concat(args.phrase);
 				}
 			}
@@ -148,9 +159,10 @@ export default class FilterService {
 			// If we want to select records and a empty filter is already applied to that column
 			// Then we need remove it before
 			const sameColEmptyFilter = this._getEmptyFilter(colId);
+
 			if (sameColEmptyFilter) {
 				this.removeFilter(sameColEmptyFilter);
-				if (keyName === this.CTRL_KEY_NAME) {
+				if (keyName === CTRL_KEY_NAME) {
 					args.phrase = [emptyFilterValue].concat(args.phrase);
 				}
 			}
@@ -165,8 +177,16 @@ export default class FilterService {
 			};
 
 			createFilter = () => {
-				filterFn = this._createExactFilterFn(colId, args.phrase, args.caseSensitive);
-				return this.FilterAdapterService.createFilter(type, colId, colName, true, argsToDisplay, filterFn, removeFilterFn);
+				let filterAdaptaterService;
+				if (this.TQL_ENABLED) {
+					filterFn = () => {};
+					filterAdaptaterService = this.TqlFilterAdapterService;
+				}
+				else {
+					filterFn = this._createExactFilterFn(colId, args.phrase, args.caseSensitive);
+					filterAdaptaterService = this.FilterAdapterService;
+				}
+				return filterAdaptaterService.createFilter(type, colId, colName, true, argsToDisplay, filterFn, removeFilterFn);
 			};
 
 			getFilterValue = () => {
@@ -268,7 +288,6 @@ export default class FilterService {
 
 			break;
 		}
-
 		case 'valid_records': {
 			createFilter = () => {
 				const qualityFilters = this._getQualityFilters(colId);
@@ -321,7 +340,7 @@ export default class FilterService {
 			const sameColEmptyFilter = this._getEmptyFilter(colId);
 			if (sameColEmptyFilter) {
 				this.removeFilter(sameColEmptyFilter);
-				if (keyName === this.CTRL_KEY_NAME) {
+				if (keyName === CTRL_KEY_NAME) {
 					args.patterns = [emptyFilterValue].concat(args.patterns);
 				}
 			}
@@ -401,8 +420,8 @@ export default class FilterService {
 
 		let newComputedValue;
 
-		const addOrCriteria = keyName === this.CTRL_KEY_NAME;
-		const addFromToCriteria = keyName === this.SHIFT_KEY_NAME;
+		const addOrCriteria = keyName === CTRL_KEY_NAME;
+		const addFromToCriteria = keyName === SHIFT_KEY_NAME;
 
 		switch (oldFilter.type) {
 		case 'contains': {
@@ -432,7 +451,13 @@ export default class FilterService {
 				phrase: newComputedValue,
 				caseSensitive: oldFilter.args.caseSensitive,
 			};
-			newFilterFn = this._createExactFilterFn(oldFilter.colId, newComputedValue, oldFilter.args.caseSensitive);
+
+			if (this.TQL_ENABLED) {
+				newFilterFn = () => {};
+			}
+			else {
+				newFilterFn = this._createExactFilterFn(oldFilter.colId, newComputedValue, oldFilter.args.caseSensitive);
+			}
 			editableFilter = true;
 			break;
 		}
@@ -484,7 +509,16 @@ export default class FilterService {
 			break;
 		}
 		}
-		const newFilter = this.FilterAdapterService.createFilter(oldFilter.type, oldFilter.colId, oldFilter.colName, editableFilter, newArgs, newFilterFn, oldFilter.removeFilterFn);
+
+		let filterAdapterService;
+		if (this.TQL_ENABLED) {
+			filterAdapterService = this.TqlFilterAdapterService;
+		}
+		else {
+			filterAdapterService = this.FilterAdapterService;
+		}
+
+		const newFilter = filterAdapterService.createFilter(oldFilter.type, oldFilter.colId, oldFilter.colName, editableFilter, newArgs, newFilterFn, oldFilter.removeFilterFn);
 
 		this.StateService.updateGridFilter(oldFilter, newFilter);
 	}
@@ -549,14 +583,14 @@ export default class FilterService {
 				newDirection = 1;
 				mergedInterval = oldMinInterval;
 				mergedInterval.value[1] = newMax;
-				mergedInterval.label = `[${oldMinLabel[0]}${this.RANGE_SEPARATOR}${newLabel[1] || newLabel[0]}[`;
+				mergedInterval.label = `[${oldMinLabel[0]}${RANGE_SEPARATOR}${newLabel[1] || newLabel[0]}[`;
 			};
 
 			const updateMaxInterval = () => {
 				newDirection = -1;
 				mergedInterval = oldMaxInterval;
 				mergedInterval.value[0] = newMin;
-				mergedInterval.label = `[${newLabel[0]}${this.RANGE_SEPARATOR}${oldMaxLabel[1] || oldMaxLabel[0]}[`;
+				mergedInterval.label = `[${newLabel[0]}${RANGE_SEPARATOR}${oldMaxLabel[1] || oldMaxLabel[0]}[`;
 			};
 
 			// Compare old and new interval values
@@ -670,8 +704,8 @@ export default class FilterService {
 					const pairMin = values[0];
 					const pairMax = values[1];
 					return interval.isMaxReached ?
-					(numberValue === pairMin) || (numberValue > pairMin && numberValue <= pairMax) :
-					(numberValue === pairMin) || (numberValue > pairMin && numberValue < pairMax);
+						(numberValue === pairMin) || (numberValue > pairMin && numberValue <= pairMax) :
+						(numberValue === pairMin) || (numberValue > pairMin && numberValue < pairMax);
 				})
 				.reduce((oldResult, newResult) => oldResult || newResult);
 		};
@@ -747,7 +781,7 @@ export default class FilterService {
 		const flattenFiltersValues = filterValues
 			.filter(filterValue => !filterValue.isEmpty)
 			.map(filterValue => this.TextFormatService.escapeRegexpExceptStar(filterValue.value))
-			.join(this.VALUES_SEPARATOR);
+			.join(VALUES_SEPARATOR);
 		const regExpPatternToMatch = `^(${flattenFiltersValues})$`;
 		const regExpToMatch = caseSensitive ? new RegExp(regExpPatternToMatch) : new RegExp(regExpPatternToMatch, 'i');
 		return () => (item) => {
@@ -994,16 +1028,30 @@ export default class FilterService {
 	_getSplittedRangeLabelFor(label) {
 		let splittedLabel = [];
 		label = label.replace(new RegExp(/(\[|])/g), ''); // eslint-disable-line no-control-regex
-		if (label.indexOf(this.RANGE_SEPARATOR) > -1) {
-			splittedLabel = label.split(this.RANGE_SEPARATOR);
+		if (label.indexOf(RANGE_SEPARATOR) > -1) {
+			splittedLabel = label.split(RANGE_SEPARATOR);
 		}
-		else if (label.indexOf(this.INTERVAL_SEPARATOR) > -1) {
-			splittedLabel = label.split(this.INTERVAL_SEPARATOR);
+		else if (label.indexOf(INTERVAL_SEPARATOR) > -1) {
+			splittedLabel = label.split(INTERVAL_SEPARATOR);
 		}
 		else {
 			splittedLabel.push(label);
 		}
 
 		return splittedLabel;
+	}
+
+	stringify(filters) {
+		if (this.TQL_ENABLED) {
+			return this.TqlFilterAdapterService.toTQL(filters);
+		}
+		return this.FilterAdapterService.toTree(filters);
+	}
+
+	parse(str) {
+		if (this.TQL_ENABLED) {
+			return this.TqlFilterAdapterService.fromTQL(str);
+		}
+		return this.FilterAdapterService.fromTree(str);
 	}
 }

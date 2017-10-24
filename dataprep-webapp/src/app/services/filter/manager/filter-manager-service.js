@@ -22,13 +22,10 @@ const RANGE_SEPARATOR = ' .. ';
  * @requires data-prep.services.statistics.service:StatisticsService
  * @requires data-prep.services.state.constant:state
  */
-export default function FilterManagerService($timeout, state, StatisticsService, StorageService, FilterService) {
+export default function FilterManagerService($timeout, state, PlaygroundService, StatisticsService, StorageService, FilterService) {
 	'ngInject';
 
 	const service = {
-		// constants
-		CTRL_KEY_NAME: FilterService.CTRL_KEY_NAME,
-
 		// utils
 		getRangeLabelFor,
 
@@ -97,8 +94,10 @@ export default function FilterManagerService($timeout, state, StatisticsService,
 	function addFilter(type, colId, colName, args, removeFilterFn, keyName) {
 		FilterService.addFilter(type, colId, colName, args, removeFilterFn, keyName);
 		StatisticsService.updateFilteredStatistics();
+		PlaygroundService.updateDatagrid();
 		_saveFilters();
 	}
+
 	/**
 	 * @ngdoc method
 	 * @name addFilterAndDigest
@@ -124,6 +123,7 @@ export default function FilterManagerService($timeout, state, StatisticsService,
 	function removeAllFilters() {
 		FilterService.removeAllFilters();
 		StatisticsService.updateFilteredStatistics();
+		PlaygroundService.updateDatagrid();
 		StorageService.removeFilter(state.playground.preparation ?
 			state.playground.preparation.id : state.playground.dataset.id);
 	}
@@ -138,6 +138,7 @@ export default function FilterManagerService($timeout, state, StatisticsService,
 	function removeFilter(filter) {
 		FilterService.removeFilter(filter);
 		StatisticsService.updateFilteredStatistics();
+		PlaygroundService.updateDatagrid();
 		_saveFilters();
 	}
 
@@ -150,6 +151,7 @@ export default function FilterManagerService($timeout, state, StatisticsService,
 	function toggleFilters() {
 		FilterService.toggleFilters();
 		StatisticsService.updateFilteredStatistics();
+		PlaygroundService.updateDatagrid();
 	}
 
 	/**
@@ -169,7 +171,7 @@ export default function FilterManagerService($timeout, state, StatisticsService,
 	/**
 	 * @ngdoc method
 	 * @name updateFilter
- 	 * @param {Object} oldFilter Previous filter to update
+	 * @param {Object} oldFilter Previous filter to update
 	 * @param {object} newValue The filter update parameters
 	 * @param {string} keyName keyboard key
 	 * @methodOf data-prep.services.filter-manager.service:FilterManagerService
@@ -178,6 +180,7 @@ export default function FilterManagerService($timeout, state, StatisticsService,
 	function updateFilter(oldFilter, newValue, keyName) {
 		FilterService.updateFilter(oldFilter, newValue, keyName);
 		StatisticsService.updateFilteredStatistics();
+		PlaygroundService.updateDatagrid();
 		_saveFilters();
 	}
 }
