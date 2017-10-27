@@ -23,6 +23,7 @@ import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.filter.FilterService;
+import org.talend.dataprep.api.filter.PolyglotFilterService;
 import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
 import org.talend.dataprep.transformation.api.action.DataSetRowAction;
@@ -88,6 +89,6 @@ public class CompileDataSetRowAction implements DataSetRowAction {
     }
 
     private FilterService getFilterService() {
-        return Providers.get(FilterService.class);
+        return Providers.get(PolyglotFilterService.class);
     }
 }
