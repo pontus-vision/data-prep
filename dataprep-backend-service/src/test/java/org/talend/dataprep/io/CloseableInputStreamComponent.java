@@ -12,14 +12,18 @@
 
 package org.talend.dataprep.io;
 
-import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.io.output.NullOutputStream;
-import org.springframework.stereotype.Component;
+import static org.mockito.Mockito.when;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.io.output.NullOutputStream;
+import org.mockito.Mockito;
+import org.springframework.stereotype.Component;
+import org.talend.daikon.content.DeletableResource;
 
 @Component
 public class CloseableInputStreamComponent {
@@ -45,4 +49,12 @@ public class CloseableInputStreamComponent {
             // Nothing to do
         };
     }
+
+    public DeletableResource getDeletableResource() throws IOException {
+        final DeletableResource deletableResource = Mockito.mock(DeletableResource.class);
+        when(deletableResource.getInputStream()).thenReturn(getInput());
+        when(deletableResource.getOutputStream()).thenReturn(getOutput());
+        return deletableResource;
+    }
+
 }
