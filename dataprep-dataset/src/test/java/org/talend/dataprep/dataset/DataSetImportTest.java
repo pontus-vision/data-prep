@@ -19,7 +19,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
@@ -176,7 +178,7 @@ public class DataSetImportTest extends DataSetBaseTest {
         int iterations = 0;
         while (dataSetMetadataRepository.size() == 0) {
             TimeUnit.MILLISECONDS.sleep(20);
-            if (iterations++ > 100) {
+            if (iterations++ > 500) {
                 fail();
             }
         }
