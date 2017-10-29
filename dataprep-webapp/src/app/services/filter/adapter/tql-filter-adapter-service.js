@@ -60,6 +60,8 @@ const OPERATORS = {
 };
 
 export default function TqlFilterAdapterService($translate) {
+	'ngInject';
+
 	const CONVERTERS = {
 		[CONTAINS]: (field, value) => buildQuery(field, OPERATORS.CONTAINS, value),
 		[EXACT]: (field, value) => buildQuery(field, OPERATORS.EQUAL, value),
