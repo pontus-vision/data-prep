@@ -845,7 +845,8 @@ export default function PlaygroundService(
 				},
 				replace_value: newValue,
 			};
-		} else {
+		}
+		else {
 			action = { name: 'replace_cell_value' };
 			scope = 'cell';
 			params = {
@@ -901,7 +902,8 @@ export default function PlaygroundService(
 					true
 				);
 				return loadStep(activeStep);
-			} else {
+			}
+			else {
 				this.loadDataset.call(this, dataset.id);
 			}
 		});
