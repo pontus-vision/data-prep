@@ -23,5 +23,6 @@ npm-debug.log
 .sass-cache/
 .tmp/
 node/
+build/
 ngdoc/
 *.mine.json
