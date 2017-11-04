@@ -13,13 +13,13 @@
 
 package org.talend.dataprep.transformation.actions.bool;
 
+import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,7 +59,7 @@ public class NegateTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testActionScope() throws Exception {
-        assertThat(action.getActionScope(), is(new ArrayList<>()));
+        assertThat(action.getActionScope(), is(emptyList()));
     }
 
     @Test
