@@ -21,6 +21,27 @@ import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 
+/**
+ * Action interface
+ */
+
+/*
+Features that must be present:
+- [v] modify any value une the current row
+- [v] add/remove rows (return 0 to many rows for one input)
+- [v] change headers (pass metadata to compiled and modify it from here)
+- [v] access statistical analysis of columns (passed to compiled)
+- [] modify typing of columns (through
+- [] add/remove column (=> change metadata)
+- [] define form for UI representation
+- [] give hints for UI (action scope...)
+- [] access other datasets/preparations/versions (lookup...)
+
+...
+
+
+ */
+
 public interface WantedActionInterface {
 
     /** Unique identifier. */
@@ -106,7 +127,7 @@ public interface WantedActionInterface {
     }
 
     interface Column {
-        // ID is an arbitrary identifier, modelized by 4 digits as string in old ColumnMetadata
+        // ID is an arbitrary identifier, modeled by 4 digits as string in old ColumnMetadata
         int getId();
         // display name of the column, might be changed
         String getName();

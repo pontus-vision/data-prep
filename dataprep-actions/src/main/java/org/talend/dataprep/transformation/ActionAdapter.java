@@ -194,11 +194,13 @@ public class ActionAdapter implements InternalActionDefinition {
         return this;
     }
 
+    // useless
     @Override
     public List<String> getActionScope() {
         return emptyList();
     }
 
+    // useless
     @Override
     public boolean isDynamic() {
         return false;
