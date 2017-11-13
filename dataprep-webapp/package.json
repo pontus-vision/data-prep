@@ -12,7 +12,7 @@
     "clean:build": "rimraf ./build",
     "clean:coverage": "rimraf ./coverage",
     "build": "webpack --config config/webpack.config.dev.js --progress --profile --color --display-error-details --display-cached",
-    "prebuild": "rimraf ./build"",
+    "prebuild": "rimraf ./build",
     "build:dist": "webpack --config config/webpack.config.prod.js --progress --profile --color --display-error-details --display-cached",
     "prebuild:dist": "rimraf ./build",
     "start": "npm run serve",
