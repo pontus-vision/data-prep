@@ -18,6 +18,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 
@@ -31,11 +32,11 @@ Features that must be present:
 - [v] add/remove rows (return 0 to many rows for one input)
 - [v] change headers (pass metadata to compiled and modify it from here)
 - [v] access statistical analysis of columns (passed to compiled)
-- [] modify typing of columns (through
-- [] add/remove column (=> change metadata)
-- [] define form for UI representation
-- [] give hints for UI (action scope...)
-- [] access other datasets/preparations/versions (lookup...)
+- [v] modify typing of columns (through column access)
+- [v] add/remove column (=> change metadata)
+- [v] define form for UI representation via ActionForm
+- [v] give hints for UI (action scope...) => ActionForm category
+- [] access other datasets/preparations/versions (lookup...) => through context.
 
 ...
 
@@ -99,6 +100,9 @@ public interface WantedActionInterface {
 
         Map<String, String> getParameters();
 
+        /** Retrieve another dataset that can be used to compile an action. */
+        DataSet getDataset(String name);
+
     }
 
     /**
@@ -121,8 +125,10 @@ public interface WantedActionInterface {
 
         Column getColumn(int id);
 
+        /** shortcut for getColumnMetadata().add(index, column) */
         void addColumn(int index, Column column);
 
+        /** shortcut for getColumnMetadata().remove(index) */
         void deleteColumn(int id);
     }
 
