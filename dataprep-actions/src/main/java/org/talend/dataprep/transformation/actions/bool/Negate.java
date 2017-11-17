@@ -90,10 +90,11 @@ public class Negate extends ActionAdapter implements ColumnAction {
 
         @Override
         public List<WantedActionInterface.Row> apply(WantedActionInterface.Row row) {
-            final String value = row.getValue(targetColumnId);
+            WantedActionInterface.Cell cell = row.getCell(targetColumnId);
+            final String value = cell.getValue();
             if (isBoolean(value)) {
                 final Boolean boolValue = Boolean.valueOf(value);
-                row = row.setValue(targetColumnId, WordUtils.capitalizeFully("" + !boolValue));
+                row = row.setCell(targetColumnId, new WantedActionInterface.Cell(WordUtils.capitalizeFully("" + !boolValue)));
             }
             return singletonList(row);
         }

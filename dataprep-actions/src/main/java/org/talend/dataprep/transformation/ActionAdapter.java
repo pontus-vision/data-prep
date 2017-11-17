@@ -24,6 +24,7 @@ import java.util.function.Function;
 import org.apache.avro.generic.GenericRecord;
 import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
@@ -130,6 +131,11 @@ public class ActionAdapter implements InternalActionDefinition {
             public Map<String, String> getParameters() {
                 return null;
             }
+
+            @Override
+            public DataSet getDataset(String name) {
+                return null;
+            }
         });
     }
 
@@ -157,7 +163,7 @@ public class ActionAdapter implements InternalActionDefinition {
             WantedActionInterface.Row modifiedRow = rowsOut.iterator().next();
             for (ColumnMetadata columnMetadata : columns) {
                 int colId = Integer.parseInt(columnMetadata.getId());
-                row.set(columnIdAsString(colId), modifiedRow.getValue(colId));
+                row.set(columnIdAsString(colId), modifiedRow.getCell(colId).getValue());
             }
         } else {
             throw new UnsupportedOperationException("Cannot yet create rows.");
@@ -165,11 +171,11 @@ public class ActionAdapter implements InternalActionDefinition {
     }
 
     private WantedActionInterface.Row convertToRow(DataSetRow row, List<ColumnMetadata> columns) {
-        WantedActionInterface.Row rowIn = new WantedActionInterface.Row(new String[columns.size()]);
+        WantedActionInterface.Row rowIn = new WantedActionInterface.Row(new WantedActionInterface.Cell[columns.size()]);
         for (ColumnMetadata columnMetadata : columns) {
             String colIdAsString = columnMetadata.getId();
             int colId = Integer.parseInt(colIdAsString);
-            rowIn = rowIn.setValue(colId, row.get(colIdAsString));
+            rowIn = rowIn.setCell(colId, new WantedActionInterface.Cell(row.get(colIdAsString)));
         }
         return rowIn;
     }
@@ -279,6 +285,11 @@ public class ActionAdapter implements InternalActionDefinition {
         @Override
         public Map<String, String> getParameters() {
             return delegate.getParameters();
+        }
+
+        @Override
+        public DataSet getDataset(String name) {
+            return null;
         }
     }
 

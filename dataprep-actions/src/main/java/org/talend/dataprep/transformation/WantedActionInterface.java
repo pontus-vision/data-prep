@@ -150,20 +150,35 @@ public interface WantedActionInterface {
 
     class Row {
 
-        private final String[] values;
+        private final Cell[] values;
 
-        public Row(String[] values) {
+        public Row(Cell[] values) {
             this.values = ArrayUtils.clone(values);
         }
 
-        public String getValue(int columnId) {
+        public Cell getCell(int columnId) {
             return values[columnId];
         }
 
-        public Row setValue(int columnId, String newValue) {
-            String[] newValues = this.values.clone();
+        public Row setCell(int columnId, Cell newValue) {
+            Cell[] newValues = this.values.clone();
             newValues[columnId] = newValue;
             return new Row(newValues);
+        }
+
+    }
+
+    // Might be a good encapsulation to access specific column metadata
+    class Cell {
+
+        private String value;
+
+        public Cell(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
         }
 
     }
