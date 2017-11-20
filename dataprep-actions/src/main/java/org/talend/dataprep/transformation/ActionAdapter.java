@@ -53,27 +53,27 @@ public class ActionAdapter implements InternalActionDefinition {
 
     @Override
     public String getCategory() {
-        return delegate.getActionForm(Locale.getDefault()).getCategory();
+        return delegate.getActionForm(context, Locale.getDefault()).getCategory();
     }
 
     @Override
     public String getLabel() {
-        return delegate.getActionForm(Locale.getDefault()).getLabel();
+        return delegate.getActionForm(context, Locale.getDefault()).getLabel();
     }
 
     @Override
     public String getDescription() {
-        return delegate.getActionForm(Locale.getDefault()).getDescription();
+        return delegate.getActionForm(context, Locale.getDefault()).getDescription();
     }
 
     @Override
     public String getDocUrl() {
-        return delegate.getActionForm(Locale.getDefault()).getDocumentationUrl();
+        return delegate.getActionForm(context, Locale.getDefault()).getDocumentationUrl();
     }
 
     @Override
     public List<Parameter> getParameters() {
-        return delegate.getActionForm(Locale.getDefault()).getParameters();
+        return delegate.getActionForm(context, Locale.getDefault()).getParameters();
     }
 
     // OPTIMIZATION

@@ -58,7 +58,7 @@ public class Negate extends ActionAdapter implements ColumnAction {
         }
 
         @Override
-        public ActionForm getActionForm(Locale locale) {
+        public ActionForm getActionForm(ActionContext context, Locale locale) {
             ActionForm actionForm = new ActionForm();
             actionForm.name = NEGATE_ACTION_NAME;
             actionForm.category = ActionCategory.BOOLEAN.getDisplayName();

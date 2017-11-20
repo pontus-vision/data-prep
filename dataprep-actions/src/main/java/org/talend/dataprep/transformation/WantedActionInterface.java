@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.talend.dataprep.api.action.ActionDefinition;
-import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 
@@ -49,7 +49,7 @@ public interface WantedActionInterface {
     String getName();
 
     /** Representation for UI. */
-    ActionForm getActionForm(Locale locale);
+    ActionForm getActionForm(ActionContext context, Locale locale);
 
     CompiledAction compile(ActionContext context);
 
@@ -94,19 +94,21 @@ public interface WantedActionInterface {
         Row getSelectedRow();
         Column getSelectedColumn();
         /**
-         * Modifies the output structure. Must not be modifiable once rows are passed to stream.
+         * Direct access on the current dataset, data and metadata. I think this is a good idea if an action can read a whole
+         * dataset if needed in action compilation, just as it may need to read other dataset.
          */
-        WantedActionInterface.Metadata getMetadata();
+        Dataset getDataset();
 
         Map<String, String> getParameters();
 
         /** Retrieve another dataset that can be used to compile an action. */
-        DataSet getDataset(String name);
+        Dataset getDataset(String name);
 
     }
 
     /**
      * Action function used for one run over one stream of data.
+     * This must be totally independent from the context as it may be serialized in another env, parallelized...
      */
     interface CompiledAction {
 
@@ -120,8 +122,13 @@ public interface WantedActionInterface {
 
     }
 
-    interface Metadata {
-        List<Column> getColumnMetadata();
+    interface Dataset {
+
+        Stream<Row> getContent();
+
+        String getName();
+
+        List<Column> getMetadata();
 
         Column getColumn(int id);
 
@@ -161,26 +168,40 @@ public interface WantedActionInterface {
         }
 
         public Row setCell(int columnId, Cell newValue) {
-            Cell[] newValues = this.values.clone();
+            Cell[] newValues = ArrayUtils.clone(this.values);
             newValues[columnId] = newValue;
             return new Row(newValues);
         }
 
     }
 
-    // Might be a good encapsulation to access specific column metadata
+    // Might be a good encapsulation to access specific cell metadata
+    // hesitate with a row method allowing access to cell metadata separately like boolean Row.isValid(int columnId)
+    // or even CellMetadata Row.getMetadata(int columnId)
     class Cell {
 
-        private String value;
+        private final String value;
+
+        // null means value has not been checked for validity
+        private final Boolean valid;
 
         public Cell(String value) {
+            this(value, null);
+        }
+
+        // not sure if an action should be able to define a celle as valid
+        public Cell(String value, Boolean valid) {
             this.value = value;
+            this.valid = valid;
         }
 
         public String getValue() {
             return value;
         }
 
+        public Boolean isValid() {
+            return valid;
+        }
     }
 
 }
