@@ -167,10 +167,6 @@ public enum DataSetErrorCodes implements ErrorCode {
      */
     UNABLE_TO_CREATE_OR_UPDATE_DATASET(INTERNAL_SERVER_ERROR.value()),
     /**
-     * Error thrown when an error occurs while adding or updating a dataset.
-     */
-    NOT_A_TCOMP_DATASET(BAD_REQUEST.value()),
-    /**
      * The dataset has too many column to process in DataPrep. This would cause memory issues.
      */
     DATASET_HAS_TOO_MANY_COLUMNS(BAD_REQUEST.value(), "number-of-columns", "max-allowed"),

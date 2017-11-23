@@ -65,7 +65,6 @@ export default function TalendDatetimePicker($timeout) {
 
 			const input = $('.datetimepicker');
 			input.datetimepicker({
-				lang: 'en',
 				format,
 				formatDate,
 				formatTime,

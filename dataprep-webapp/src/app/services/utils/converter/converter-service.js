@@ -16,13 +16,14 @@
  * @name data-prep.services.utils.service:ConverterService
  * @description Converter service. This service help to convert data
  */
-export default function ConverterService() {
+export default function ConverterService($translate) {
 	return {
 		isNumber,
 
         // types
 		toInputType,
 		simplifyType,
+		simplifyTypeLabel,
 		adaptValue,
 	};
 
@@ -91,6 +92,35 @@ export default function ConverterService() {
 			return 'date';
 		default:
 			return 'unknown';
+		}
+	}
+
+	/**
+	 * @ngdoc method
+	 * @name simplifyTypeLabel
+	 * @methodOf data-prep.services.utils.service:ConverterService
+	 * @param {string} type The type to convert
+	 * @description Convert backend type to a simplified, more user friendly with translation
+	 * @returns {string} The simplified type
+	 */
+	function simplifyTypeLabel(type) {
+		switch (type.toLowerCase()) {
+		case 'numeric':
+		case 'integer':
+			return $translate.instant('INTEGER');
+		case 'double':
+		case 'float':
+		case 'decimal':
+			return $translate.instant('DECIMAL');
+		case 'boolean':
+			return $translate.instant('BOOLEAN');
+		case 'string':
+		case 'char':
+			return $translate.instant('TEXT');
+		case 'date':
+			return $translate.instant('DATE');
+		default:
+			return $translate.instant('UNKNOWN');
 		}
 	}
 
