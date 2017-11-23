@@ -42,18 +42,18 @@ public class Localization {
     public void localizationDefaultConfiguration() {
         Locale locale;
         if (StringUtils.isEmpty(defaultLocale)) {
-            LOGGER.debug("Detected empty locale, default to english.");
+            LOGGER.debug("No configuration for JVM default locale. Defaulting to US english.");
             locale = Locale.US;
         } else {
             locale = new Locale.Builder().setLanguageTag(defaultLocale).build();
             if (LocaleUtils.isAvailableLocale(locale)) {
-                LOGGER.info("Setting default JVM locale to {}", locale);
+                LOGGER.debug("Setting default JVM locale to configured {}", locale);
             } else {
-                LOGGER.info("Locale {} is not available. Defaulting to {}", locale, Locale.US);
+                LOGGER.debug("Configured JVM Locale {} is not available. Defaulting to {}", locale, Locale.US);
                 locale = Locale.US;
             }
         }
         Locale.setDefault(locale);
-        LOGGER.info("Locale used: '{}'", locale);
+        LOGGER.info("JVM Default locale set to: '{}'", locale);
     }
 }
