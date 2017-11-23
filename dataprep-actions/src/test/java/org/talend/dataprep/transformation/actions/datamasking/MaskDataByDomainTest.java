@@ -20,6 +20,9 @@ import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTes
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -239,6 +242,280 @@ public class MaskDataByDomainTest extends AbstractMetadataBaseTest {
         assertEquals(2, maskDataByDomain.getBehavior().size());
         assertTrue(maskDataByDomain.getBehavior().contains(ActionDefinition.Behavior.VALUES_COLUMN));
         assertTrue(maskDataByDomain.getBehavior().contains(ActionDefinition.Behavior.NEED_STATISTICS_INVALID));
+    }
+
+    @Test
+    public void testKeepFirstMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskKeepFirstFunctionAction.json"));
+
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abcdefg").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertEquals("12345",result.substring(0,5));
+        assertEquals("abcdefg",result.substring(9,result.length()));
+        assertNotEquals("6789",result.substring(5,9));
+    }
+
+    @Test
+    public void testKeepLastMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskKeepFirstFunctionAction.json"));
+        parameters.replace("masking_function","KEEP_LAST_AND_GENERATE");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abcdefg").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertNotEquals("12345",result.substring(0,5));
+        assertEquals("abcdefg",result.substring(9,result.length()));
+        assertEquals("6789",result.substring(5,9));
+    }
+
+    @Test
+    public void testReplaceNFirstMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abcdefg").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertNotEquals("1234567",result.substring(0,7));
+        assertEquals("89abcdefg",result.substring(7,result.length()));
+    }
+
+    @Test
+    public void testReplaceNLastMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","REPLACE_LAST_CHARS");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abcdefg").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertEquals("1234567",result.substring(0,7));
+        assertNotEquals("89abcdefg",result.substring(7,result.length()));
+    }
+
+    @Test
+    public void testReplaceNumericMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","REPLACE_NUMERIC");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abcdefg").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertNotEquals("123456789",result.substring(0,9));
+        assertEquals("abcdefg",result.substring(9,result.length()));
+    }
+
+    @Test
+    public void testReplaceCharsMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","REPLACE_CHARACTERS");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abcdefg").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertEquals("123456789",result.substring(0,9));
+        assertNotEquals("abcdefg",result.substring(9,result.length()));
+    }
+
+    @Test
+    public void testGenerateBetweenMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","GENERATE_BETWEEN");
+        parameters.replace("extra_parameter","4,10");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("1231111").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertTrue(Integer.valueOf(result) >3 && Integer.valueOf(result) <11 );
+    }
+
+    @Test
+    public void testKeepBetweenMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","BETWEEN_INDEXES_KEEP");
+        parameters.replace("extra_parameter","4,10");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abc").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertEquals("456789a",result);
+    }
+
+    @Test
+    public void testRemoveBetweenMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","BETWEEN_INDEXES_REMOVE");
+        parameters.replace("extra_parameter","4,10");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abc").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertEquals("123bc",result);
+    }
+
+    @Test
+    public void testReplaceBetweenMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","BETWEEN_INDEXES_REPLACE");
+        parameters.replace("extra_parameter","4,10");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abc").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertEquals("123",result.substring(0,3));
+        assertNotEquals("456789a",result.substring(4,10));
+        assertEquals("bc",result.substring(10,result.length()));
+    }
+
+    @Test
+    public void testReplaceAllMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","REPLACE_ALL");
+        parameters.replace("extra_parameter","A");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abc").type(Type.STRING))
+                .build();
+        row.getRowMetadata().getById("0000").setDomain("City");
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertNotEquals("123456789abc",result);
+    }
+
+    @Test
+    public void testNumericVarianceMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","NUMERIC_VARIANCE");
+        parameters.replace("extra_parameter","100");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("123456789abc").type(Type.STRING))
+                .build();
+        row.getRowMetadata().getById("0000").setDomain("City");
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertNotEquals("123456789abc",result);
+    }
+
+    @Test
+    public void testGenerateFromePatternMaskFunction() throws IOException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","GENERATE_FROM_PATTERN");
+        parameters.replace("extra_parameter","aaAA99");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("abc123ABC1111").type(Type.STRING))
+                .build();
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+
+        // then
+        String result = (String) row.values().get("0000");
+        assertEquals(6,result.length());
+        assertTrue(Character.isLowerCase(result.charAt(0)));
+        assertTrue(Character.isLowerCase(result.charAt(1)));
+        assertTrue(Character.isUpperCase(result.charAt(2)));
+        assertTrue(Character.isUpperCase(result.charAt(3)));
+        assertTrue(Character.isDigit(result.charAt(4)));
+        assertTrue(Character.isDigit(result.charAt(5)));
+    }
+
+    @Test
+    public void testKeepYearMaskFunction() throws IOException, ParseException {
+        parameters = ActionMetadataTestUtils
+                .parseParameters(MaskDataByDomainTest.class.getResourceAsStream("maskReplaceNFirstFunctionAction.json"));
+        parameters.replace("masking_function","KEEP_YEAR");
+        parameters.replace("extra_parameter","");
+        // given
+        final DataSetRow row = builder() //
+                .with(value("2015-09-15").type(Type.DATE))
+                .build();
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(maskDataByDomain, parameters));
+        // then
+        String result = (String) row.values().get("0000");
+        assertEquals("2015-01-01",result);
     }
 
 }

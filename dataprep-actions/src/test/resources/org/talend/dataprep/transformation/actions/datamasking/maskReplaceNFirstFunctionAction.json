@@ -1,0 +1,13 @@
+{
+  "actions": [
+    {
+      "action": "mask_data_by_domain",
+      "parameters": {
+        "column_id": "0000",
+        "scope": "column",
+        "masking_function": "REPLACE_FIRST_CHARS",
+        "extra_parameter": "7"
+      }
+    }
+  ]
+}
