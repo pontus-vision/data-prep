@@ -39,7 +39,7 @@ public class DataprepLocaleContextResolver extends AbstractLocaleContextResolver
 
     private final Locale applicationLocale;
 
-    public DataprepLocaleContextResolver(@Value("${dataprep.locale:}") String configuredLocale) {
+    public DataprepLocaleContextResolver(@Value("${dataprep.default.locale:en}") String configuredLocale) {
         setDefaultLocale(US);
         this.applicationLocale = resolveApplicationLocale(configuredLocale);
     }

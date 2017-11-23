@@ -19,6 +19,7 @@ import java.util.Locale;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,11 +36,16 @@ public class Localization {
     @PostConstruct
     public void localizationDefaultConfiguration() {
         Locale locale;
-        try {
-            locale = LocaleUtils.toLocale(defaultLocale);
-        } catch (Exception e) {
+        if (StringUtils.isEmpty(defaultLocale)) {
+            LOGGER.debug("Detected empty locale, default to english.");
             locale = Locale.US;
-            LOGGER.warn("Illegal locale supplied in configuration: {}. Defaulting to english.", defaultLocale);
+        } else {
+            try {
+                locale = LocaleUtils.toLocale(defaultLocale);
+            } catch (Exception e) {
+                locale = Locale.US;
+                LOGGER.warn("Illegal locale supplied in configuration: {}. Defaulting to english.", defaultLocale);
+            }
         }
         Locale.setDefault(locale);
         LOGGER.info("Locale used: '{}'", locale);
