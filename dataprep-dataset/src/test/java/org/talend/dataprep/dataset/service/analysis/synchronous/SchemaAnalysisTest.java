@@ -22,7 +22,6 @@ import static org.junit.Assert.assertThat;
 import java.io.InputStream;
 import java.util.Random;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
@@ -118,7 +117,6 @@ public class SchemaAnalysisTest extends DataSetBaseTest {
      * @throws Exception
      */
     @Test
-    @Ignore
     public void testTDP_471() throws Exception {
         final DataSetMetadata actual = initializeDataSetMetadata(
                 DataSetServiceTest.class.getResourceAsStream("../semantic_type_threshold.csv"));
@@ -133,8 +131,8 @@ public class SchemaAnalysisTest extends DataSetBaseTest {
             assertThat(column.getType(), is(expectedTypes[i].getName()));
             assertThat(column.getDomain(), is(expectedDomains[i++]));
             assertThat(column.getSemanticDomains()).isNotNull().isNotEmpty().hasSize(2).contains(
-                    new SemanticDomain("GENDER", "Gender", (float) 30), //
-                    new SemanticDomain("CIVILITY", "Civility", (float) 20));
+                    new SemanticDomain("GENDER", "Gender", (float) 35), //
+                    new SemanticDomain("CIVILITY", "Civility", (float) 20.833334));
         }
     }
 

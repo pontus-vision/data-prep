@@ -40,7 +40,6 @@ import org.assertj.core.api.Assertions;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1660,7 +1659,6 @@ public class DataSetServiceTest extends DataSetBaseTest {
 
 
     @Test
-    @Ignore
     public void shouldGetDataSetColumnTypes() throws Exception {
 
         // given
@@ -1675,12 +1673,12 @@ public class DataSetServiceTest extends DataSetBaseTest {
          * {
          *   "id": "CITY",
          *   "label": "City",
-         *   "frequency": 99.24
+         *   "frequency": 100.0
          * }
          */
         Assert.assertEquals(200, response.getStatusCode());
         final JsonNode rootNode = mapper.readTree(response.asInputStream());
-        Assert.assertEquals(7, rootNode.size());
+        Assert.assertEquals(8, rootNode.size());
         for (JsonNode type : rootNode) {
             assertTrue(type.has("id"));
             assertTrue(type.has("label"));
