@@ -16,6 +16,7 @@ package org.talend.dataprep.configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.talend.dataprep.api.preparation.json.MixedContentMapModule;
+import org.talend.dataprep.api.preparation.json.UISchemaParameterModule;
 
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
@@ -33,4 +34,6 @@ public class Serialization {
         return new MixedContentMapModule();
     }
 
+    @Bean
+    public UISchemaParameterModule uiSchemaParameterModule() { return new UISchemaParameterModule(); }
 }
