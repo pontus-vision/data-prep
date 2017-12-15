@@ -46,6 +46,7 @@ import org.talend.dataprep.api.service.settings.actions.api.ActionSplitDropdownS
 import org.talend.dataprep.api.service.settings.views.api.appheaderbar.AppHeaderBarSettings;
 import org.talend.dataprep.api.service.settings.views.api.breadcrumb.BreadcrumbSettings;
 import org.talend.dataprep.api.service.settings.views.api.list.ListSettings;
+import org.talend.dataprep.api.service.settings.views.api.list.ToolbarDetailsSettings;
 import org.talend.dataprep.api.service.settings.views.api.sidepanel.SidePanelSettings;
 
 public class AppSettingsAPITest extends ApiServiceTestBase {
@@ -365,6 +366,15 @@ public class AppSettingsAPITest extends ApiServiceTestBase {
         final AppSettings settings = when().get("/api/settings/").as(AppSettings.class);
 
         // then
+        final ToolbarDetailsSettings toolbar = ((ListSettings) settings.getViews().get("listview:preparations")).getToolbar();
+        assertThat(toolbar.getDisplay().getDisplayModes(), contains("table", "large"));
+        assertThat(toolbar.getDisplay().getOnChange(), is("preparation:display-mode"));
+
+        final List<String> ids = mapOfStrings((toolbar.getSort().getOptions()), "id");
+        final List<String> names = mapOfStrings(toolbar.getSort().getOptions(), "name");
+        assertThat(ids, contains("name", "author", "creationDate", "lastModificationDate", "datasetName", "nbSteps"));
+        assertThat(names, contains("Name", "Author", "Created", "Modified", "Dataset", "Steps"));
+
         final ListSettings list = (ListSettings) settings.getViews().get("listview:preparations");
         assertThat(list.getDidMountActionCreator(), is("preparations:folder:fetch"));
 
@@ -389,17 +399,23 @@ public class AppSettingsAPITest extends ApiServiceTestBase {
         final AppSettings settings = when().get("/api/settings/").as(AppSettings.class);
 
         // then
+        final ToolbarDetailsSettings toolbar = ((ListSettings) settings.getViews().get("listview:datasets")).getToolbar();
+        assertThat(toolbar.getDisplay().getDisplayModes(), contains("table", "large"));
+        assertThat(toolbar.getDisplay().getOnChange(), is("dataset:display-mode"));
+
+        final List<String> ids = mapOfStrings((toolbar.getSort().getOptions()), "id");
+        final List<String> names = mapOfStrings(toolbar.getSort().getOptions(), "name");
+        assertThat(ids, contains("name", "author", "creationDate", "nbRecords"));
+        assertThat(names, contains("Name", "Author", "Created", "Rows"));
+
+
         final ListSettings list = (ListSettings) settings.getViews().get("listview:datasets");
         assertThat(list.getDidMountActionCreator(), is("datasets:fetch"));
 
         final List<String> keys = map(list.getList().getColumns(), "key");
         final List<String> labels = map(list.getList().getColumns(), "label");
-        final List<String> types = map(list.getList().getColumns(), "type");
-        final List<Boolean> hideHeaderFlags = map(list.getList().getColumns(), "hideHeader");
-        assertThat(keys, contains("name", "statusActions", "author", "creationDate", "nbRecords"));
-        assertThat(labels, contains("Name", "Actions", "Author", "Created", "Rows"));
-        assertThat(hideHeaderFlags, contains(null, Boolean.TRUE, null, null, null));
-        assertThat(types, contains(null, "actions", null, null, null));
+        assertThat(keys, contains("name", "author", "creationDate", "nbRecords"));
+        assertThat(labels, contains("Name", "Author", "Created", "Rows"));
         assertThat(list.getList().getItemProps().getClassNameKey(), is("className"));
         assertThat(list.getList().getTitleProps().getIconKey(), is("icon"));
         assertThat(list.getList().getTitleProps().getKey(), is("name"));
@@ -512,6 +528,10 @@ public class AppSettingsAPITest extends ApiServiceTestBase {
     }
 
     private List map(final List<Map> list, final String property) {
+        return list.stream().map(col -> col.get(property)).collect(toList());
+    }
+
+    private List mapOfStrings(final List<Map<String, String>> list, final String property) {
         return list.stream().map(col -> col.get(property)).collect(toList());
     }
 

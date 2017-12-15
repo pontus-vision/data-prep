@@ -23,28 +23,27 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * List sort menu settings, placed on the toolbar
+ * List display menu settings, placed on the toolbar
  */
 @JsonInclude(NON_NULL)
-public class ListSortSettings {
+public class ListDisplaySettings {
 
     /**
-     * The list of selectable option. Each option should contains an id (the field key to base the sort on) and a label that will
-     * be displayed
+     * The list of display modes to show.
      */
-    private List<Map<String, String>> options;
+    private List<String> displayModes;
 
     /**
      * The option select action identifier
      */
     private String onChange;
 
-    public List<Map<String, String>> getOptions() {
-        return options;
+    public List<String> getDisplayModes() {
+        return displayModes;
     }
 
-    public void setOptions(final List<Map<String, String>> options) {
-        this.options = options;
+    public void setDisplayModes(final List<String> modes) {
+        this.displayModes = modes;
     }
 
     public String getOnChange() {
@@ -65,15 +64,12 @@ public class ListSortSettings {
 
         private static final String NAME = "name";
 
-        private List<Map<String, String>> options = new ArrayList<>();
+        private List<String> displayModes = new ArrayList<>();
 
         private String onChange;
 
-        public Builder options(final String id, final String name) {
-            final Map<String, String> keyValue = new HashMap<>(2);
-            keyValue.put(ID, id);
-            keyValue.put(NAME, name);
-            this.options.add(keyValue);
+        public Builder displayMode(final String mode) {
+            this.displayModes.add(mode);
             return this;
         }
 
@@ -82,9 +78,9 @@ public class ListSortSettings {
             return this;
         }
 
-        public ListSortSettings build() {
-            final ListSortSettings settings = new ListSortSettings();
-            settings.setOptions(this.options);
+        public ListDisplaySettings build() {
+            final ListDisplaySettings settings = new ListDisplaySettings();
+            settings.setDisplayModes(this.displayModes);
             settings.setOnChange(this.onChange);
             return settings;
         }
