@@ -181,9 +181,10 @@ window.fetchConfiguration = function fetchConfiguration() {
 			.run((talendLoggerConfiguration, state) => {
 				'ngInject';
 
-				talendLoggerConfiguration.setServerUrl('http://localhost:8888/log');
-				talendLoggerConfiguration.setGetState(() => state);
-				talendLoggerConfiguration.init();
+				talendLoggerConfiguration.init({
+					serverUrl: 'http://localhost:8888/error',
+					getState: () => state,
+				});
 			});
 
 		angular
