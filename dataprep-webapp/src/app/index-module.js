@@ -18,6 +18,7 @@ import angular from 'angular';
 import ngSanitize from 'angular-sanitize';
 import ngTranslate from 'angular-translate';
 import uiRouter from 'angular-ui-router';
+import talendErrorLogger from '@talend/log/lib/angular';
 
 import { init } from 'i18next';
 
@@ -63,6 +64,7 @@ const app = angular
 		ngSanitize,
 		ngTranslate,
 		uiRouter,
+		talendErrorLogger,
 		APP_MODULE, // bootstrap: app root
 		HOME_MODULE, // routing: home components
 		PLAYGROUND_MODULE, // routing: playground component
@@ -175,6 +177,13 @@ window.fetchConfiguration = function fetchConfiguration() {
 						false
 					);
 				});
+			})
+			.run((talendLoggerConfiguration, state) => {
+				'ngInject';
+
+				talendLoggerConfiguration.setServerUrl('http://localhost:8888/log');
+				talendLoggerConfiguration.setGetState(() => state);
+				talendLoggerConfiguration.init();
 			});
 
 		angular

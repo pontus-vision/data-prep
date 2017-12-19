@@ -21,6 +21,7 @@ export default class HomeCtrl {
 
 	$onInit() {
 		this.configureSidePanel();
+		throw new Error('JSO error');
 	}
 
 	configureSidePanel() {
