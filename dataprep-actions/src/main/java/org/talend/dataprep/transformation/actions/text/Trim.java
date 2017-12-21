@@ -38,7 +38,7 @@ import org.talend.dataquality.converters.StringTrimmer;
  * Trim leading and trailing characters.
  */
 @Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + Trim.TRIM_ACTION_NAME)
-public class Trim extends AbstractActionMetadata implements ColumnAction, DataSetAction {
+public class Trim extends AbstractDataSetAction implements ColumnAction, DataSetAction {
 
     /**
      * The action name.
@@ -120,9 +120,6 @@ public class Trim extends AbstractActionMetadata implements ColumnAction, DataSe
 
     @Override
     public void applyOnDataSet(DataSetRow row, ActionContext context) {
-        Function function = p -> row.set(column.getId(), doTrim(row.get(column.getId()), context));
-
-
         for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
             String toTrim = row.get(column.getId());
             row.set(column.getId(), doTrim(toTrim, context));

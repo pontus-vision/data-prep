@@ -15,20 +15,18 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
-import java.util.function.Function;
+public abstract class AbstractDataSetAction extends AbstractActionMetadata {
 
-public abstract class AbstractDataSetAction {
-    public void loopColumns(DataSetRow row, ActionContext context) {
+    public void applyOnDataSet(DataSetRow row, ActionContext context) {
         for(ColumnMetadata column : row.getRowMetadata().getColumns()) {
-            apply(row, column, context);
+            apply(row, column.getId(), context);
         }
     }
 
-    @Override
     public void applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
-        apply(row, row.getRowMetadata().getColumns().get(columnId), context);
+        apply(row, columnId, context);
     }
 
-    public abstract void apply(DataSetRow row,ColumnMetadata column, ActionContext context);
+    public abstract void apply(DataSetRow row, String columnId, ActionContext context);
 }
