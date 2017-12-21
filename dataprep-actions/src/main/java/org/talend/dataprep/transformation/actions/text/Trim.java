@@ -20,6 +20,7 @@ import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
 import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
+import java.util.function.Function;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
@@ -28,9 +29,8 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
-import org.talend.dataprep.transformation.actions.common.ActionsUtils;
-import org.talend.dataprep.transformation.actions.common.ColumnAction;
+import org.talend.dataprep.transformation.actions.category.ActionScope;
+import org.talend.dataprep.transformation.actions.common.*;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.converters.StringTrimmer;
 
@@ -38,7 +38,7 @@ import org.talend.dataquality.converters.StringTrimmer;
  * Trim leading and trailing characters.
  */
 @Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + Trim.TRIM_ACTION_NAME)
-public class Trim extends AbstractActionMetadata implements ColumnAction {
+public class Trim extends AbstractActionMetadata implements ColumnAction, DataSetAction {
 
     /**
      * The action name.
@@ -87,6 +87,7 @@ public class Trim extends AbstractActionMetadata implements ColumnAction {
     @Override
         public List<Parameter> getParameters(Locale locale) {
         final List<Parameter> parameters = super.getParameters(locale);
+
         parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
 
         // @formatter:off
@@ -115,23 +116,41 @@ public class Trim extends AbstractActionMetadata implements ColumnAction {
     /**
      * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
      */
+
+
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        final String columnId = context.getColumnId();
-        final String toTrim = row.get(columnId);
+    public void applyOnDataSet(DataSetRow row, ActionContext context) {
+        Function function = p -> row.set(column.getId(), doTrim(row.get(column.getId()), context));
+
+
+        for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
+            String toTrim = row.get(column.getId());
+            row.set(column.getId(), doTrim(toTrim, context));
+        }
+    }
+
+    @Override
+    public void apply(DataSetRow row,ColumnMetadata column, ActionContext context){
+        String toTrim = row.get(column.getId());
+        row.set(column.getId(), doTrim(toTrim, context));
+    }
+
+    public String doTrim(String toTrim, ActionContext context) {
         if (toTrim != null) {
             final Map<String, String> parameters = context.getParameters();
             final StringTrimmer stringTrimmer = context.get(STRING_TRIMMER);
             if (CUSTOM.equals(parameters.get(PADDING_CHAR_PARAMETER))) {
-                row.set(ActionsUtils.getTargetColumnId(context), stringTrimmer.removeTrailingAndLeading(toTrim, parameters.get(CUSTOM_PADDING_CHAR_PARAMETER)));
+                return stringTrimmer.removeTrailingAndLeading(toTrim, parameters.get(CUSTOM_PADDING_CHAR_PARAMETER));
             } else {
-                row.set(ActionsUtils.getTargetColumnId(context), stringTrimmer.removeTrailingAndLeadingWhitespaces(toTrim));
+                return stringTrimmer.removeTrailingAndLeadingWhitespaces(toTrim);
             }
         }
+        return EMPTY;
     }
 
     @Override
     public Set<Behavior> getBehavior() {
         return EnumSet.of(Behavior.VALUES_COLUMN);
     }
+
 }

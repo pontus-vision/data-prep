@@ -49,7 +49,6 @@ public class DeduplicateTest extends AbstractMetadataBaseTest<Deduplicate> {
     private void initParameters() {
         parameters = new HashMap<>();
         parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "dataset");
-        parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
     }
 
     @Override
