@@ -9,10 +9,11 @@
 // 9 rue Pages 92150 Suresnes, France
 // ============================================================================
 
-package org.talend.dataprep.transformation.actions.common;
+package org.talend.dataprep.transformation.actions.text;
 
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 public abstract class AbstractDataSetAction extends AbstractActionMetadata {

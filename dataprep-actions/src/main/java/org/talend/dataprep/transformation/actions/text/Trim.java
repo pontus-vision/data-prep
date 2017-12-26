@@ -20,7 +20,6 @@ import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
 import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
-import java.util.function.Function;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
@@ -29,7 +28,6 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.actions.category.ActionScope;
 import org.talend.dataprep.transformation.actions.common.*;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.converters.StringTrimmer;
@@ -127,9 +125,9 @@ public class Trim extends AbstractDataSetAction implements ColumnAction, DataSet
     }
 
     @Override
-    public void apply(DataSetRow row,ColumnMetadata column, ActionContext context){
-        String toTrim = row.get(column.getId());
-        row.set(column.getId(), doTrim(toTrim, context));
+    public void apply(DataSetRow row,String columnId, ActionContext context){
+        String toTrim = row.get(columnId);
+        row.set(columnId, doTrim(toTrim, context));
     }
 
     public String doTrim(String toTrim, ActionContext context) {
