@@ -20,7 +20,6 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -152,27 +151,6 @@ public class TrimTest extends AbstractMetadataBaseTest<Trim> {
 
         // then
         assertEquals("the beatles", row.get("0000")); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-
-    @Test
-    public void should_remove_scope_dataset() {
-        // given
-        final Map<String, String> values = new HashMap<>();
-        final DataSetRow row1 = getRow("\t" + " the beatles " + "\t", "toto ");
-        final DataSetRow row2 = getRow("\t" + "test ", " tata ");
-
-        final DataSetRow expected1 = getRow("the beatles", "toto");
-        final DataSetRow expected2 = getRow("test", "tata");
-
-        parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "dataset");
-        parameters.remove(ImplicitParameters.COLUMN_ID);
-
-        // when
-        ActionTestWorkbench.test(Arrays.asList(row1,row2), actionRegistry, factory.create(action, parameters));
-
-        // then
-        assertEquals(expected1, row1);
-        assertEquals(expected2, row2);
     }
 
     @Test
