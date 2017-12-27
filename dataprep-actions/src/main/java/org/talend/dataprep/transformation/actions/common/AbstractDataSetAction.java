@@ -19,15 +19,14 @@ public abstract class AbstractDataSetAction extends AbstractActionMetadata imple
 
     public void applyOnDataSet(DataSetRow row, ActionContext context) {
         for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
-            apply(row, column.getId(), context);
+            apply(row, column.getId(), column.getId(), context);
         }
     }
 
     public void applyOnColumn(DataSetRow row, ActionContext context) {
-        String targetColumnId = ActionsUtils.getTargetColumnId(context);
-        apply(row, targetColumnId ,context);
+        apply(row, context.getColumnId(), ActionsUtils.getTargetColumnId(context), context);
     }
 
-    public abstract void apply(DataSetRow row, String targetColumnId, ActionContext context);
+    public abstract void apply(DataSetRow row, String columnId, String targetColumnId, ActionContext context);
 
 }

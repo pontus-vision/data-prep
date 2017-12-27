@@ -118,8 +118,7 @@ public class Trim extends AbstractDataSetAction {
     }
 
     @Override
-    public void apply(DataSetRow row, String targetColumnId, ActionContext context) {
-        String columnId = context.getColumnId();
+    public void apply(DataSetRow row, String columnId, String targetColumnId, ActionContext context) {
         String toTrim = row.get(columnId);
         row.set(targetColumnId, doTrim(toTrim, context));
     }
