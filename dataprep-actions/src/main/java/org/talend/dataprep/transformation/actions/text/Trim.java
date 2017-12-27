@@ -106,6 +106,7 @@ public class Trim extends AbstractDataSetAction {
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
         if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            //TODO temporary solution, need to hide the param in dataset case
             try {
                 ActionsUtils.createNewColumn(actionContext, getAdditionalColumns(actionContext));
             } catch (NullPointerException e) {
