@@ -20,6 +20,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -190,6 +191,29 @@ public class TrimTest extends AbstractMetadataBaseTest<Trim> {
 
         // then
         assertEquals("the beatle", row.get("0000")); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+
+    @Test
+    public void TDP_2190() {
+        //given
+        final DataSetRow row1 = getRow("1 ", "2", "Hey !");
+
+        final DataSetRow row2 = getRow("  3", "4", "Hoy !");
+
+        final DataSetRow row3 = getRow(" 5 ", "6", "Hiy !");
+
+        parameters = new HashMap<>();
+        parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "column");
+        parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
+        parameters.put(Trim.PADDING_CHAR_PARAMETER, "whitespace");
+
+        // when
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals("1", row1.get("0000"));
+        assertEquals("3", row2.get("0000"));
+        assertEquals("5", row3.get("0000"));
     }
 
     @Test
