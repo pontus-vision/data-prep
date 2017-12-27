@@ -30,11 +30,8 @@ import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
-import org.talend.dataprep.transformation.actions.common.ActionsUtils;
-import org.talend.dataprep.transformation.actions.common.ColumnAction;
+import org.talend.dataprep.transformation.actions.common.*;
 
-import org.talend.dataprep.transformation.actions.common.DataSetAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.converters.StringTrimmer;
 
@@ -42,7 +39,7 @@ import org.talend.dataquality.converters.StringTrimmer;
  * Trim leading and trailing characters.
  */
 @Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + Trim.TRIM_ACTION_NAME)
-public class Trim extends AbstractActionMetadata implements ColumnAction, DataSetAction {
+public class Trim extends AbstractDataSetAction {
 
     /**
      * The action name.
@@ -120,22 +117,11 @@ public class Trim extends AbstractActionMetadata implements ColumnAction, DataSe
         }
     }
 
-    /**
-     * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
-     */
     @Override
-    public void applyOnDataSet(DataSetRow row, ActionContext context) {
-        for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
-            String toTrim = row.get(column.getId());
-            row.set(column.getId(), doTrim(toTrim, context));
-        }
-    }
-
-    @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context){
+    public void apply(DataSetRow row, String targetColumnId, ActionContext context) {
         String columnId = context.getColumnId();
         String toTrim = row.get(columnId);
-        row.set(ActionsUtils.getTargetColumnId(context), doTrim(toTrim, context));
+        row.set(targetColumnId, doTrim(toTrim, context));
     }
 
     public String doTrim(String toTrim, ActionContext context) {
