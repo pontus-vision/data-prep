@@ -35,10 +35,7 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
-import org.talend.dataprep.transformation.actions.common.ActionsUtils;
-import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
+import org.talend.dataprep.transformation.actions.common.*;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.standardization.phone.PhoneNumberHandlerBase;
 
@@ -46,7 +43,7 @@ import org.talend.dataquality.standardization.phone.PhoneNumberHandlerBase;
  * Format a validated phone number to a specified format.
  */
 @Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + FormatPhoneNumber.ACTION_NAME)
-public class FormatPhoneNumber extends AbstractActionMetadata implements ColumnAction {
+public class FormatPhoneNumber extends AbstractDataSetAction {
 
     /**
      * Action name.
@@ -93,7 +90,12 @@ public class FormatPhoneNumber extends AbstractActionMetadata implements ColumnA
     public void compile(ActionContext context) {
         super.compile(context);
         if (ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            //TODO temporary solution, need to hide the param in dataset case
+            try {
             ActionsUtils.createNewColumn(context, getAdditionalColumns(context));
+            } catch (NullPointerException e) {
+                context.setActionStatus(CANCELED);
+            }
         }
         if (context.getActionStatus() == OK) {
             try {
@@ -106,8 +108,7 @@ public class FormatPhoneNumber extends AbstractActionMetadata implements ColumnA
     }
 
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        final String columnId = context.getColumnId();
+    public void apply(DataSetRow row, String columnId, String targetColumnId, ActionContext context) {
         final String possiblePhoneValue = row.get(columnId);
         if (StringUtils.isEmpty(possiblePhoneValue)) {
             return;
@@ -117,7 +118,7 @@ public class FormatPhoneNumber extends AbstractActionMetadata implements ColumnA
 
         final String formatedStr = formatIfValid(regionCode,
                 context.getParameters().get(FORMAT_TYPE_PARAMETER), possiblePhoneValue);
-        row.set(ActionsUtils.getTargetColumnId(context), formatedStr);
+        row.set(targetColumnId, formatedStr);
     }
 
     /**

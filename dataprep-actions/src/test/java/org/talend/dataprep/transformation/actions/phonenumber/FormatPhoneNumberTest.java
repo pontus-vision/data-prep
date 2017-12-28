@@ -14,6 +14,7 @@ package org.talend.dataprep.transformation.actions.phonenumber;
 
 import static org.junit.Assert.*;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
 
 import java.io.IOException;
 import java.util.*;
@@ -30,6 +31,7 @@ import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
+import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -463,6 +465,28 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest<FormatPhoneN
         expectedValues.put("0001", "US");
 
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        assertEquals(expectedValues, row.values());
+    }
+
+    @Test
+    public void TDP_2193() {
+        //given
+        final DataSetRow row = getRow("300-456-1500", "500-654-8444", "Hey !");
+
+        final Map<String, String> expectedValues = new HashMap<>();
+        expectedValues.put("0000", "(300) 456-1500");
+        expectedValues.put("0001", "(500) 654-8444");
+        expectedValues.put("0002", "Hey !");
+
+        parameters.put(FormatPhoneNumber.FORMAT_TYPE_PARAMETER, FormatPhoneNumber.TYPE_NATIONAL);
+        parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, "US");
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+        parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "dataset");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
         assertEquals(expectedValues, row.values());
     }
 
