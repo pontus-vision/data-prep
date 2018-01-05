@@ -593,7 +593,10 @@ public class PreparationService {
         // specify the step id if provided
         if (!StringUtils.equals("head", stepId)) {
             // just make sure the step does exist
-            if (preparationRepository.exist(Step.class, TqlBuilder.eq("id", stepId))) {
+            if (Step.ROOT_STEP.id().equals(stepId)) {
+                preparation.setSteps(Collections.singletonList(Step.ROOT_STEP));
+                preparation.setHeadId(Step.ROOT_STEP.id());
+            } else if (preparationRepository.exist(Step.class, TqlBuilder.eq("id", stepId))) {
                 preparation.setSteps(preparationUtils.listSteps(stepId, preparationRepository));
                 preparation.setHeadId(stepId);
             } else {
