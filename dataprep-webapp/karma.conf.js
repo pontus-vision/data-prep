@@ -1,5 +1,7 @@
 'use strict';
 
+process.env.CHROME_BIN = require('puppeteer').executablePath()
+
 const argv = require('yargs').argv;
 const webpack = require('webpack');
 const SASS_DATA = require('./config/sass.conf');
@@ -63,7 +65,7 @@ module.exports = function (config) {
 		proxies: {
 			'/assets/': '/src/assets/',
 		},
-		
+
 		browserNoActivityTimeout: 120000,
 	});
 };
