@@ -1,5 +1,6 @@
 package org.talend.dataprep.qa.step.export;
 
+import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
 import static org.talend.dataprep.qa.util.export.ExportSampleParamCSV.*;
 import static org.talend.dataprep.qa.util.export.MandatoryParameters.DATASET_NAME;
 
@@ -23,7 +24,9 @@ import org.talend.dataprep.qa.util.export.MandatoryParameters;
  */
 public abstract class AbstractExportSampleStep extends DataPrepStep implements ExportSampleStep {
 
-    /** This class' logger. */
+    /**
+     * This class' logger.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractExportSampleStep.class);
 
     @Autowired
@@ -50,12 +53,12 @@ public abstract class AbstractExportSampleStep extends DataPrepStep implements E
         Map<String, Object> ret = new HashMap<>();
 
         // Preparation
-        String preparationName = params.get(MandatoryParameters.PREPARATION_NAME.getName());
-        String preparationId = context.getPreparationId(preparationName);
+        String suffixedPreparationName = suffixName(params.get(MandatoryParameters.PREPARATION_NAME.getName()));
+        String preparationId = context.getPreparationId(suffixedPreparationName);
 
         // Dataset
-        String datasetName = params.get(DATASET_NAME.getName());
-        String datasetId = context.getDatasetId(datasetName);
+        String suffixedDatasetName = suffixName(params.get(DATASET_NAME.getName()));
+        String datasetId = context.getDatasetId(suffixedDatasetName);
 
         // File exported
         String filename = params.get(FILENAME.getName());
