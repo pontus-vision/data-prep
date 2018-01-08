@@ -46,21 +46,25 @@ import org.talend.dataprep.transformation.api.action.context.ActionContext;
 @Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + ChangeDatePattern.ACTION_NAME)
 public class ChangeDatePattern extends AbstractDate implements ColumnAction {
 
-    /** Action name. */
+    /**
+     * Action name.
+     */
     public static final String ACTION_NAME = "change_date_pattern"; //$NON-NLS-1$
+
+    protected static final String NEW_COLUMN_SUFFIX = "_format_changed";
+
+    static final String FROM_MODE_BEST_GUESS = "unknown_separators"; //$NON-NLS-1$
 
     /**
      * Action parameters:
      */
-    protected static final String FROM_MODE = "from_pattern_mode"; //$NON-NLS-1$
+    static final String FROM_MODE = "from_pattern_mode"; //$NON-NLS-1$
 
-    protected static final String FROM_MODE_CUSTOM = "from_custom_mode"; //$NON-NLS-1$
+    static final String FROM_MODE_CUSTOM = "from_custom_mode"; //$NON-NLS-1$
 
-    protected static final String FROM_CUSTOM_PATTERN = "from_custom_pattern"; //$NON-NLS-1$
+    static final String FROM_CUSTOM_PATTERN = "from_custom_pattern"; //$NON-NLS-1$
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChangeDatePattern.class);
-
-    protected static final String FROM_MODE_BEST_GUESS = "unknown_separators"; //$NON-NLS-1$
 
     /**
      * Keys for action context:
@@ -85,7 +89,7 @@ public class ChangeDatePattern extends AbstractDate implements ColumnAction {
                 .item(FROM_MODE_BEST_GUESS, FROM_MODE_BEST_GUESS)
                 .item(FROM_MODE_CUSTOM, FROM_MODE_CUSTOM, Parameter.parameter(locale).setName(FROM_CUSTOM_PATTERN).setType(ParameterType.STRING).setDefaultValue(EMPTY).setCanBeBlank(false).build(this))
                 .defaultValue(FROM_MODE_BEST_GUESS)
-                .build(this ));
+                .build(this));
         // @formatter:on
 
         parameters.addAll(getParametersForDatePattern(locale));
@@ -135,16 +139,16 @@ public class ChangeDatePattern extends AbstractDate implements ColumnAction {
             return emptyList();
         }
         switch (actionContext.getParameters().get(FROM_MODE)) {
-        case FROM_MODE_BEST_GUESS:
-            final RowMetadata rowMetadata = actionContext.getRowMetadata();
-            final ColumnMetadata column = rowMetadata.getById(actionContext.getColumnId());
-            return Providers.get().getPatterns(column.getStatistics().getPatternFrequencies());
-        case FROM_MODE_CUSTOM:
-            List<DatePattern> fromPatterns = new ArrayList<>();
-            fromPatterns.add(new DatePattern(actionContext.getParameters().get(FROM_CUSTOM_PATTERN)));
-            return fromPatterns;
-        default:
-            return emptyList();
+            case FROM_MODE_BEST_GUESS:
+                final RowMetadata rowMetadata = actionContext.getRowMetadata();
+                final ColumnMetadata column = rowMetadata.getById(actionContext.getColumnId());
+                return Providers.get().getPatterns(column.getStatistics().getPatternFrequencies());
+            case FROM_MODE_CUSTOM:
+                List<DatePattern> fromPatterns = new ArrayList<>();
+                fromPatterns.add(new DatePattern(actionContext.getParameters().get(FROM_CUSTOM_PATTERN)));
+                return fromPatterns;
+            default:
+                return emptyList();
         }
     }
 
@@ -157,19 +161,20 @@ public class ChangeDatePattern extends AbstractDate implements ColumnAction {
         final DatePattern newPattern = context.get(COMPILED_DATE_PATTERN);
 
         // Change the date pattern
-        final String value = row.get(columnId);
-        if (StringUtils.isBlank(value)) {
+        final String originalValue = row.get(columnId);
+        if (StringUtils.isBlank(originalValue)) {
+            row.set(ActionsUtils.getTargetColumnId(context), originalValue);
             return;
         }
         try {
-            LocalDateTime date = Providers.get().parseDateFromPatterns(value, context.get(FROM_DATE_PATTERNS));
+            LocalDateTime date = Providers.get().parseDateFromPatterns(originalValue, context.get(FROM_DATE_PATTERNS));
 
             if (date != null) {
                 row.set(ActionsUtils.getTargetColumnId(context), newPattern.getFormatter().format(date));
             }
         } catch (DateTimeException e) {
             // cannot parse the date, let's leave it as is
-            LOGGER.debug("Unable to parse date {}.", value, e);
+            LOGGER.debug("Unable to parse date {}.", originalValue, e);
         }
     }
 

@@ -117,23 +117,50 @@ public class ModifyDateTest extends BaseDateTest<ModifyDate> {
     @Test
     public void test_apply_in_newcolumn() throws Exception {
         // given
-        final DataSetRow row = builder() //
+        final DataSetRow row1 = builder() //
                 .with(value("toto").type(Type.STRING).name("recipe")) //
                 .with(value("04/25/1999").type(Type.DATE).name("recipe").statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
                 .with(value("tata").type(Type.STRING).name("last update")) //
                 .build();
 
+        final DataSetRow row2 = builder() //
+                .with(value("tata mouche").type(Type.STRING).name("recipe")) //
+                .with(value("  ").type(Type.DATE).name("recipe").statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
+                .with(value("toto pouche").type(Type.STRING).name("last update")) //
+                .build();
+
+        final DataSetRow row3 = builder() //
+                .with(value("titi louche").type(Type.STRING).name("recipe")) //
+                .with(value("culbutoqué").type(Type.DATE).name("recipe").statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
+                .with(value("tutu couche").type(Type.STRING).name("last update")) //
+                .build();
+
         parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row1, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row2, actionRegistry, factory.create(action, parameters));
+        ActionTestWorkbench.test(row3, actionRegistry, factory.create(action, parameters));
+
 
         // then
-        final DataSetRow expectedRow = getRow("toto", "04/25/1999", "tata", "04/25/2000");
-        assertEquals(expectedRow.values(), row.values());
-        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("recipe_modified").type(Type.STRING).build();
-        ColumnMetadata actual = row.getRowMetadata().getById("0003");
-        assertEquals(expected, actual);
+        final DataSetRow expectedRow1 = getRow("toto", "04/25/1999", "tata", "04/25/2000");
+        assertEquals(expectedRow1.values(), row1.values());
+        ColumnMetadata expected1 = ColumnMetadata.Builder.column().id(3).name("recipe_modified").type(Type.STRING).build();
+        ColumnMetadata actual1 = row1.getRowMetadata().getById("0003");
+        assertEquals(expected1, actual1);
+
+        final DataSetRow expectedRow2 = getRow("tata mouche", "  ", "toto pouche", "  ");
+        assertEquals(expectedRow2.values(), row2.values());
+        ColumnMetadata expected2 = ColumnMetadata.Builder.column().id(3).name("recipe_modified").type(Type.STRING).build();
+        ColumnMetadata actual2 = row2.getRowMetadata().getById("0003");
+        assertEquals(expected2, actual2);
+
+        final DataSetRow expectedRow3 = getRow("titi louche", "culbutoqué", "tutu couche", "culbutoqué");
+        assertEquals(expectedRow3.values(), row3.values());
+        ColumnMetadata expected3 = ColumnMetadata.Builder.column().id(3).name("recipe_modified").type(Type.STRING).build();
+        ColumnMetadata actual3 = row3.getRowMetadata().getById("0003");
+        assertEquals(expected3, actual3);
     }
 
     @Test
