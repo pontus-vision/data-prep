@@ -12,7 +12,6 @@
 // ============================================================================
 package org.talend.dataprep.transformation.actions.dataquality;
 
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
@@ -190,7 +189,7 @@ public class StandardizeInvalidTest extends AbstractMetadataBaseTest<Standardize
 
     @Test
     public void testActionScope() throws Exception {
-        assertThat(action.getActionScope(), hasItem("invalid"));
+        assertTrue(action.getActionScope().isEmpty());
     }
 
     private DataSetRow createRow(Map<String, String> inputValues, String invalidColumnId, String domain) {
