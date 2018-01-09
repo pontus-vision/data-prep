@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.stereotype.Component;
+import org.talend.dataprep.format.export.ExportFormatMessage;
 import org.talend.dataprep.helper.api.Action;
 import org.talend.dataprep.qa.dto.Folder;
 
@@ -48,6 +49,8 @@ public class FeatureContext {
     private Map<String, File> tempFileByName = new HashMap<>();
 
     private Map<String, Action> actionByAlias = new HashMap<>();
+
+    private Map<String, ExportFormatMessage[]> parametersByPreparationName = new HashMap<>();
 
     private SortedSet<Folder> folders = new TreeSet<>((o1, o2) -> {
         // reverse order : the longer string is the first one.
@@ -243,6 +246,18 @@ public class FeatureContext {
      */
     public void clearFolders() {
         folders.clear();
+    }
+
+    public void storePreparationExportFormat(String preparationName, ExportFormatMessage[] parameters) {
+        parametersByPreparationName.put(preparationName, parameters);
+    }
+
+    public void clearPreparationExportFormat() {
+        parametersByPreparationName.clear();
+    }
+
+    public ExportFormatMessage[] getExportFormatsByPreparationName(String preparationName) {
+        return parametersByPreparationName.get(preparationName);
     }
 
 }
