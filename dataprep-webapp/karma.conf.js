@@ -52,7 +52,18 @@ module.exports = function (config) {
 
 		// start these browsers
 		// available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-		browsers: ['ChromeHeadless'],
+		browsers: ['ChromeHeadless_without_sandbox'],
+
+		// you can define custom flags
+        customLaunchers: {
+          ChromeHeadless_without_sandbox: {
+            base: 'ChromeHeadless',
+            flags: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox'
+            ],
+          },
+        },
 
 		coverageReporter: {
 			type: 'html',
