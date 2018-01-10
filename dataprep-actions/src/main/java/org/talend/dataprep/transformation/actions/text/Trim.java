@@ -17,6 +17,7 @@ import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.talend.dataprep.api.type.Type.STRING;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.actions.category.ScopeCategory.*;
 import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
@@ -70,7 +71,7 @@ public class Trim extends AbstractMultiScopeAction {
     private final ScopeCategory scope;
 
     public Trim() {
-        this(ScopeCategory.COLUMN);
+        this(COLUMN);
     }
 
     private Trim(ScopeCategory scope) {
@@ -99,7 +100,7 @@ public class Trim extends AbstractMultiScopeAction {
     @Override
         public List<Parameter> getParameters(Locale locale) {
         final List<Parameter> parameters = super.getParameters(locale);
-        if(this.scope.equals(ScopeCategory.COLUMN)) {
+        if(this.scope.equals(COLUMN)) {
             parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
         }
 
