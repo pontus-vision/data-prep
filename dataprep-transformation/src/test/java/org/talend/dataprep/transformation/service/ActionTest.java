@@ -90,8 +90,6 @@ public class ActionTest extends TransformationServiceBaseTest {
                 .get("/actions/dataset") //
                 .asString();
 
-        System.out.println(response);
-
         // then
         assertThat(response, sameJSONAsFile(ActionTest.class.getResourceAsStream("all_dataset_scope_actions.json")));
     }
