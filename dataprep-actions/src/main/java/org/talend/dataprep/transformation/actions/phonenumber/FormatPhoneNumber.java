@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -30,11 +30,13 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
+import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.category.ScopeCategory;
 import org.talend.dataprep.transformation.actions.common.*;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.standardization.phone.PhoneNumberHandlerBase;
@@ -43,7 +45,7 @@ import org.talend.dataquality.standardization.phone.PhoneNumberHandlerBase;
  * Format a validated phone number to a specified format.
  */
 @Action(FormatPhoneNumber.ACTION_NAME)
-public class FormatPhoneNumber extends AbstractDataSetAction {
+public class FormatPhoneNumber extends AbstractMultiScopeAction {
     /**
      * Action name.
      */
@@ -85,16 +87,20 @@ public class FormatPhoneNumber extends AbstractDataSetAction {
 
     private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
 
+    private final ScopeCategory scope;
+
+    public FormatPhoneNumber() {
+        this(ScopeCategory.COLUMN);
+    }
+    public FormatPhoneNumber(ScopeCategory scope) {
+        this.scope=scope;
+    }
+
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
         if (ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
-            //TODO temporary solution, need to hide the param in dataset case
-            try {
             ActionsUtils.createNewColumn(context, getAdditionalColumns(context));
-            } catch (NullPointerException e) {
-                context.setActionStatus(CANCELED);
-            }
         }
         if (context.getActionStatus() == OK) {
             try {
@@ -147,7 +153,9 @@ public class FormatPhoneNumber extends AbstractDataSetAction {
     @Nonnull
     public List<Parameter> getParameters(Locale locale) {
         final List<Parameter> parameters = super.getParameters(locale);
-        parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
+        if(this.scope.equals(ScopeCategory.COLUMN)) {
+            parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
+        }
         parameters.add(selectParameter(locale) //
                 .name(MODE_PARAMETER) //
                 .item(OTHER_COLUMN_MODE, OTHER_COLUMN_MODE, //
@@ -218,6 +226,11 @@ public class FormatPhoneNumber extends AbstractDataSetAction {
     @Override
     public boolean acceptField(ColumnMetadata column) {
         return Type.STRING.equals(Type.get(column.getType())) || Type.INTEGER.equals(Type.get(column.getType()));
+    }
+
+    @Override
+    public ActionDefinition adapt(ScopeCategory scope) {
+        return new FormatPhoneNumber(scope);
     }
 
     @Override

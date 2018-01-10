@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,12 +17,12 @@ import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.talend.dataprep.api.type.Type.STRING;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
 import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
 import org.talend.dataprep.api.action.Action;
+import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
@@ -30,6 +30,7 @@ import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 
+import org.talend.dataprep.transformation.actions.category.ScopeCategory;
 import org.talend.dataprep.transformation.actions.common.*;
 
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
@@ -39,7 +40,7 @@ import org.talend.dataquality.converters.StringTrimmer;
  * Trim leading and trailing characters.
  */
 @Action(Trim.TRIM_ACTION_NAME)
-public class Trim extends AbstractDataSetAction {
+public class Trim extends AbstractMultiScopeAction {
 
     /**
      * The action name.
@@ -47,24 +48,34 @@ public class Trim extends AbstractDataSetAction {
     public static final String TRIM_ACTION_NAME = "trim"; //$NON-NLS-1$
 
     /** Padding Character. */
-    public static final String PADDING_CHAR_PARAMETER = "padding_character"; //$NON-NLS-1$
+    protected static final String PADDING_CHAR_PARAMETER = "padding_character"; //$NON-NLS-1$
 
     /** Custom Padding Character. */
-    public static final String CUSTOM_PADDING_CHAR_PARAMETER = "custom_padding_character"; //$NON-NLS-1$
+    protected static final String CUSTOM_PADDING_CHAR_PARAMETER = "custom_padding_character"; //$NON-NLS-1$
 
     /** String Converter help class. */
-    public static final String STRING_TRIMMER = "string_trimmer"; //$NON-NLS-1$
+    private static final String STRING_TRIMMER = "string_trimmer"; //$NON-NLS-1$
 
     /**
      * Keys used in the values of different parameters:
      */
-    public static final String CUSTOM = "custom"; //$NON-NLS-1$
+    protected static final String CUSTOM = "custom"; //$NON-NLS-1$
 
-    public static final String WHITESPACE = "whitespace"; //$NON-NLS-1$
+    private static final String WHITESPACE = "whitespace"; //$NON-NLS-1$
 
     protected static final String NEW_COLUMN_SUFFIX = "_trim";
 
     private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
+
+    private final ScopeCategory scope;
+
+    public Trim() {
+        this(ScopeCategory.COLUMN);
+    }
+
+    private Trim(ScopeCategory scope) {
+        this.scope = scope;
+    }
 
     @Override
     public String getName() {
@@ -88,7 +99,9 @@ public class Trim extends AbstractDataSetAction {
     @Override
         public List<Parameter> getParameters(Locale locale) {
         final List<Parameter> parameters = super.getParameters(locale);
-        parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
+        if(this.scope.equals(ScopeCategory.COLUMN)) {
+            parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
+        }
 
         // @formatter:off
         parameters.add(selectParameter(locale)
@@ -106,12 +119,7 @@ public class Trim extends AbstractDataSetAction {
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
         if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
-            //TODO temporary solution, need to hide the param in dataset case
-            try {
-                ActionsUtils.createNewColumn(actionContext, getAdditionalColumns(actionContext));
-            } catch (NullPointerException e) {
-                actionContext.setActionStatus(CANCELED);
-            }
+            ActionsUtils.createNewColumn(actionContext, getAdditionalColumns(actionContext));
         }
         if (actionContext.getActionStatus() == OK) {
             actionContext.get(STRING_TRIMMER, p -> new StringTrimmer());
@@ -124,18 +132,19 @@ public class Trim extends AbstractDataSetAction {
         row.set(targetColumnId, doTrim(toTrim, context));
     }
 
-    public String doTrim(String toTrim, ActionContext context) {
-        if (toTrim != null) {
-            final Map<String, String> parameters = context.getParameters();
-            final StringTrimmer stringTrimmer = context.get(STRING_TRIMMER);
-            if (CUSTOM.equals(parameters.get(PADDING_CHAR_PARAMETER))) {
-                return stringTrimmer.removeTrailingAndLeading(toTrim, parameters.get(CUSTOM_PADDING_CHAR_PARAMETER));
-            } else {
-                return stringTrimmer.removeTrailingAndLeadingWhitespaces(toTrim);
-            }
+    private String doTrim(String toTrim, ActionContext context) {
+        final Map<String, String> parameters = context.getParameters();
+        final StringTrimmer stringTrimmer = context.get(STRING_TRIMMER);
+        if (CUSTOM.equals(parameters.get(PADDING_CHAR_PARAMETER))) {
+            return stringTrimmer.removeTrailingAndLeading(toTrim, parameters.get(CUSTOM_PADDING_CHAR_PARAMETER));
         } else {
-            return toTrim;
+            return stringTrimmer.removeTrailingAndLeadingWhitespaces(toTrim);
         }
+    }
+
+    @Override
+    public ActionDefinition adapt(ScopeCategory scope) {
+        return new Trim(scope);
     }
 
     @Override
