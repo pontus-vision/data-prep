@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -77,7 +77,7 @@ public class MakeLineHeader extends AbstractActionMetadata implements RowAction 
     public List<Parameter> getParameters(Locale locale) {
         return Collections.singletonList(Parameter.parameter(locale).setName(SKIP_UNTIL)
                 .setType(BOOLEAN)
-                .setDefaultValue(Boolean.TRUE.toString())
+                .setDefaultValue(true)
                 .build(this));
     }
 

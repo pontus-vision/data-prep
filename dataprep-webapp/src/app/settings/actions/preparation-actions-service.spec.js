@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -36,7 +36,7 @@ describe('Preparation actions service', () => {
 		it('should set sort in app state',
 			inject(($q, FolderService, PreparationActionsService) => {
 				// given
-				spyOn(FolderService, 'changeSort').and.returnValue();
+				spyOn(FolderService, 'changeSort').and.returnValue($q.when());
 				const action = {
 					type: '@@preparation/SORT',
 					payload: {
@@ -56,9 +56,9 @@ describe('Preparation actions service', () => {
 	});
 
 	describe('dispatch @@preparation/FOLDER_REMOVE', () => {
-		it('should remove folder', inject((FolderService, PreparationActionsService) => {
+		it('should remove folder', inject(($q, FolderService, PreparationActionsService) => {
 			// given
-			spyOn(FolderService, 'remove').and.returnValue();
+			spyOn(FolderService, 'remove').and.returnValue($q.when());
 			const action = {
 				type: '@@preparation/FOLDER_REMOVE',
 				payload: {

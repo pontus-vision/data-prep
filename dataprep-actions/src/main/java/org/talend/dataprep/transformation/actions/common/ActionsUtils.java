@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * This source code is available under agreement available at
  * https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -47,7 +47,7 @@ public class ActionsUtils {
     public static Parameter getColumnCreationParameter(Locale locale, boolean createNewColumnDefault) {
         return Parameter.parameter(locale).setName(CREATE_NEW_COLUMN)
                 .setType(BOOLEAN)
-                .setDefaultValue(Boolean.toString(createNewColumnDefault))
+                .setDefaultValue(createNewColumnDefault)
                 .setCanBeBlank(false)
                 .setImplicit(false)
                 .build(null);

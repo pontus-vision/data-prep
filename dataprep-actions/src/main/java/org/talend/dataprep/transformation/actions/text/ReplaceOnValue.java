@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -80,7 +80,7 @@ public class ReplaceOnValue extends AbstractActionMetadata implements ColumnActi
         parameters.add(parameter(locale).setName(REPLACE_VALUE_PARAMETER).setType(ParameterType.STRING).setDefaultValue(EMPTY).build(this));
         parameters.add(parameter(locale).setName(REPLACE_ENTIRE_CELL_PARAMETER)
                 .setType(BOOLEAN)
-                .setDefaultValue(Boolean.FALSE.toString())
+                .setDefaultValue(false)
                 .build(this));
         return parameters;
     }

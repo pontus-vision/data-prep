@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -82,12 +82,13 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest<FormatPhoneN
         final SelectParameter useWithParam = (SelectParameter) parameters.get(5);
         assertEquals("Value", useWithParam.getItems().get(1).getLabel());
 
-        final SelectParameter regionsListParam =(SelectParameter) useWithParam.getItems().get(1).getParameters().get(0);
+        final SelectParameter regionsListParam = (SelectParameter) useWithParam.getItems().get(1).getParameters().get(0);
         assertEquals("American standard", regionsListParam.getItems().get(0).getLabel());
     }
 
     @Test
     public void test_apply_in_newcolumn() {
+        // given
         parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, "FR");
         parameters.put(FormatPhoneNumber.FORMAT_TYPE_PARAMETER, FormatPhoneNumber.TYPE_INTERNATIONAL);
         parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
@@ -101,7 +102,35 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest<FormatPhoneN
         expectedValues.put("0000", "+33656965822");
         expectedValues.put("0001", "+33 6 56 96 58 22");
 
+        //when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(1).name("0000_formatted").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0001");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_in_newcolumn_with_empty_values() {
+        // given
+        parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, "FR");
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+        Map<String, String> values = new HashMap<>();
+        values.put("0000", "");
+
+        DataSetRow row = new DataSetRow(values);
+
+        Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "");
+        expectedValues.put("0001", "");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
         assertEquals(expectedValues, row.values());
         ColumnMetadata expected = ColumnMetadata.Builder.column().id(1).name("0000_formatted").type(Type.STRING).build();
         ColumnMetadata actual = row.getRowMetadata().getById("0001");
@@ -120,6 +149,24 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest<FormatPhoneN
 
         Map<String, Object> expectedValues = new LinkedHashMap<>();
         expectedValues.put("0000", "+33 6 56 96 58 22");
+
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        assertEquals(expectedValues, row.values());
+    }
+
+    @Test
+    public void test_default_phone_format() {
+        Map<String, String> values = new HashMap<>();
+        parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, "FR");
+        parameters.put(FormatPhoneNumber.FORMAT_TYPE_PARAMETER, "phone_test");
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+
+        values.put("0000", "+33656965822");
+
+        DataSetRow row = new DataSetRow(values);
+
+        Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "+33656965822");
 
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
@@ -495,5 +542,4 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest<FormatPhoneN
         assertEquals(1, action.getBehavior().size());
         assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.VALUES_COLUMN));
     }
-
 }

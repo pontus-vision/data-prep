@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -773,7 +773,7 @@ public class TransformationService extends BaseTransformationService {
         return outputStream -> {
             // Serialize it to output
             LOG.debug("Returning DQ dictionaries");
-            TdqCategories result = TdqCategoriesFactory.createTdqCategories();
+            TdqCategories result = TdqCategoriesFactory.createFullTdqCategories();
             try (ObjectOutputStream oos = new ObjectOutputStream(new GZIPOutputStream(outputStream))) {
                 oos.writeObject(result);
             }
