@@ -150,7 +150,11 @@ public class Trim extends AbstractMultiScopeAction {
 
     @Override
     public Set<Behavior> getBehavior() {
-        return EnumSet.of(Behavior.VALUES_MULTIPLE_COLUMNS);
+        if (this.scope.equals(DATASET)) {
+            return EnumSet.of(Behavior.VALUES_ALL);
+        } else {
+            return EnumSet.of(Behavior.VALUES_COLUMN);
+        }
     }
 
 }
