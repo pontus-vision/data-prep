@@ -100,7 +100,7 @@ public class Trim extends AbstractMultiScopeAction {
     @Override
         public List<Parameter> getParameters(Locale locale) {
         final List<Parameter> parameters = super.getParameters(locale);
-        if(this.scope.equals(COLUMN)) {
+        if(COLUMN.equals(scope)) {
             parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
         }
 
@@ -150,7 +150,7 @@ public class Trim extends AbstractMultiScopeAction {
 
     @Override
     public Set<Behavior> getBehavior() {
-        if (this.scope.equals(DATASET)) {
+        if (DATASET.equals(scope)) {
             return EnumSet.of(Behavior.VALUES_ALL);
         } else {
             return EnumSet.of(Behavior.VALUES_COLUMN);
