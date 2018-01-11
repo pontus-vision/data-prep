@@ -150,7 +150,7 @@ public class Trim extends AbstractMultiScopeAction {
 
     @Override
     public Set<Behavior> getBehavior() {
-        return EnumSet.of(Behavior.VALUES_COLUMN);
+        return EnumSet.of(Behavior.VALUES_MULTIPLE_COLUMNS);
     }
 
 }

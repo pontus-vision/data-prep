@@ -97,8 +97,6 @@ class ActionsStaticProfiler {
                 }
             }
 
-            ;
-
             if (createColumn || isCreateColumnParameterOn(action)) {
                 createColumnActions++;
             }
@@ -164,6 +162,5 @@ class ActionsStaticProfiler {
             return filterForFullAnalysis.test(columnMetadata) || metadataModifiedColumns.contains(columnMetadata.getId());
         }
     }
-
 
 }
