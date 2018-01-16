@@ -17,7 +17,8 @@ import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.talend.dataprep.api.type.Type.STRING;
 import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
-import static org.talend.dataprep.transformation.actions.category.ScopeCategory.*;
+import static org.talend.dataprep.transformation.actions.category.ScopeCategory.COLUMN;
+import static org.talend.dataprep.transformation.actions.category.ScopeCategory.DATASET;
 import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
@@ -32,7 +33,8 @@ import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
-import org.talend.dataprep.transformation.actions.common.*;
+import org.talend.dataprep.transformation.actions.common.AbstractMultiScopeAction;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.converters.StringTrimmer;
@@ -49,10 +51,10 @@ public class Trim extends AbstractMultiScopeAction {
     public static final String TRIM_ACTION_NAME = "trim"; //$NON-NLS-1$
 
     /** Padding Character. */
-    protected static final String PADDING_CHAR_PARAMETER = "padding_character"; //$NON-NLS-1$
+    static final String PADDING_CHAR_PARAMETER = "padding_character"; //$NON-NLS-1$
 
     /** Custom Padding Character. */
-    protected static final String CUSTOM_PADDING_CHAR_PARAMETER = "custom_padding_character"; //$NON-NLS-1$
+    static final String CUSTOM_PADDING_CHAR_PARAMETER = "custom_padding_character"; //$NON-NLS-1$
 
     /** String Converter help class. */
     private static final String STRING_TRIMMER = "string_trimmer"; //$NON-NLS-1$
@@ -60,7 +62,7 @@ public class Trim extends AbstractMultiScopeAction {
     /**
      * Keys used in the values of different parameters:
      */
-    protected static final String CUSTOM = "custom"; //$NON-NLS-1$
+    static final String CUSTOM = "custom"; //$NON-NLS-1$
 
     private static final String WHITESPACE = "whitespace"; //$NON-NLS-1$
 
@@ -68,14 +70,12 @@ public class Trim extends AbstractMultiScopeAction {
 
     private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
 
-    private final ScopeCategory scope;
-
     public Trim() {
         this(COLUMN);
     }
 
     private Trim(ScopeCategory scope) {
-        this.scope = scope;
+        super(scope);
     }
 
     @Override
@@ -94,11 +94,12 @@ public class Trim extends AbstractMultiScopeAction {
     }
 
     protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
-        return singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX).withType(STRING));
+        return singletonList(
+                ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX).withType(STRING));
     }
 
     @Override
-        public List<Parameter> getParameters(Locale locale) {
+    public List<Parameter> getParameters(Locale locale) {
         final List<Parameter> parameters = super.getParameters(locale);
         if (COLUMN.equals(scope)) {
             parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));

@@ -13,20 +13,32 @@ package org.talend.dataprep.transformation.actions.common;
 
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.transformation.actions.category.ScopeCategory;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
+/** AbstractMultiScopeAction is usefull for action with multiple scopes
+ * the behavior of this class is to got less modifications when you want to add datascope to an existing class */
 public abstract class AbstractMultiScopeAction extends AbstractActionMetadata implements ColumnAction, DataSetAction {
 
+    protected ScopeCategory scope;
+
+    public AbstractMultiScopeAction(ScopeCategory scope) {
+        this.scope = scope;
+    }
+
+    @Override
     public void applyOnDataSet(DataSetRow row, ActionContext context) {
         for (ColumnMetadata column : row.getRowMetadata().getColumns()) {
             apply(row, column.getId(), column.getId(), context);
         }
     }
 
+    @Override
     public void applyOnColumn(DataSetRow row, ActionContext context) {
         apply(row, context.getColumnId(), ActionsUtils.getTargetColumnId(context), context);
     }
 
+    /** apply will be Override by action and will contain the function */
     public abstract void apply(DataSetRow row, String columnId, String targetColumnId, ActionContext context);
 
 }

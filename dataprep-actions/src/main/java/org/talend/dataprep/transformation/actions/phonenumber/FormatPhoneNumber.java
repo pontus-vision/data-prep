@@ -23,7 +23,9 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
-import org.talend.dataprep.transformation.actions.common.*;
+import org.talend.dataprep.transformation.actions.common.AbstractMultiScopeAction;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
+import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.standardization.phone.PhoneNumberHandlerBase;
 
@@ -94,14 +96,12 @@ public class FormatPhoneNumber extends AbstractMultiScopeAction {
 
     private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
 
-    private final ScopeCategory scope;
-
     public FormatPhoneNumber() {
         this(ScopeCategory.COLUMN);
     }
 
     public FormatPhoneNumber(ScopeCategory scope) {
-        this.scope=scope;
+        super(scope);
     }
 
     @Override
