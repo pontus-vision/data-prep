@@ -13,6 +13,7 @@
 
 import angular from 'angular';
 
+import { ActionButton } from '@talend/react-components/lib/index';
 import AppHeaderBar from '@talend/react-components/lib/HeaderBar';
 import Breadcrumbs from '@talend/react-components/lib/Breadcrumbs';
 import CircularProgress from '@talend/react-components/lib/CircularProgress';
@@ -22,6 +23,7 @@ import Icon from '@talend/react-components/lib/Icon';
 import IconsProvider from '@talend/react-components/lib/IconsProvider';
 import SidePanel from '@talend/react-components/lib/SidePanel';
 import List from '@talend/react-components/lib/List';
+import Loader from '@talend/react-components/lib/Loader';
 import Progress from '@talend/react-components/lib/Progress';
 import Form from '@talend/react-forms';
 import getTranslated from '@talend/react-components/lib/TranslateWrapper';
@@ -67,20 +69,24 @@ angular.module(MODULE_NAME,
 	.directive('pureSidePanel', ['reactDirective', reactDirective => reactDirective(
 		getTranslated(SidePanel, { i18n })
 	)])
+	.directive('pureLoader', ['reactDirective', reactDirective => reactDirective(Loader)])
 	.directive('pureProgress', ['reactDirective', reactDirective => reactDirective(Progress)])
 	.directive('iconsProvider', ['reactDirective', reactDirective => reactDirective(IconsProvider)])
+	.directive('actionButton', ['reactDirective', reactDirective => reactDirective(ActionButton, [
+		'bsStyle',
+		'disabled',
+		'id',
+		'inProgress',
+		'label',
+		'onClick',
+		'tooltipLabel',
+		'type',
+	])])
 	.directive('icon', ['reactDirective', reactDirective => reactDirective(Icon)])
 	.directive('httpError', ['reactDirective', reactDirective => reactDirective(HttpError)])
-	.directive('talendForm', ['reactDirective', reactDirective => reactDirective(getTranslated(Form, { i18n }), [
-		// We need to declare each used props in order to pass them to React component in prod mode
-		// @see https://github.com/ngReact/ngReact/issues/193
-		'autocomplete',
-		'data',
-		'actions',
-		'onTrigger',
-		'onSubmit',
-		'showErrorList',
-	])])
+	.directive('talendForm', ['reactDirective', reactDirective => reactDirective(
+		getTranslated(Form, { i18n })
+	)])
 	.component('notifications', NotificationsContainer)
 	.component('appHeaderBar', AppHeaderBarContainer)
 	.component('breadcrumbs', BreadcrumbContainer)
