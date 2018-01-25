@@ -61,6 +61,10 @@ $search-actions-height: 25px;
 				}
 			}
 
+			.action-message {
+				height: calc(100% - #{$header-tabs-height + $search-actions-height});
+				top: calc(#{$header-tabs-height + $search-actions-height});
+			}
 		}
 
 		.action-suggestion-tab-items {
