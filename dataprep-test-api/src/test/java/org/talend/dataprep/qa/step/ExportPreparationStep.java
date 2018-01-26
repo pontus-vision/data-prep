@@ -1,5 +1,7 @@
 package org.talend.dataprep.qa.step;
 
+import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -41,7 +43,7 @@ public class ExportPreparationStep extends DataPrepStep {
 
     @When("^I get the export formats for the preparation \"(.*)\"$")
     public void whenIGetExportFormat(String preparationName) throws IOException {
-        String preparationId = context.getPreparationId(preparationName);
+        String preparationId = context.getPreparationId(suffixName(preparationName));
 
         Response apiResponse = api.getExportFormats(preparationId);
 
