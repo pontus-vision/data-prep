@@ -375,7 +375,9 @@ public class GenericCommand<T> extends HystrixCommand<T> {
      * @return the serialized actions
      */
     protected String serializeActions(final Collection<Action> stepActions) throws JsonProcessingException {
-        return "{\"actions\": " + objectMapper.writeValueAsString(stepActions) + "}";
+        return objectMapper.writer() //
+                .withRootName("actions") //
+                .writeValueAsString(stepActions);
     }
 
     // A intermediate builder for behavior definition.
