@@ -33,6 +33,7 @@
         <dependency>
             <groupId>org.talend.dataprep</groupId>
             <artifactId>dataprep-upgrade-common</artifactId>
+            <classifier>lib</classifier>
         </dependency>
         <dependency>
             <groupId>org.talend.dataprep</groupId>
