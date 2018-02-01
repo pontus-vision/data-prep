@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,17 +48,18 @@ import org.talend.dataprep.StandalonePreparation;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.dataset.statistics.PatternFrequency;
 import org.talend.dataprep.api.folder.Folder;
 import org.talend.dataprep.api.folder.FolderEntry;
-import org.talend.dataprep.api.preparation.AppendStep;
-import org.talend.dataprep.api.preparation.Preparation;
-import org.talend.dataprep.api.preparation.PreparationSummary;
-import org.talend.dataprep.api.preparation.Step;
+import org.talend.dataprep.api.preparation.*;
 import org.talend.dataprep.api.service.api.EnrichedPreparation;
+import org.talend.dataprep.api.service.api.PreviewAddParameters;
 import org.talend.dataprep.cache.ContentCache;
 import org.talend.dataprep.cache.ContentCacheKey;
 import org.talend.dataprep.preparation.service.UserPreparation;
 import org.talend.dataprep.security.Security;
+import org.talend.dataprep.transformation.actions.date.ComputeTimeSince;
+import org.talend.dataprep.transformation.actions.text.Trim;
 import org.talend.dataprep.transformation.cache.CacheKeyGenerator;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -956,6 +958,70 @@ public class PreparationAPITest extends ApiServiceTestBase {
 
         // then
         assertThat(preview, sameJSONAsFile(expectedPreviewStream));
+    }
+
+    /**
+     * Verify a calculate time until preview after a trim step on a preparation
+     * see <a href="https://jira.talendforge.org/browse/TDP-5057">TDP-5057</a>
+     */
+    @Test
+    public void testPreparationPreviewOnPreparationWithTrimAction_TDP_5057() throws IOException {
+        //Create a dataset from csv
+        final String datasetId = testClient.createDataset("preview/best_sad_songs_of_all_time.csv", "testPreview");
+        // Create a preparation
+        String preparationId = testClient.createPreparationFromDataset(datasetId, "testPrep", home.getId());
+
+        // apply trim action on the 8nd column to make this column date valid
+        Map<String, String> trimParameters = new HashMap<>();
+        trimParameters.put("create_new_column", "false");
+        trimParameters.put("padding_character", "whitespace");
+        trimParameters.put("scope", "column");
+        trimParameters.put("column_id", "0008");
+        trimParameters.put("column_name", "Added At");
+        trimParameters.put("row_id", "null");
+
+        testClient.applyAction(preparationId, Trim.TRIM_ACTION_NAME, trimParameters);
+
+        // check column is date valid after trim action
+        RowMetadata preparationContent = testClient.getPreparationContent(preparationId);
+
+        List<PatternFrequency> patternFrequencies =
+                preparationContent.getColumns().get(8).getStatistics().getPatternFrequencies();
+
+        assertTrue(patternFrequencies.stream() //
+                .map(PatternFrequency::getPattern) //
+                .anyMatch("yyyy-MM-dd"::equals));
+
+        // create a preview of calculate time until action
+        PreviewAddParameters previewAddParameters = new PreviewAddParameters();
+        previewAddParameters.setDatasetId(datasetId);
+        previewAddParameters.setPreparationId(preparationId);
+        previewAddParameters.setTdpIds(Arrays.asList(1, 2, 3, 4, 5, 6, 7));
+
+        Action calculateTimeUntilAction = new Action();
+        calculateTimeUntilAction.setName(ComputeTimeSince.TIME_SINCE_ACTION_NAME);
+        MixedContentMap actionParameters = new MixedContentMap();
+        actionParameters.put("create_new_column", "true");
+        actionParameters.put("time_unit", "HOURS");
+        actionParameters.put("since_when", "now_server_side");
+        actionParameters.put("scope", "column");
+        actionParameters.put("column_id", "0008");
+        actionParameters.put("column_name", "Added At");
+        calculateTimeUntilAction.setParameters(actionParameters);
+        previewAddParameters.setActions(Collections.singletonList(calculateTimeUntilAction));
+
+        JsonPath jsonPath = given().contentType(ContentType.JSON) //
+                .body(previewAddParameters) //
+                .expect().statusCode(200).log() .ifError() //
+                .when() //
+                .post("/api/preparations/preview/add") //
+                .jsonPath();
+
+        // check non empty value for the new column
+        assertEquals("new preview column should contains values according to calculate time until action", //
+                0, //
+                jsonPath.getList("records.0009").stream().map(String::valueOf).filter(StringUtils::isBlank).count());
+
     }
 
     @Test

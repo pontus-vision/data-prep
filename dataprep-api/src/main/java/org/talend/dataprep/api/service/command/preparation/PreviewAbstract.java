@@ -75,7 +75,7 @@ public abstract class PreviewAbstract extends GenericCommand<InputStream> {
 
         final String paramsAsJson;
         try {
-            paramsAsJson = objectMapper.writer().writeValueAsString(parameters);
+            paramsAsJson = objectMapper.writeValueAsString(parameters);
         } catch (JsonProcessingException e) {
             throw new TDPException(TransformationErrorCodes.UNABLE_TO_PERFORM_PREVIEW, e);
         }
