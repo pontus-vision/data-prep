@@ -13,6 +13,8 @@
 
 package org.talend.dataprep.helper;
 
+import static com.jayway.restassured.http.ContentType.JSON;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,8 +37,6 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSpecification;
-
-import static com.jayway.restassured.http.ContentType.JSON;
 
 /**
  * Utility class to allow dataprep-api integration tests.
@@ -142,6 +142,20 @@ public class OSDataPrepAPIHelper {
                 .contentType(JSON) //
                 .when() //
                 .post("/api/preparations/" + preparationId + "/steps/" + stepId + "/order?parentStepId=" + parentStepId);
+    }
+
+    /**
+     * Remove an action within a preparation.
+     *
+     * @param preparationId the preparation id.
+     * @param actionId the id of the action to delete.
+     * @return the response.
+     */
+    public Response deleteAction(String preparationId, String actionId) {
+        return given() //
+                .baseUri(apiBaseUrl) //
+                .when() //
+                .delete("/api/preparations/" + preparationId + "/actions/" + actionId);
     }
 
     /**
