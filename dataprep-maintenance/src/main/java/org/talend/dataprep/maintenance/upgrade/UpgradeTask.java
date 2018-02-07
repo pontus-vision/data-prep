@@ -41,7 +41,9 @@ public class UpgradeTask {
     public void upgradeTask() {
         LOG.info("Start method upgradeTask for all tenant");
         executor.execute(() -> forAll.execute(() -> true, () -> {
-            LOG.info("upgradeTask for tenant : {}", TenancyContextHolder.getContext().getTenant());
+            if (TenancyContextHolder.getContext().getOptionalTenant().isPresent()) {
+                LOG.info("upgradeTask for tenant : {}", TenancyContextHolder.getContext().getOptionalTenant());
+            }
         }));
         executor.execute(() -> forAll.execute(() -> upgradeService.needUpgrade(), () -> {
             LOG.info("Performing upgrade for '{}'...", security.getTenantId());

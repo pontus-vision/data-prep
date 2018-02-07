@@ -82,6 +82,10 @@ public class UpgradeService {
      * @return <code>true</code> if all available tasks are already applied, <code>false</code> else.
      */
     public boolean needUpgrade() {
+        if (TenancyContextHolder.getContext().getOptionalTenant().isPresent()) {
+            LOG.info("needUpgrade for tenant : {}", TenancyContextHolder.getContext().getOptionalTenant());
+        }
+
         int appliedTasks = repository.countUpgradeTask(VERSION.name());
         int availableTasks = (int) tasks.stream().filter(task -> Objects.equals(task.getTarget(), VERSION)).count();
         tasks.stream().forEach(task -> LOG.info("Task id {}", task.getId()));
