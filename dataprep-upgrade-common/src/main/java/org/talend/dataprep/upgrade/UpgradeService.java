@@ -86,18 +86,24 @@ public class UpgradeService {
             LOG.info("needUpgrade for tenant : {}", TenancyContextHolder.getContext().getOptionalTenant());
         }
 
-        int appliedTasks = repository.countUpgradeTask(VERSION.name());
-        int availableTasks = (int) tasks.stream().filter(task -> Objects.equals(task.getTarget(), VERSION)).count();
-        tasks.stream().forEach(task -> LOG.info("Task id {}", task.getId()));
-        if (appliedTasks > availableTasks) {
-            LOG.warn("It seems that more upgrade tasks have been applied than the available ones.");
-            return true;
-        } else if (appliedTasks == availableTasks) {
-            LOG.info("no upgrade needed");
+        try {
+            int appliedTasks = repository.countUpgradeTask(VERSION.name());
+            int availableTasks = (int) tasks.stream().filter(task -> Objects.equals(task.getTarget(), VERSION)).count();
+            tasks.stream().forEach(task -> LOG.info("Task id {}", task.getId()));
+            if (appliedTasks > availableTasks) {
+                LOG.warn("It seems that more upgrade tasks have been applied than the available ones.");
+                return true;
+            } else if (appliedTasks == availableTasks) {
+                LOG.info("no upgrade needed");
+                return false;
+            } else { // appliedTasks < availableTasks
+                LOG.info("Upgrade needed");
+                return true;
+            }
+        }
+        catch (Exception e) {
+            LOG.warn("Need upgrade failed", e);
             return false;
-        } else { // appliedTasks < availableTasks
-            LOG.info("Upgrade needed");
-            return true;
         }
     }
 
