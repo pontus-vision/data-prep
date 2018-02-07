@@ -38,10 +38,12 @@ public class UpgradeTask {
 
     @PostConstruct
     public void upgradeTask() {
+        LOG.info("Start method upgradeTask for all tenant");
         executor.execute(() -> forAll.execute(() -> upgradeService.needUpgrade(), () -> {
             LOG.info("Performing upgrade for '{}'...", security.getTenantId());
             upgradeService.upgradeVersion();
             LOG.info("Performing upgrade done for '{}'.", security.getTenantId());
         }));
+        LOG.info("End method upgradeTask for all tenant");
     }
 }
