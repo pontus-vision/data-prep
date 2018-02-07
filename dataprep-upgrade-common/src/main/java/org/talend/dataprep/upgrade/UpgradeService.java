@@ -25,6 +25,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.talend.daikon.multitenant.context.TenancyContextHolder;
 import org.talend.dataprep.upgrade.model.UpgradeTask;
 import org.talend.dataprep.upgrade.model.UpgradeTaskId;
 import org.talend.dataprep.upgrade.repository.UpgradeTaskRepository;
@@ -81,7 +82,7 @@ public class UpgradeService {
      * @return <code>true</code> if all available tasks are already applied, <code>false</code> else.
      */
     public boolean needUpgrade() {
-        LOG.info("process the need upgrade method. Current version is {}", VERSION.name());
+        LOG.info("process the need upgrade method. For tenant {}", TenancyContextHolder.getContext().getTenant());
         int appliedTasks = repository.countUpgradeTask(VERSION.name());
         int availableTasks = (int) tasks.stream().filter(task -> Objects.equals(task.getTarget(), VERSION)).count();
         tasks.stream().forEach(task -> LOG.info("Task id {}", task.getId()));
