@@ -40,12 +40,6 @@ public class UpgradeTask {
     @PostConstruct
     public void upgradeTask() {
         LOG.info("Start method upgradeTask for all tenant");
-        forAll.execute(() -> true, () -> {
-            if (TenancyContextHolder.getContext().getOptionalTenant().isPresent()) {
-                LOG.info("upgradeTask for tenant : {}", TenancyContextHolder.getContext().getOptionalTenant());
-            }
-        });
-
         executor.execute(() -> forAll.execute(() -> true, () -> {
             if (TenancyContextHolder.getContext().getOptionalTenant().isPresent()) {
                 LOG.info("upgradeTask for tenant : {}", TenancyContextHolder.getContext().getOptionalTenant());
