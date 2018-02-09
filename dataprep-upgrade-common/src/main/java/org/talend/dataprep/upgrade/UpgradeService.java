@@ -133,8 +133,9 @@ public class UpgradeService {
                 LOG.debug("apply upgrade {}", taskId);
                 try {
                     task.run();
+                    LOG.debug("Upgrade successful for task {}", taskId);
                 } catch (Exception exception) {
-                    LOG.error("Failed to apply upgrade {}", taskId);
+                    LOG.error("Failed to apply upgrade {}", taskId, exception);
                     break;
                 }
                 repository.applied(targetId, taskId);
