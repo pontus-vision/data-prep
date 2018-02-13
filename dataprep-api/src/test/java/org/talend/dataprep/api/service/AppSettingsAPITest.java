@@ -538,13 +538,13 @@ public class AppSettingsAPITest extends ApiServiceTestBase {
     }
 
     @Test
-    public void shouldNotEnableThemeByDefaultInContextSettings() {
+    public void shouldEnableThemeByDefaultInContextSettings() {
         // when
         final AppSettings settings = when().get("/api/settings/").as(AppSettings.class);
 
         // then
         final boolean theme = (boolean) settings.getContext().get("theme");
 
-        assertThat(theme, is(Boolean.FALSE));
+        assertThat(theme, is(Boolean.TRUE));
     }
 }
