@@ -1,0 +1,169 @@
+{
+  "contentTypes": {},
+  "actions": {
+    "menu:preparations": {
+      "id": "menu:preparations",
+      "label": "Preparations",
+      "icon": "talend-dataprep",
+      "payload": {
+        "type": "MENU_LINK",
+        "cmf": {
+          "routerReplace": "/preparations"
+        }
+      }
+    },
+    "menu:datasets": {
+      "id": "menu:datasets",
+      "label": "Datasets",
+      "icon": "talend-folder",
+      "payload": {
+        "type": "MENU_LINK",
+        "cmf": {
+          "routerReplace": "/datasets"
+        }
+      }
+    },
+    "menu:datastores": {
+      "id": "menu:datastores",
+      "label": "Datastores",
+      "icon": "talend-datastore",
+      "payload": {
+        "type": "MENU_LINK",
+        "cmf": {
+          "routerReplace": "/datastores"
+        }
+      }
+    }
+  },
+  "views": {
+    "indexRouteRedirect": {
+      "path": "/preparations"
+    },
+    "Container(HeaderBar)#default": {
+      "brand": {
+        "label": "Data Preparation"
+      }
+    },
+    "Container(SidePanel)#default": {
+      "actionIds": ["menu:preparations", "menu:datasets", "menu:datastores"]
+    },
+    "preparations" : {
+      "didMountActionCreator": "preparation:fetchAll",
+      "header": {},
+      "sidepanel": {},
+      "list": {
+        "collectionId": "preparations",
+        "list": {
+          "columns": [
+            { "key": "name", "label": "Name" },
+            { "key": "author",  "label": "Author" }
+          ],
+          "titleProps": {
+            "key": "name",
+            "iconKey": "icon"
+          }
+        },
+        "actions": {
+          "title": "preparation:open"
+        }
+      }
+
+
+
+
+
+
+
+
+
+
+
+    },
+    "datasets": {
+      "didMountActionCreator": "dataset:fetchAll",
+      "header": {},
+      "sidepanel": {},
+      "list": {
+        "collectionId": "datasets",
+        "list": {
+          "columns": [
+            { "key": "id", "label": "ID" },
+            { "key": "label", "label": "Name" },
+            { "key": "created",  "label": "Created" },
+            { "key": "tags", "label": "Tags" }
+          ]
+        },
+        "toolbar": {
+          "filter": {
+            "placeholder": "Find a dataset"
+          },
+          "sort": {
+            "options": [
+              { "id": "label", "name": "Name" },
+              { "id": "created", "name": "Created" }
+            ]
+          }
+        },
+        "initialState": {
+          "sortOn": "label"
+        }
+      }
+    },
+    "datastores": {
+      "didMountActionCreator": "datastore:fetchAll",
+      "header": {},
+      "sidepanel": {},
+      "list": {
+        "collectionId": "datastores",
+        "list": {
+          "columns": [
+            { "key": "id", "label": "ID" },
+            { "key": "label", "label": "Name" },
+            { "key": "type",  "label": "Type" },
+            { "key": "datasets", "label": "Number of datasets" }
+          ]
+        },
+        "toolbar": {
+          "filter": {
+            "placeholder": "Find a datastore"
+          },
+          "sort": {
+            "options": [
+              { "id": "label", "name": "Name" },
+              { "id": "type", "name": "Type" },
+              { "id": "datasets", "name": "Number of datasets" }
+            ]
+          }
+        },
+        "initialState": {
+          "sortOn": "label"
+        }
+      }
+    }
+  },
+  "routes": {
+    "path": "/",
+    "component": "App",
+    "indexRoute": {
+      "component": "Redirect",
+      "view": "indexRouteRedirect"
+    },
+    "childRoutes": [
+      {
+        "path": "preparations",
+        "component": "HomeListView",
+        "view": "preparations"
+      },
+      {
+        "path": "datasets",
+        "component": "HomeListView",
+        "view": "datasets"
+      },
+      {
+        "path": "datastores",
+        "component": "HomeListView",
+        "view": "datastores"
+      }
+    ]
+  }
+}
