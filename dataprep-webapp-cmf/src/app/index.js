@@ -9,6 +9,7 @@ import { render } from 'react-dom';
 import { App, store as cmfstore, actions } from '@talend/react-cmf';
 import { browserHistory } from 'react-router';
 import { routerMiddleware, syncHistoryWithStore } from 'react-router-redux';
+import createSagaMiddleware from 'redux-saga';
 
 import configure from './configure';
 import appReducer from './reducers';
@@ -28,7 +29,13 @@ cmfstore.setRouterMiddleware(routerMiddleware(browserHistory));
 /**
  * Register your app reducers
  */
-const store = cmfstore.initialize(appReducer);
+const sagaMiddleware = createSagaMiddleware();
+const store = cmfstore.initialize(appReducer, undefined, undefined, [sagaMiddleware]);
+
+/**
+ * Run main saga
+ */
+configure.runSagas(sagaMiddleware, browserHistory);
 
 /**
  * Fetch the CMF settings and configure the CMF app

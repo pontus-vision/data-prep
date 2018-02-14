@@ -33,6 +33,9 @@
           "routerReplace": "/datastores"
         }
       }
+    },
+    "help:about:open": {
+      "actionCreator": "help:about:open"
     }
   },
   "views": {
@@ -42,6 +45,9 @@
     "Container(HeaderBar)#default": {
       "brand": {
         "label": "Data Preparation"
+      },
+      "help": {
+        "actionId": "help:about:open"
       }
     },
     "Container(SidePanel)#default": {
@@ -49,8 +55,8 @@
     },
     "preparations" : {
       "didMountActionCreator": "preparation:fetchAll",
-      "header": {},
-      "sidepanel": {},
+      "header": { },
+      "sidepanel": { },
       "list": {
         "collectionId": "preparations",
         "list": {

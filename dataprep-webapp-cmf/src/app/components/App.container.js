@@ -2,6 +2,8 @@ import React from 'react';
 import { IconsProvider } from '@talend/react-components';
 import { Notification } from '@talend/react-containers';
 
+import AboutModal from './about';
+
 export default function App(props) {
 	/**
 	 * Instanciate all global components here
@@ -12,6 +14,7 @@ export default function App(props) {
 		<div>
 			<IconsProvider />
 			<Notification />
+			<AboutModal />
 			{props.children}
 		</div>
 	);
