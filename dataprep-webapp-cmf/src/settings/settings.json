@@ -53,6 +53,19 @@
       "id": "help:feedback:open",
       "label": "Feedback",
       "actionCreator": "help:feedback:open"
+    },
+    "preparation:add:open": {
+      "id": "preparation:add:open",
+      "bsStyle": "primary",
+      "icon": "talend-plus-circle",
+      "label": "Add preparation",
+      "actionCreator": "preparation:add:open"
+    },
+    "folder:add:open": {
+      "id": "folder:add:open",
+      "icon": "talend-folder",
+      "label": "Add folder",
+      "actionCreator": "folder:add:open"
     }
   },
   "props": {
@@ -123,8 +136,14 @@
             "iconKey": "icon"
           }
         },
+        "toolbar": {
+          "filter": {
+            "placeholder": "Find a preparation"
+          }
+        },
         "actions": {
-          "title": "preparation:open"
+          "title": "preparation:open",
+          "left": ["preparation:add:open", "folder:add:open"]
         }
       }
     }

@@ -34,6 +34,9 @@ export default {
 		registerActionCreator('help:tour', () => { alert('TODO'); return { type: 'none' }; });
 		registerActionCreator('help:about:open', () => ({ type: OPEN_ABOUT }));
 		registerActionCreator('help:feedback:open', () => { alert('TODO'); return { type: 'none' }; });
+
+		registerActionCreator('preparation:add:open', () => { alert('TODO'); return { type: 'none' }; });
+		registerActionCreator('folder:add:open', () => { alert('TODO'); return { type: 'none' }; });
 	},
 
 	runSagas(sagaMiddleware, history) {
