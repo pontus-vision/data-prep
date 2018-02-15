@@ -61,6 +61,10 @@
       "label": "Add preparation",
       "actionCreator": "preparation:add:open"
     },
+    "preparation:rename": {
+      "id": "preparation:rename",
+      "actionCreator": "preparation:rename"
+    },
     "preparation:duplicate": {
       "id": "preparation:duplicate",
       "label": "Duplicate",
@@ -141,7 +145,8 @@
           ],
           "titleProps": {
             "key": "name",
-            "iconKey": "icon"
+            "iconKey": "icon",
+            "displayModeKey": "display"
           }
         },
         "toolbar": {
@@ -152,7 +157,7 @@
         "actions": {
           "title": "preparation:open",
           "left": ["preparation:add:open", "folder:add:open"],
-          "items": ["preparation:duplicate"]
+          "items": ["preparation:rename", "preparation:duplicate"]
         }
       }
     }
