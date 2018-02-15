@@ -15,6 +15,10 @@ config.watchOptions = {
 config.devServer = {
 	port: 4000,
 	proxy: {
+		'/api/v1/stream-websocket': {
+			target: process.env.API_URL || 'http://localhost',
+			ws: true,
+		},
 		'/api': {
 			target: process.env.API_URL || 'http://localhost',
 			changeOrigin: true,

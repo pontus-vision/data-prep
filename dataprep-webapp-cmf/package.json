@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=developement webpack-dev-server --inline --config webpack.config.dev.js --content-base build/",
+    "start": "NODE_ENV=developement API_URL=http://localhost:3030 webpack-dev-server --inline --config webpack.config.dev.js --content-base build/",
     "prepublish": "webpack",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -65,7 +65,9 @@
   },
   "dependencies": {
     "@talend/bootstrap-theme": "0.155.1",
+    "@talend/dataset": "^0.26.0",
     "@talend/icons": "0.155.1",
+    "@talend/rating": "^0.2.1",
     "@talend/react-cmf": "0.155.1",
     "@talend/react-components": "0.155.1",
     "@talend/react-containers": "0.155.1",
@@ -74,6 +76,7 @@
     "bootstrap-sass": "3.3.7",
     "bson-objectid": "1.1.5",
     "classnames": "2.2.5",
+    "date-fns": "^1.29.0",
     "i18next": "^9.0.0",
     "immutable": "3.8.1",
     "invariant": "2.2.2",
