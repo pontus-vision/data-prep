@@ -3,22 +3,34 @@ import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
-export default function AboutModal({ state, setState }) {
-	return (
-		<Modal
-			show={state && state.get('show')}
-			onHide={() => setState({ show: false })}
-		>
-			<Modal.Header>
-				<Modal.Title>Talend Data Preparation</Modal.Title>
-			</Modal.Header>
+export default class AboutModal extends React.Component {
+	constructor(props) {
+		super(props);
+		this.close = this.close.bind(this);
+	}
 
-			<Modal.Body>Lol about</Modal.Body>
-			<Modal.Footer>
-				<Button onClick={() => setState({ show: false })}>Close</Button>
-			</Modal.Footer>
-		</Modal>
-	);
+	close() {
+		this.props.setState({ show: false });
+	}
+
+	render() {
+		const cmfState = this.props.state;
+		return (
+			<Modal
+				show={cmfState && cmfState.get('show')}
+				onHide={this.close}
+			>
+				<Modal.Header>
+					<Modal.Title>Talend Data Preparation</Modal.Title>
+				</Modal.Header>
+
+				<Modal.Body>Lol about</Modal.Body>
+				<Modal.Footer>
+					<Button onClick={this.close}>Close</Button>
+				</Modal.Footer>
+			</Modal>
+		);
+	}
 }
 AboutModal.displayName = 'AboutModal';
 AboutModal.propTypes = {
