@@ -8,7 +8,7 @@ import { fetchPreparations } from './actions/preparation';
 
 import App from './components/App.container';
 
-import { openAboutSaga } from './saga/about.saga';
+import { helpSagas } from './saga';
 import { OPEN_ABOUT } from './constants';
 
 const registerComponent = api.route.registerComponent;
@@ -25,18 +25,21 @@ export default {
 		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
-		registerActionCreator('help:about:open', () => ({ type: OPEN_ABOUT }));
 		registerActionCreator('preparation:fetchAll', fetchPreparations);
 		registerActionCreator('dataset:fetchAll', fetchDataSets);
 		registerActionCreator('datastore:fetchAll', fetchDataStores);
 		registerActionCreator('redirect', redirect);
+
+		registerActionCreator('help:tour', () => { alert('TODO'); return { type: 'none' }; });
+		registerActionCreator('help:about:open', () => ({ type: OPEN_ABOUT }));
+		registerActionCreator('help:feedback:open', () => { alert('TODO'); return { type: 'none' }; });
 	},
 
 	runSagas(sagaMiddleware, history) {
 		function* rootSaga() {
 			yield all([
-				fork(sagaRouter, history, {} /*routes*/),
-				call(openAboutSaga),
+				fork(sagaRouter, history, {} /*TODO sagas per route*/),
+				...helpSagas.map(saga => call(saga)),
 			]);
 		}
 		sagaMiddleware.run(rootSaga);

@@ -5,7 +5,10 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const extractCSS = new ExtractTextPlugin({ filename: '[name]-[hash].css' });
 
-const SASS_DATA = `$brand-primary: #77828A;
+const SASS_DATA = `
+$brand-primary: #4F93A7;
+$brand-primary-t7: #00A1B3;
+$brand-secondary-t7: #168AA6;
 @import '~@talend/bootstrap-theme/src/theme/guidelines';
 `;
 
@@ -47,12 +50,12 @@ module.exports = {
 			{
 				test: /\.scss$/,
 				use: extractCSS.extract(getSassLoaders()),
-				include: /theme.scss/,
+				include: /bootstrap-theme/,
 			},
 			{
 				test: /\.scss$/,
 				use: extractCSS.extract(getSassLoaders(true)),
-				exclude: /theme.scss/,
+				exclude: /bootstrap-theme/,
 			},
 			{
 				test: /\.woff(2)?(\?v=\d+\.\d+\.\d+)?$/,
@@ -66,7 +69,7 @@ module.exports = {
 		new HtmlWebpackPlugin({
 			filename: './index.html',
 			template: './src/app/index.html',
-			title: 'Talend Web App Name',
+			title: 'Talend Data Preparation',
 		}),
 		new CopyWebpackPlugin([
 			{ from: 'src/assets' },

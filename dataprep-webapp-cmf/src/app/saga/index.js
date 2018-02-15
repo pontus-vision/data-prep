@@ -1,3 +1,3 @@
-import tdpSaga from './about.saga';
+import { openAboutSaga } from './help.saga';
 
-export default tdpSaga;
+export const helpSagas = [openAboutSaga];
