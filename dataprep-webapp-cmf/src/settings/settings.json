@@ -63,7 +63,7 @@
     },
     "preparation:rename": {
       "id": "preparation:rename",
-      "icon": "talend-folder",
+      "icon": "talend-pencil",
       "label": "Rename",
       "actionCreator": "preparation:rename"
     },
