@@ -11,6 +11,7 @@ import App from './components/App.container';
 
 import { openAboutSaga } from './saga/help.saga';
 import { renamePreparationSaga, setTitleEditionModeSaga } from './saga/rename.saga';
+import { duplicatePreparation } from './saga/preparation.saga';
 import { OPEN_ABOUT } from './constants';
 
 const registerComponent = api.route.registerComponent;
@@ -31,6 +32,12 @@ export default {
 		 * Register action creators in CMF Actions dictionary
 		 */
 		registerActionCreator('preparation:rename', setTitleEditionMode);
+		registerActionCreator('preparation:duplicate', (event, element) => ({
+			type: 'PREPARATION_DUPLICATE',
+			payload: {
+				id: element.model.id,
+			},
+		}));
 		registerActionCreator('preparation:fetchAll', fetchPreparations);
 		registerActionCreator('redirect', redirect);
 
@@ -49,6 +56,7 @@ export default {
 				...helpSagas.map(saga => call(saga)),
 				call(openAboutSaga),
 				call(renamePreparationSaga),
+				call(duplicatePreparation),
 				call(setTitleEditionModeSaga),
 			]);
 		}

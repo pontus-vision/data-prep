@@ -30,10 +30,6 @@ export function fetchPreparations() {
 export function renamePreparation(event, { model }) {
 	return {
 		type: RENAME_PREPARATION,
-		payload: {
-			method: 'rename',
-			args: [`/connections/${model.id}/view`],
-		},
 	};
 }
 

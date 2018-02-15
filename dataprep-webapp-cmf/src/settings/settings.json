@@ -61,6 +61,12 @@
       "label": "Add preparation",
       "actionCreator": "preparation:add:open"
     },
+    "preparation:duplicate": {
+      "id": "preparation:duplicate",
+      "label": "Duplicate",
+      "icon": "talend-folder",
+      "actionCreator" : "preparation:duplicate"
+    },
     "folder:add:open": {
       "id": "folder:add:open",
       "icon": "talend-folder",
@@ -145,7 +151,8 @@
         },
         "actions": {
           "title": "preparation:open",
-          "left": ["preparation:add:open", "folder:add:open"]
+          "left": ["preparation:add:open", "folder:add:open"],
+          "items": ["preparation:duplicate"]
         }
       }
     }
