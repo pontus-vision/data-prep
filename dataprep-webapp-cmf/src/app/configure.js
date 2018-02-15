@@ -5,13 +5,11 @@ import rating from '@talend/rating';
 import { all, call, fork } from 'redux-saga/effects';
 import redirect from './actions/redirect';
 import { helpSagas } from './saga';
-import { fetchDataSets } from './actions/dataset';
-import { fetchDataStores } from './actions/datastore';
 import { fetchPreparations, setTitleEditionMode } from './actions/preparation';
 
 import App from './components/App.container';
 
-import { openAboutSaga } from './saga/about.saga';
+import { openAboutSaga } from './saga/help.saga';
 import { renamePreparationSaga, setTitleEditionModeSaga } from './saga/rename.saga';
 import { OPEN_ABOUT } from './constants';
 
