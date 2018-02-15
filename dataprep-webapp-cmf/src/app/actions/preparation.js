@@ -15,6 +15,8 @@ export function fetchPreparations() {
 				name: prep.name,
 				author: prep.author,
 				icon: 'talend-dataprep',
+				datasetName: prep.dataset.dataSetName,
+				nbSteps: prep.steps.length - 1,
 			}));
 			return adaptedFolders.concat(adaptedPreparations);
 		},

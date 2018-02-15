@@ -129,7 +129,9 @@
         "list": {
           "columns": [
             { "key": "name", "label": "Name" },
-            { "key": "author",  "label": "Author" }
+            { "key": "author",  "label": "Author" },
+            { "key": "datasetName",  "label": "Dataset" },
+            { "key": "nbSteps",  "label": "Steps" }
           ],
           "titleProps": {
             "key": "name",

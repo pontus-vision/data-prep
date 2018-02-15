@@ -14,6 +14,7 @@ import createSagaMiddleware from 'redux-saga';
 
 import configure from './configure';
 import appReducer from './reducers';
+import './index.css';
 
 /**
  * Initialize CMF configuration

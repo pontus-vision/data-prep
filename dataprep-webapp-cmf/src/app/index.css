@@ -1,0 +1,15 @@
+.tc-list-table div.tc-list-cell-name {
+	flex: 1 1 450px;
+}
+
+.tc-list-table div.tc-list-cell-author {
+	flex: 1 0 120px;
+}
+
+.tc-list-table div.tc-list-cell-datasetName {
+	flex: 1 1 200px;
+}
+
+.tc-list-table div.tc-list-cell-nbSteps {
+	flex: 1 0 120px;
+}
