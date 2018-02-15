@@ -5,7 +5,10 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 
 export default function AboutModal({ state, setState }) {
 	return (
-		<Modal show={state && state.get('show')}>
+		<Modal
+			show={state && state.get('show')}
+			onHide={() => setState({ show: false })}
+		>
 			<Modal.Header>
 				<Modal.Title>Talend Data Preparation</Modal.Title>
 			</Modal.Header>
