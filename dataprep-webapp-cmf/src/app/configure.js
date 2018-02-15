@@ -4,11 +4,15 @@ import dataset from '@talend/dataset';
 import rating from '@talend/rating';
 import { all, call, fork } from 'redux-saga/effects';
 import redirect from './actions/redirect';
-import { fetchPreparations } from './actions/preparation';
+import { helpSagas } from './saga';
+import { fetchDataSets } from './actions/dataset';
+import { fetchDataStores } from './actions/datastore';
+import { fetchPreparations, setTitleEditionMode } from './actions/preparation';
 
 import App from './components/App.container';
 
-import { helpSagas } from './saga';
+import { openAboutSaga } from './saga/about.saga';
+import { renamePreparationSaga, setTitleEditionModeSaga } from './saga/rename.saga';
 import { OPEN_ABOUT } from './constants';
 
 const registerComponent = api.route.registerComponent;
@@ -28,6 +32,7 @@ export default {
 		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
+		registerActionCreator('preparation:rename', setTitleEditionMode);
 		registerActionCreator('preparation:fetchAll', fetchPreparations);
 		registerActionCreator('redirect', redirect);
 
@@ -42,8 +47,11 @@ export default {
 	runSagas(sagaMiddleware, history) {
 		function* rootSaga() {
 			yield all([
-				fork(sagaRouter, history, {} /*TODO sagas per route*/),
+				fork(sagaRouter, history, {}),
 				...helpSagas.map(saga => call(saga)),
+				call(openAboutSaga),
+				call(renamePreparationSaga),
+				call(setTitleEditionModeSaga),
 			]);
 		}
 		sagaMiddleware.run(rootSaga);
