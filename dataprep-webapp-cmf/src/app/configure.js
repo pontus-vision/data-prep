@@ -10,8 +10,7 @@ import { fetchPreparations, setTitleEditionMode } from './actions/preparation';
 import App from './components/App.container';
 
 import { openAboutSaga } from './saga/help.saga';
-import { renamePreparationSaga, setTitleEditionModeSaga } from './saga/rename.saga';
-import { duplicatePreparation } from './saga/preparation.saga';
+import { duplicatePreparation, renamePreparationSaga, setTitleEditionModeSaga } from './saga/preparation.saga';
 import { OPEN_ABOUT } from './constants';
 
 const registerComponent = api.route.registerComponent;
