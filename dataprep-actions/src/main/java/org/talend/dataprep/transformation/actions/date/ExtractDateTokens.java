@@ -146,7 +146,7 @@ public class ExtractDateTokens extends AbstractDate implements ColumnAction {
                             .withType(Type.INTEGER));
                 }
             }
-
+            Collections.reverse(additionalColumns);
             ActionsUtils.createNewColumn(context, additionalColumns);
         }
     }
