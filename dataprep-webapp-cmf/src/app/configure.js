@@ -3,15 +3,13 @@ import { registerAllContainers } from '@talend/react-containers/lib/register';
 import dataset from '@talend/dataset';
 import rating from '@talend/rating';
 import { all, call, fork } from 'redux-saga/effects';
-import redirect from './actions/redirect';
-import { fetchPreparations, duplicatePreparation, setTitleEditionMode } from './actions/preparation';
 
-import App from './components/App.container';
-
+import actions from './actions';
 import sagas from './saga';
 
-
+import App from './components/App.container';
 import { OPEN_ABOUT } from './constants';
+
 
 const registerComponent = api.route.registerComponent;
 const registerActionCreator = api.action.registerActionCreator;
@@ -30,10 +28,10 @@ export default {
 		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
-		registerActionCreator('preparation:rename', setTitleEditionMode);
-		registerActionCreator('preparation:duplicate', duplicatePreparation);
-		registerActionCreator('preparation:fetchAll', fetchPreparations);
-		registerActionCreator('redirect', redirect);
+		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
+		registerActionCreator('preparation:duplicate', actions.preparation.duplicate);
+		registerActionCreator('preparation:fetchAll', actions.preparation.fetchAll);
+		registerActionCreator('redirect', actions.redirect);
 
 		registerActionCreator('help:tour', () => { alert('TODO'); return { type: 'none' }; });
 		registerActionCreator('help:about:open', () => ({ type: OPEN_ABOUT }));
@@ -44,7 +42,6 @@ export default {
 	},
 
 	runSagas(sagaMiddleware, history) {
-		console.log('[NC] sagas.help: ', sagas);
 		function* rootSaga() {
 			yield all([
 				fork(sagaRouter, history, {}),

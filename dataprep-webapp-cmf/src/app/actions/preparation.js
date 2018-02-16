@@ -1,7 +1,7 @@
 import { actions } from '@talend/react-cmf';
 import { RENAME_PREPARATION, SET_TITLE_EDITION_MODE, PREPARATION_DUPLICATE } from '../constants';
 
-export function fetchPreparations() {
+export function fetchAll() {
 	return actions.http.get('http://localhost:8888/api/folders/Lw==/preparations', {
 		cmf: {
 			collectionId: 'preparations',
@@ -27,7 +27,7 @@ export function fetchPreparations() {
 	});
 }
 
-export function duplicatePreparation(event, { model }) {
+export function duplicate(event, { model }) {
 	return {
 		type: PREPARATION_DUPLICATE,
 		payload: {
@@ -36,7 +36,7 @@ export function duplicatePreparation(event, { model }) {
 	};
 }
 
-export function renamePreparation(event, { model }) {
+export function rename(event, { model }) {
 	return {
 		type: RENAME_PREPARATION,
 	};
