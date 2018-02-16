@@ -13,3 +13,11 @@
 .tc-list-table div.tc-list-cell-nbSteps {
 	flex: 1 0 120px;
 }
+
+.list-item-folder div > svg.tc-svg-icon {
+	fill: #EAC282;
+}
+
+.list-item-preparation div > svg.tc-svg-icon {
+	fill: #236192; /* st-tropaz */
+}

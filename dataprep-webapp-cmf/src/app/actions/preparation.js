@@ -13,17 +13,19 @@ export function fetchAll() {
 		},
 		transform({ folders, preparations }) {
 			const adaptedFolders = folders.map(folder => ({
+				author: folder.ownerId,
+				className: 'list-item-folder',
+				icon: 'talend-folder',
 				id: folder.id,
 				name: folder.name,
-				author: folder.ownerId,
-				icon: 'talend-folder',
 			}));
 			const adaptedPreparations = preparations.map(prep => ({
+				author: prep.author,
+				className: 'list-item-preparation',
+				datasetName: prep.dataset.dataSetName,
+				icon: 'talend-dataprep',
 				id: prep.id,
 				name: prep.name,
-				author: prep.author,
-				icon: 'talend-dataprep',
-				datasetName: prep.dataset.dataSetName,
 				nbSteps: prep.steps.length - 1,
 			}));
 
