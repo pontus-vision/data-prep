@@ -1,24 +1,31 @@
-import { actions } from '@talend/react-cmf';
+import { FETCH_PREPARATIONS, OPEN_FOLDER } from '../constants';
 
-export function fetchPreparations() {
-	return actions.http.get('http://localhost:8888/api/folders/Lw==/preparations', {
-		cmf: {
-			collectionId: 'preparations',
-		},
-		transform({ folders, preparations }) {
-			const adaptedFolders = folders.map(folder => ({
-				name: folder.name,
-				author: folder.ownerId,
-				icon: 'talend-folder',
-			}));
-			const adaptedPreparations = preparations.map(prep => ({
-				name: prep.name,
-				author: prep.author,
-				icon: 'talend-dataprep',
-				datasetName: prep.dataset.dataSetName,
-				nbSteps: prep.steps.length - 1,
-			}));
-			return adaptedFolders.concat(adaptedPreparations);
-		},
+export function fetchPreparationsOnEnter({ router, dispatch }) {
+	dispatch({
+		type: FETCH_PREPARATIONS,
+		folderId: router.nextState.params.folderId,
 	});
+}
+
+export function openPreparation(event, { id, type }) {
+	switch (type) {
+		case 'folder':
+			return {
+				type: OPEN_FOLDER,
+				id,
+				cmf: {
+					routerPush: `/preparations/${id}`,
+				},
+			};
+		case 'preparation':
+			/* TODO
+			- get current url
+			- pass it in the url as 'return' query param
+			- playground must redirect to this return param on close
+			*/
+			window.location.href = `http://localhost:3000/#/playground/preparation?prepid=${id}`;
+			break;
+		default:
+			break;
+	}
 }

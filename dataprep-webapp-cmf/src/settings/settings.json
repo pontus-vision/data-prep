@@ -120,7 +120,6 @@
       "hasTheme": true
     },
     "preparations" : {
-      "didMountActionCreator": "preparation:fetchAll",
       "hasTheme": true,
       "header": { },
       "sidepanel": { },
@@ -159,9 +158,10 @@
     },
     "childRoutes": [
       {
-        "path": "preparations",
+        "path": "preparations(/:folderId)",
         "component": "HomeListView",
-        "view": "preparations"
+        "view": "preparations",
+        "onEnter": "preparation:fetch"
       },
       {
         "path": "datasets",

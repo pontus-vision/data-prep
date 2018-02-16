@@ -4,15 +4,16 @@ import dataset from '@talend/dataset';
 import rating from '@talend/rating';
 import { all, call, fork } from 'redux-saga/effects';
 import redirect from './actions/redirect';
-import { fetchPreparations } from './actions/preparation';
+import { fetchPreparationsOnEnter, openPreparation } from './actions/preparation';
 
 import App from './components/App.container';
 
-import { helpSagas } from './saga';
+import { helpSagas, preparationSagas } from './saga';
 import { OPEN_ABOUT } from './constants';
 
-const registerComponent = api.route.registerComponent;
 const registerActionCreator = api.action.registerActionCreator;
+const registerComponent = api.route.registerComponent;
+const registerRouteFunction = api.route.registerFunction;
 
 export default {
 	initialize() {
@@ -26,9 +27,14 @@ export default {
 		registerComponent('App', App);
 
 		/**
+		 * Register route functions
+		 */
+		registerRouteFunction('preparation:fetch', fetchPreparationsOnEnter);
+
+		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
-		registerActionCreator('preparation:fetchAll', fetchPreparations);
+		registerActionCreator('preparation:open', openPreparation);
 		registerActionCreator('redirect', redirect);
 
 		registerActionCreator('help:tour', () => { alert('TODO'); return { type: 'none' }; });
@@ -44,6 +50,7 @@ export default {
 			yield all([
 				fork(sagaRouter, history, {} /*TODO sagas per route*/),
 				...helpSagas.map(saga => call(saga)),
+				...preparationSagas.map(saga => call(saga)),
 			]);
 		}
 		sagaMiddleware.run(rootSaga);
