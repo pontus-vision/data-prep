@@ -4,13 +4,13 @@ import dataset from '@talend/dataset';
 import rating from '@talend/rating';
 import { all, call, fork } from 'redux-saga/effects';
 import redirect from './actions/redirect';
-import { helpSagas } from './saga';
 import { fetchPreparations, duplicatePreparation, setTitleEditionMode } from './actions/preparation';
 
 import App from './components/App.container';
 
-import { openAboutSaga } from './saga/help.saga';
-import { duplicatePreparationSaga, renamePreparationSaga, setTitleEditionModeSaga } from './saga/preparation.saga';
+import sagas from './saga';
+
+
 import { OPEN_ABOUT } from './constants';
 
 const registerComponent = api.route.registerComponent;
@@ -44,14 +44,12 @@ export default {
 	},
 
 	runSagas(sagaMiddleware, history) {
+		console.log('[NC] sagas.help: ', sagas);
 		function* rootSaga() {
 			yield all([
 				fork(sagaRouter, history, {}),
-				...helpSagas.map(saga => call(saga)),
-				call(openAboutSaga),
-				call(renamePreparationSaga),
-				call(duplicatePreparationSaga),
-				call(setTitleEditionModeSaga),
+				...sagas.help.map(saga => call(saga)),
+				...sagas.preparation.map(saga => call(saga)),
 			]);
 		}
 		sagaMiddleware.run(rootSaga);

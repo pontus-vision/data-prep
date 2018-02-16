@@ -10,7 +10,7 @@ const defaultHttpConfiguration = {
 	},
 };
 
-export function* duplicatePreparationSaga() {
+export function* duplicate() {
 	while (true) {
 		const prep = yield take(PREPARATION_DUPLICATE);
 
@@ -21,14 +21,14 @@ export function* duplicatePreparationSaga() {
 	}
 }
 
-export function* renamePreparationSaga() {
+export function* rename() {
 	while (true) {
 		const test = yield take(RENAME_PREPARATION);
 		console.log('[NC] RENAME !', test);
 	}
 }
 
-export function* setTitleEditionModeSaga() {
+export function* setTitleEditionMode() {
 	while (true) {
 		const { payload } = yield take(SET_TITLE_EDITION_MODE);
 		const preparations = yield select(state => state.cmf.collections.get('preparations'));
