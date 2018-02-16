@@ -10,7 +10,7 @@ const defaultHttpConfiguration = {
 	},
 };
 
-export function* duplicatePreparation() {
+export function* duplicatePreparationSaga() {
 	while (true) {
 		const prep = yield take(PREPARATION_DUPLICATE);
 

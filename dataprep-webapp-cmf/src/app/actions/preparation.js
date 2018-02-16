@@ -1,5 +1,5 @@
 import { actions } from '@talend/react-cmf';
-import { RENAME_PREPARATION, SET_TITLE_EDITION_MODE } from '../constants';
+import { RENAME_PREPARATION, SET_TITLE_EDITION_MODE, PREPARATION_DUPLICATE } from '../constants';
 
 export function fetchPreparations() {
 	return actions.http.get('http://localhost:8888/api/folders/Lw==/preparations', {
@@ -25,6 +25,15 @@ export function fetchPreparations() {
 			return adaptedFolders.concat(adaptedPreparations);
 		},
 	});
+}
+
+export function duplicatePreparation(event, { model }) {
+	return {
+		type: PREPARATION_DUPLICATE,
+		payload: {
+			id: model.id,
+		},
+	};
 }
 
 export function renamePreparation(event, { model }) {
