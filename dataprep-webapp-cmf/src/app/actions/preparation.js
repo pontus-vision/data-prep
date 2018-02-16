@@ -1,5 +1,10 @@
 import { actions } from '@talend/react-cmf';
-import { RENAME_PREPARATION, SET_TITLE_EDITION_MODE, PREPARATION_DUPLICATE } from '../constants';
+import {
+	RENAME_PREPARATION,
+	CANCEL_RENAME_PREPARATION,
+	SET_TITLE_EDITION_MODE,
+	PREPARATION_DUPLICATE,
+} from '../constants';
 
 export function fetchAll() {
 	return actions.http.get('http://localhost:8888/api/folders/Lw==/preparations', {
@@ -36,9 +41,20 @@ export function duplicate(event, { model }) {
 	};
 }
 
-export function rename(event, { model }) {
+export function rename(event, data) {
 	return {
 		type: RENAME_PREPARATION,
+		payload: {
+			id: data.model.id,
+			name: data.value,
+		},
+	};
+}
+
+export function cancelRename(event, { id }) {
+	return {
+		type: CANCEL_RENAME_PREPARATION,
+		payload: id,
 	};
 }
 

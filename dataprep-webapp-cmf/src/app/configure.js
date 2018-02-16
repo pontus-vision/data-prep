@@ -31,22 +31,26 @@ export default {
 		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
 		registerActionCreator('preparation:duplicate', actions.preparation.duplicate);
 		registerActionCreator('preparation:fetchAll', actions.preparation.fetchAll);
+
+		registerActionCreator('preparation:edit:submit', actions.preparation.rename);
+		registerActionCreator('preparation:edit:cancel', actions.preparation.cancelRename);
+
+		registerActionCreator('help:about:open', actions.help.openAbout);
+
+		registerActionCreator('help:tour', () => ({ type: 'ALERT', payload: 'help:tour' }));
+		registerActionCreator('help:feedback:open', () => ({ type: 'ALERT', payload: 'help:feedback:open' }));
+		registerActionCreator('preparation:open', () => ({ type: 'ALERT', payload: 'preparation:open' }));
+		registerActionCreator('folder:open', () => ({ type: 'ALERT', payload: 'folder:open' }));
+
 		registerActionCreator('redirect', actions.redirect);
-
-		registerActionCreator('help:tour', () => { alert('TODO'); return { type: 'none' }; });
-		registerActionCreator('help:about:open', () => ({ type: OPEN_ABOUT }));
-		registerActionCreator('help:feedback:open', () => { alert('TODO'); return { type: 'none' }; });
-
-		registerActionCreator('preparation:add:open', () => { alert('TODO'); return { type: 'none' }; });
-		registerActionCreator('folder:add:open', () => { alert('TODO'); return { type: 'none' }; });
 	},
 
 	runSagas(sagaMiddleware, history) {
 		function* rootSaga() {
 			yield all([
 				fork(sagaRouter, history, {}),
-				...sagas.help.map(saga => call(saga)),
-				...sagas.preparation.map(saga => call(saga)),
+				...sagas.help.map(call),
+				...sagas.preparation.map(call),
 			]);
 		}
 		sagaMiddleware.run(rootSaga);

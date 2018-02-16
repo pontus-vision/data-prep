@@ -73,6 +73,14 @@
       "icon": "talend-folder",
       "actionCreator" : "preparation:duplicate"
     },
+    "preparation:edit:submit": {
+      "id": "preparation:edit:submit",
+      "actionCreator": "preparation:edit:submit"
+    },
+    "preparation:edit:cancel": {
+      "id": "preparation:edit:cancel",
+      "actionCreator": "preparation:edit:cancel"
+    },
     "folder:add:open": {
       "id": "folder:add:open",
       "icon": "talend-folder",
@@ -159,7 +167,9 @@
         "actions": {
           "title": "preparation:open",
           "left": ["preparation:add:open", "folder:add:open"],
-          "items": ["preparation:rename", "preparation:duplicate"]
+          "items": ["preparation:rename", "preparation:duplicate"],
+          "editSubmit": "preparation:edit:submit",
+          "editCancel": "preparation:edit:cancel"
         }
       }
     }
