@@ -1,6 +1,6 @@
 // ============================================================================
 //
-//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -78,8 +78,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         // given
         final DataSetRow row = builder() //
                 .with(value("toto").type(Type.STRING)) //
-                .with(value("04/25/1999").type(Type.DATE).statistics(
-                        getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
+                .with(value("04/25/1999").type(Type.DATE).statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
                 .with(value("tata").type(Type.STRING)) //
                 .build();
 
@@ -104,8 +103,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         // given
         final DataSetRow row = builder() //
                 .with(value("toto").type(Type.STRING)) //
-                .with(value("Apr-25-1999").type(Type.DATE).statistics(
-                        getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
+                .with(value("Apr-25-1999").type(Type.DATE).statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
                 .with(value("tata").type(Type.STRING)) //
                 .build();
 
@@ -130,8 +128,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         // given
         final DataSetRow row = builder() //
                 .with(value("toto").type(Type.STRING)) //
-                .with(value("Dec-17-2017").type(Type.DATE).statistics(
-                        getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
+                .with(value("Dec-17-2017").type(Type.DATE).statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
                 .with(value("tata").type(Type.STRING)) //
                 .build();
 
@@ -159,18 +156,15 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         // given
         final DataSetRow row = builder() //
                 .with(value("toto").type(Type.STRING)) //
-                .with(value("Dec-17-2017").type(Type.DATE).statistics(
-                        getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
+                .with(value("Dec-17-2017").type(Type.DATE).statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
                 .with(value("tata").type(Type.STRING)) //
                 .build();
 
         final Map<String, String> expectedValues = new HashMap<>();
         expectedValues.put("0000", "toto");
         expectedValues.put("0001", "Dec-17-2017");
-        expectedValues.put("0008", "2017");
-        expectedValues.put("0007", "12");
-        expectedValues.put("0006", "December");
-        expectedValues.put("0005", "Sunday");
+        expectedValues.put("0006", "2017");
+        expectedValues.put("0005", "12");
         expectedValues.put("0004", "0");
         expectedValues.put("0003", "0");
         expectedValues.put("0002", "tata");
@@ -187,8 +181,8 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         // given
         final DataSetRow row = builder() //
                 .with(value("toto").type(Type.STRING)) //
-                .with(value("04/25/1999 15:45").type(Type.DATE).statistics(
-                        getDateTestJsonAsStream("statistics_MM_dd_yyyy_HH_mm.json"))) //
+                .with(value("04/25/1999 15:45").type(Type.DATE)
+                        .statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy_HH_mm.json"))) //
                 .with(value("tata").type(Type.STRING)) //
                 .build();
 
@@ -216,8 +210,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         // given
         final DataSetRow row = builder() //
                 .with(value("toto").type(Type.STRING)) //
-                .with(value("04-25-09").type(Type.DATE).statistics(
-                        getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
+                .with(value("04-25-09").type(Type.DATE).statistics(getDateTestJsonAsStream("statistics_MM_dd_yyyy.json"))) //
                 .with(value("tata").type(Type.STRING)) //
                 .build();
 
@@ -275,8 +268,8 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
         input.add(createMetadata("0002"));
         final RowMetadata rowMetadata = new RowMetadata(input);
         ObjectMapper mapper = new ObjectMapper();
-        final Statistics statistics =
-                mapper.reader(Statistics.class).readValue(getDateTestJsonAsStream("statistics_yyyy-MM-dd.json"));
+        final Statistics statistics = mapper.reader(Statistics.class)
+                .readValue(getDateTestJsonAsStream("statistics_yyyy-MM-dd.json"));
         input.get(1).setStatistics(statistics);
 
         // when
@@ -303,15 +296,7 @@ public class ExtractDateTokensTest extends BaseDateTest<ExtractDateTokens> {
     }
 
     private ColumnMetadata createMetadata(String id, Type type) {
-        return ColumnMetadata.Builder
-                .column()
-                .computedId(id)
-                .type(type)
-                .headerSize(12)
-                .empty(0)
-                .invalid(2)
-                .valid(5)
-                .build();
+        return ColumnMetadata.Builder.column().computedId(id).type(type).headerSize(12).empty(0).invalid(2).valid(5).build();
     }
 
     @Test
