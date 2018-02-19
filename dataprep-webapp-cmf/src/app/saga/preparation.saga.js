@@ -3,9 +3,10 @@ import http from '@talend/react-cmf/lib/sagas/http';
 import { api, actions } from '@talend/react-cmf';
 import {
 	CANCEL_RENAME_PREPARATION,
+	FETCH_PREPARATIONS,
+	PREPARATION_DUPLICATE,
 	RENAME_PREPARATION,
 	SET_TITLE_EDITION_MODE,
-	PREPARATION_DUPLICATE,
 } from '../constants';
 
 const defaultHttpConfiguration = {
@@ -14,6 +15,18 @@ const defaultHttpConfiguration = {
 		'Content-Type': 'application/json',
 	},
 };
+
+export function* cancelRename() {
+	while (true) {
+		const { payload } = yield take(CANCEL_RENAME_PREPARATION);
+		const preparations = yield select(state => state.cmf.collections.get('preparations'));
+		const updated = preparations.update(
+			preparations.findIndex(val => val.get('id') === payload),
+			val => val.set('display', 'text')
+		);
+		yield put(actions.collections.addOrReplace('preparations', updated));
+	}
+}
 
 export function* duplicate() {
 	while (true) {
@@ -30,6 +43,41 @@ export function* duplicate() {
 	}
 }
 
+export function* fetchPreparations() {
+	while (true) {
+		const { folderId = 'Lw==' } = yield take(FETCH_PREPARATIONS);
+		yield put(
+			actions.http.get(`http://localhost:8888/api/folders/${folderId}/preparations`, {
+				cmf: {
+					collectionId: 'preparations',
+				},
+				transform({ folders, preparations }) {
+					const adaptedFolders = folders.map(folder => ({
+						author: folder.ownerId,
+						className: 'list-item-folder',
+						icon: 'talend-folder',
+						id: folder.id,
+						name: folder.name,
+						type: 'folder',
+					}));
+					const adaptedPreparations = preparations.map(prep => ({
+						author: prep.author,
+						className: 'list-item-preparation',
+						datasetName: prep.dataset.dataSetName,
+						icon: 'talend-dataprep',
+						id: prep.id,
+						name: prep.name,
+						nbSteps: prep.steps.length - 1,
+						type: 'preparation',
+					}));
+
+					return adaptedFolders.concat(adaptedPreparations);
+				},
+			})
+		);
+	}
+}
+
 export function* rename() {
 	while (true) {
 		const { payload } = yield take(RENAME_PREPARATION);
@@ -41,18 +89,6 @@ export function* rename() {
 			defaultHttpConfiguration,
 		);
 		yield api.saga.putActionCreator('preparation:fetchAll');
-	}
-}
-
-export function* cancelRename() {
-	while (true) {
-		const { payload } = yield take(CANCEL_RENAME_PREPARATION);
-		const preparations = yield select(state => state.cmf.collections.get('preparations'));
-		const updated = preparations.update(
-			preparations.findIndex(val => val.get('id') === payload),
-			val => val.set('display', 'text')
-		);
-		yield put(actions.collections.addOrReplace('preparations', updated));
 	}
 }
 

@@ -1,37 +1,41 @@
 import { actions } from '@talend/react-cmf';
 import {
-	RENAME_PREPARATION,
 	CANCEL_RENAME_PREPARATION,
-	SET_TITLE_EDITION_MODE,
+	FETCH_PREPARATIONS,
+	OPEN_FOLDER,
 	PREPARATION_DUPLICATE,
+	RENAME_PREPARATION,
+	SET_TITLE_EDITION_MODE,
 } from '../constants';
 
-export function fetchAll() {
-	return actions.http.get('http://localhost:8888/api/folders/Lw==/preparations', {
-		cmf: {
-			collectionId: 'preparations',
-		},
-		transform({ folders, preparations }) {
-			const adaptedFolders = folders.map(folder => ({
-				author: folder.ownerId,
-				className: 'list-item-folder',
-				icon: 'talend-folder',
-				id: folder.id,
-				name: folder.name,
-			}));
-			const adaptedPreparations = preparations.map(prep => ({
-				author: prep.author,
-				className: 'list-item-preparation',
-				datasetName: prep.dataset.dataSetName,
-				icon: 'talend-dataprep',
-				id: prep.id,
-				name: prep.name,
-				nbSteps: prep.steps.length - 1,
-			}));
-
-			return adaptedFolders.concat(adaptedPreparations);
-		},
+export function fetchPreparationsOnEnter({ router, dispatch }) {
+	dispatch({
+		type: FETCH_PREPARATIONS,
+		folderId: router.nextState.params.folderId,
 	});
+}
+
+export function openPreparation(event, { id, type }) {
+	switch (type) {
+		case 'folder':
+			return {
+				type: OPEN_FOLDER,
+				id,
+				cmf: {
+					routerPush: `/preparations/${id}`,
+				},
+			};
+		case 'preparation':
+			/* TODO
+			- get current url
+			- pass it in the url as 'return' query param
+			- playground must redirect to this return param on close
+			*/
+			window.location.href = `http://localhost:3000/#/playground/preparation?prepid=${id}`;
+			break;
+		default:
+			break;
+	}
 }
 
 export function duplicate(event, { model }) {

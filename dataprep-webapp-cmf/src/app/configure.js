@@ -10,8 +10,9 @@ import sagas from './saga';
 import App from './components/App.container';
 
 
-const registerComponent = api.route.registerComponent;
 const registerActionCreator = api.action.registerActionCreator;
+const registerComponent = api.route.registerComponent;
+const registerRouteFunction = api.route.registerFunction;
 
 export default {
 	initialize() {
@@ -25,21 +26,22 @@ export default {
 		registerComponent('App', App);
 
 		/**
+		 * Register route functions
+		 */
+		registerRouteFunction('preparation:fetch', actions.preparation.fetchPreparationsOnEnter);
+
+		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
-		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
 		registerActionCreator('preparation:duplicate', actions.preparation.duplicate);
-		registerActionCreator('preparation:fetchAll', actions.preparation.fetchAll);
-
 		registerActionCreator('preparation:edit:submit', actions.preparation.rename);
 		registerActionCreator('preparation:edit:cancel', actions.preparation.cancelRename);
+		registerActionCreator('preparation:open', actions.preparation.openPreparation);
+		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
 
 		registerActionCreator('help:about:open', actions.help.openAbout);
-
 		registerActionCreator('help:tour', () => ({ type: 'ALERT', payload: 'help:tour' }));
 		registerActionCreator('help:feedback:open', () => ({ type: 'ALERT', payload: 'help:feedback:open' }));
-		registerActionCreator('preparation:open', () => ({ type: 'ALERT', payload: 'preparation:open' }));
-		registerActionCreator('folder:open', () => ({ type: 'ALERT', payload: 'folder:open' }));
 
 		registerActionCreator('redirect', actions.redirect);
 	},
