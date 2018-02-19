@@ -71,21 +71,21 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
-"@talend/bootstrap-theme@0.155.1":
-  version "0.155.1"
-  resolved "https://registry.yarnpkg.com/@talend/bootstrap-theme/-/bootstrap-theme-0.155.1.tgz#5334f3486bf915ba2a7c89e0fdbf4dd004fe173b"
+"@talend/bootstrap-theme@0.157.0":
+  version "0.157.0"
+  resolved "https://registry.yarnpkg.com/@talend/bootstrap-theme/-/bootstrap-theme-0.157.0.tgz#f8d69e42a66742032eaa65ddd4e50197fe71dd6a"
   dependencies:
     bootstrap-sass "3.3.7"
 
-"@talend/dataset@^0.26.0":
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/@talend/dataset/-/dataset-0.26.0.tgz#a5dbdb56eb43c55d929b4ec3e83728c4b799a38a"
+"@talend/dataset@0.27.0":
+  version "0.27.0"
+  resolved "https://registry.yarnpkg.com/@talend/dataset/-/dataset-0.27.0.tgz#e793b2b5a87d0386fa82937a0efffd33116cbf59"
   dependencies:
     prop-types "15.5.10"
 
-"@talend/icons@0.155.1":
-  version "0.155.1"
-  resolved "https://registry.yarnpkg.com/@talend/icons/-/icons-0.155.1.tgz#dd9261d90154191c9ffafeb3beaff778598d9103"
+"@talend/icons@0.157.0":
+  version "0.157.0"
+  resolved "https://registry.yarnpkg.com/@talend/icons/-/icons-0.157.0.tgz#e59cd08fdebebbabb3213fbf143c3c57c5165702"
 
 "@talend/rating@^0.2.1":
   version "0.2.1"
@@ -93,18 +93,18 @@
   dependencies:
     prop-types "^15.5.10"
 
-"@talend/react-cmf@0.155.1":
-  version "0.155.1"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.155.1.tgz#03f03ba4949cacbffa67b72968698702205a8c15"
+"@talend/react-cmf@0.157.0":
+  version "0.157.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.157.0.tgz#89266331d4fd7952cf0e7b4021baf73f298b4154"
   dependencies:
     babel-polyfill "6.26.0"
     deepmerge "1.5.1"
     hoist-non-react-statics "^1.2.0"
     react-immutable-proptypes "2.1.0"
 
-"@talend/react-components@0.155.1":
-  version "0.155.1"
-  resolved "https://registry.yarnpkg.com/@talend/react-components/-/react-components-0.155.1.tgz#bc0c740414a3c8f3f29d382e8c624141d603a2b9"
+"@talend/react-components@0.157.0":
+  version "0.157.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-components/-/react-components-0.157.0.tgz#3f76608d89515323b1ae12c1744509607ad73a3f"
   dependencies:
     lodash "4.17.4"
     rc-slider "8.4.1"
@@ -113,15 +113,15 @@
     react-debounce-input "3.1.0"
     react-virtualized "9.10.1"
 
-"@talend/react-containers@0.155.1":
-  version "0.155.1"
-  resolved "https://registry.yarnpkg.com/@talend/react-containers/-/react-containers-0.155.1.tgz#39dd13ab70cf2bcb9b90d80c95760e477da11e46"
+"@talend/react-containers@0.157.0":
+  version "0.157.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-containers/-/react-containers-0.157.0.tgz#41ede71cf5370913e0d7f8a79ad7192d80b0c55b"
   dependencies:
     react-immutable-proptypes "2.1.0"
 
-"@talend/react-forms@0.155.1":
-  version "0.155.1"
-  resolved "https://registry.yarnpkg.com/@talend/react-forms/-/react-forms-0.155.1.tgz#b3174023c012435b1629236aa9be0d69151ed741"
+"@talend/react-forms@0.157.0":
+  version "0.157.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-forms/-/react-forms-0.157.0.tgz#d58aa1d801711af051bbfdb784531727853baf83"
   dependencies:
     classnames "2.2.5"
     keycode "2.1.9"
@@ -1922,9 +1922,9 @@ dashdash@^1.12.0:
   dependencies:
     assert-plus "^1.0.0"
 
-date-fns@^1.29.0:
-  version "1.29.0"
-  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-1.29.0.tgz#12e609cdcb935127311d04d33334e2960a2a54e6"
+date-fns@1.27.2:
+  version "1.27.2"
+  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-1.27.2.tgz#ce82f420bc028356cc661fc55c0494a56a990c9c"
 
 date-now@^0.1.4:
   version "0.1.4"
@@ -5476,7 +5476,7 @@ prop-types@15.5.10:
     fbjs "^0.8.9"
     loose-envify "^1.3.1"
 
-prop-types@15.x, prop-types@^15, prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.8, prop-types@^15.6.0, prop-types@latest:
+prop-types@15.x, prop-types@^15, prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.8, prop-types@^15.6.0:
   version "15.6.0"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.0.tgz#ceaf083022fc46b4a35f69e13ef75aed0d639856"
   dependencies:
@@ -5743,7 +5743,7 @@ react-i18next@^5.2.0:
     react "^15.6.1"
     react-dom "^15.6.1"
 
-react-immutable-proptypes@2.1.0, react-immutable-proptypes@^2.1.0:
+react-immutable-proptypes@2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/react-immutable-proptypes/-/react-immutable-proptypes-2.1.0.tgz#023d6f39bb15c97c071e9e60d00d136eac5fa0b4"
 
@@ -5947,9 +5947,9 @@ redux-logger@3.0.6:
   dependencies:
     deep-diff "^0.3.5"
 
-redux-saga@^0.16.0:
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/redux-saga/-/redux-saga-0.16.0.tgz#0a231db0a1489301dd980f6f2f88d8ced418f724"
+redux-saga@0.15.4:
+  version "0.15.4"
+  resolved "https://registry.yarnpkg.com/redux-saga/-/redux-saga-0.15.4.tgz#27982a947280053b7ecbb5d3170c837a5fe6b261"
 
 redux-thunk@2.2.0:
   version "2.2.0"

@@ -8,7 +8,6 @@ import actions from './actions';
 import sagas from './saga';
 
 import App from './components/App.container';
-import { OPEN_ABOUT } from './constants';
 
 
 const registerComponent = api.route.registerComponent;
