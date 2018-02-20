@@ -32,7 +32,7 @@ const PatternOccurrenceWorker = require('worker-loader!./pattern-occurence.worke
  * @requires data-prep.services.utils.service:StorageService
  * @requires data-prep.services.utils.service:DateService
  */
-export default function StatisticsService($q, $log, $filter, state, StateService,
+export default function StatisticsService($q, $log, $filter, $timeout, state, StateService,
                                           StepUtilsService, StatisticsRestService,
                                           ConverterService, FilterAdapterService, TextFormatService,
                                           StorageService) {
@@ -340,21 +340,34 @@ export default function StatisticsService($q, $log, $filter, state, StateService
 			filteredOccurrences: state.playground.filter.gridFilters.length ? state.playground.grid.filteredOccurences : null,
 		};
 
-		const defer = $q.defer();
+		let res;
+        let rej;
+		const p = new Promise((resolve, reject) => {
+			res = resolve;
+			rej = reject;
+		});
 		const dateWorker = new DateOccurrenceWorker();
+
 		dateWorker.onmessage = (event) => {
 			const filteredRangeData = event.data;
+			console.log('[NC] onmessage', filteredRangeData);
 			const histo = initVerticalHistogram('data', 'filteredOccurrences', 'Filtered Occurrences', filteredRangeData);
-			defer.resolve(histo);
+			console.log('[NC] histo: ', histo);
+			// defer.resolve(histo);
+            res(histo);
 		};
 
 		dateWorker.onerror = (error) => {
-			defer.reject(error);
+			console.log('[NC] onerror');
+			// defer.reject(error);
+            rej(error);
 		};
 
 		dateWorker.postMessage(parameters);
 		service.dateWorker = dateWorker;
-		return defer.promise.finally(() => StateService.setStatisticsLoading(false));
+		console.log('[NC] before finally');
+		// return defer.promise.finally(() => StateService.setStatisticsLoading(false));
+        return p; // .finally(() => StateService.setStatisticsLoading(false));
 	}
 
     /**
@@ -702,6 +715,7 @@ export default function StatisticsService($q, $log, $filter, state, StateService
 		case 'date': {
 			const promise = initDateRangeHistogram();
 			initRangeLimits();
+			console.log('[NC] will return: ', promise);
 			return promise;
 		}
 
@@ -862,7 +876,7 @@ export default function StatisticsService($q, $log, $filter, state, StateService
 			.then(filteredPatternFrequency => StateService.setStatisticsFilteredPatterns(filteredPatternFrequency));
 		asyncProcess.push(patternProcess);
 
-		return $q.all(asyncProcess);
+        return Promise.all(asyncProcess);
 	}
 
     /**
