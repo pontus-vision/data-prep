@@ -1,19 +1,12 @@
-import { actions } from '@talend/react-cmf';
 import {
 	CANCEL_RENAME_PREPARATION,
-	FETCH_PREPARATIONS,
 	OPEN_FOLDER,
 	PREPARATION_DUPLICATE,
 	RENAME_PREPARATION,
 	SET_TITLE_EDITION_MODE,
+	FETCH_PREPARATIONS,
 } from '../constants';
 
-export function fetchPreparationsOnEnter({ router, dispatch }) {
-	dispatch({
-		type: FETCH_PREPARATIONS,
-		folderId: router.nextState.params.folderId,
-	});
-}
 
 export function openPreparation(event, { id, type }) {
 	switch (type) {
@@ -36,6 +29,11 @@ export function openPreparation(event, { id, type }) {
 		default:
 			break;
 	}
+}
+
+export function fetchAll() {
+	// TODO [NC]: folderId
+	return { type: FETCH_PREPARATIONS };
 }
 
 export function duplicate(event, { model }) {

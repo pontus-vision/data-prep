@@ -4,6 +4,7 @@ import dataset from '@talend/dataset';
 import rating from '@talend/rating';
 import { all, call, fork } from 'redux-saga/effects';
 
+import { FETCH_PREPARATIONS } from './constants';
 import actions from './actions';
 import sagas from './saga';
 
@@ -28,11 +29,15 @@ export default {
 		/**
 		 * Register route functions
 		 */
-		registerRouteFunction('preparation:fetch', actions.preparation.fetchPreparationsOnEnter);
+		registerRouteFunction('preparation:fetch', ({ router, dispatch }) => dispatch({
+			type: FETCH_PREPARATIONS,
+			folderId: router.nextState.params.folderId,
+		}));
 
 		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
+		registerActionCreator('preparation:fetchAll', actions.preparation.fetchAll);
 		registerActionCreator('preparation:duplicate', actions.preparation.duplicate);
 		registerActionCreator('preparation:edit:submit', actions.preparation.rename);
 		registerActionCreator('preparation:edit:cancel', actions.preparation.cancelRename);
