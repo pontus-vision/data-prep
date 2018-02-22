@@ -5,6 +5,7 @@ import {
 	RENAME_PREPARATION,
 	SET_TITLE_EDITION_MODE,
 	FETCH_PREPARATIONS,
+	OPEN_PREPARATION_CREATOR,
 } from '../constants';
 
 
@@ -67,4 +68,8 @@ export function setTitleEditionMode(event, { model }) {
 		type: SET_TITLE_EDITION_MODE,
 		payload: model.id,
 	};
+}
+
+export function openCreator() {
+	return { type: OPEN_PREPARATION_CREATOR };
 }

@@ -4,6 +4,7 @@ import { api, actions } from '@talend/react-cmf';
 import {
 	CANCEL_RENAME_PREPARATION,
 	FETCH_PREPARATIONS,
+	OPEN_PREPARATION_CREATOR,
 	PREPARATION_DUPLICATE,
 	RENAME_PREPARATION,
 	SET_TITLE_EDITION_MODE,
@@ -101,5 +102,12 @@ export function* setTitleEditionMode() {
 			val => val.set('display', 'input')
 		);
 		yield put(actions.collections.addOrReplace('preparations', updated));
+	}
+}
+
+export function* openAbout() {
+	while (true) {
+		yield take(OPEN_PREPARATION_CREATOR);
+		yield put(actions.components.mergeState('PreparationCreatorModal', 'default', { show: true }));
 	}
 }

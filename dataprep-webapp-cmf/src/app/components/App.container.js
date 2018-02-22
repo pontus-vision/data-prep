@@ -3,6 +3,7 @@ import { IconsProvider } from '@talend/react-components';
 import { Notification } from '@talend/react-containers';
 
 import AboutModal from './about';
+import PreparationCreatorModal from './preparation-creator';
 
 export default function App(props) {
 	/**
@@ -15,6 +16,7 @@ export default function App(props) {
 			<IconsProvider />
 			<Notification />
 			<AboutModal />
+			<PreparationCreatorModal />
 			{props.children}
 		</div>
 	);

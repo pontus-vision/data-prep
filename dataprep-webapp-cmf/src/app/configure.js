@@ -43,6 +43,7 @@ export default {
 		registerActionCreator('preparation:edit:cancel', actions.preparation.cancelRename);
 		registerActionCreator('preparation:open', actions.preparation.openPreparation);
 		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
+		registerActionCreator('preparation:add:open', actions.preparation.openCreator);
 
 		registerActionCreator('help:about:open', actions.help.openAbout);
 		registerActionCreator('help:tour', () => ({ type: 'ALERT', payload: 'help:tour' }));
