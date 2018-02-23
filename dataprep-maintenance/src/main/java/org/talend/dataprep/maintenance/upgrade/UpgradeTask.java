@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
-import org.talend.daikon.multitenant.context.TenancyContextHolder;
 import org.talend.dataprep.security.Security;
 import org.talend.dataprep.upgrade.UpgradeService;
 import org.talend.dataprep.upgrade.repository.UpgradeTaskRepository;
@@ -46,11 +45,6 @@ public class UpgradeTask {
     @PostConstruct
     public void upgradeTask() {
         LOG.info("Start method upgradeTask for all tenant");
-        executor.execute(() -> forAll.execute(() -> true, () -> {
-            if (TenancyContextHolder.getContext().getOptionalTenant().isPresent()) {
-                LOG.info("upgradeTask for tenant : {}", TenancyContextHolder.getContext().getOptionalTenant());
-            }
-        }));
         executor.execute(() -> {
             final Supplier<Boolean> needUpgradeCondition = () -> upgradeService.needUpgrade();
             final Supplier<Boolean> hasRepositoryConfiguration = forAll.condition().operational(repository);
