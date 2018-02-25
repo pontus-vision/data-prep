@@ -10,8 +10,8 @@ import sagas from './saga';
 import App from './components/App.container';
 
 
-const registerActionCreator = api.action.registerActionCreator;
-const registerComponent = api.route.registerComponent;
+const registerActionCreator = api.actionCreator.register;
+const registerComponent = api.component.register;
 const registerRouteFunction = api.route.registerFunction;
 
 export default {

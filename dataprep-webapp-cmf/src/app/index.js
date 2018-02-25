@@ -8,8 +8,8 @@ import '@talend/bootstrap-theme/src/theme/variations/_tdp.scss';
 import React from 'react';
 import { render } from 'react-dom';
 import { App, store as cmfstore, actions } from '@talend/react-cmf';
-import { browserHistory } from 'react-router';
-import { routerMiddleware, syncHistoryWithStore } from 'react-router-redux';
+import createHistory from 'history/createBrowserHistory';
+import { routerMiddleware } from 'react-router-redux';
 import createSagaMiddleware from 'redux-saga';
 
 import configure from './configure';
@@ -26,7 +26,8 @@ configure.initialize();
 /**
  * Register react-router-redux router reducer (see https://github.com/reactjs/react-router-redux)
  */
-cmfstore.setRouterMiddleware(routerMiddleware(browserHistory));
+const history = createHistory();
+cmfstore.setRouterMiddleware(routerMiddleware(history));
 
 /**
  * Register your app reducers
@@ -37,7 +38,7 @@ const store = cmfstore.initialize(appReducer, undefined, undefined, [sagaMiddlew
 /**
  * Run main saga
  */
-configure.runSagas(sagaMiddleware, browserHistory);
+configure.runSagas(sagaMiddleware, history);
 
 /**
  * Fetch the CMF settings and configure the CMF app
@@ -48,6 +49,6 @@ store.dispatch(actions.settings.fetchSettings('/settings.json'));
  * Render the CMF App
  */
 render(
-	<App store={store} history={syncHistoryWithStore(browserHistory, store)} />,
+	<App store={store} history={history} />,
 	document.getElementById('app')
 );

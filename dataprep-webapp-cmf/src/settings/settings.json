@@ -56,7 +56,7 @@
     },
     "preparation:add:open": {
       "id": "preparation:add:open",
-      "bsStyle": "primary",
+      "bsStyle": "info",
       "icon": "talend-plus-circle",
       "label": "Add preparation",
       "actionCreator": "preparation:add:open"
@@ -182,7 +182,7 @@
     },
     "childRoutes": [
       {
-        "path": "preparations(/:folderId)",
+        "path": "preparations/:folderId?",
         "component": "HomeListView",
         "view": "preparations",
         "onEnter": "preparation:fetch"

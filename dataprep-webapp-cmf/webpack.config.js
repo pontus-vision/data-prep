@@ -1,4 +1,5 @@
 const autoprefixer = require('autoprefixer');
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -75,4 +76,10 @@ module.exports = {
 			{ from: 'src/assets' },
 		]),
 	],
+	resolve: {
+		alias: {
+			react: path.join(__dirname, './node_modules/react'),
+		},
+		symlinks: false,
+	},
 };

@@ -11,7 +11,7 @@ import {
 export function fetchPreparationsOnEnter({ router, dispatch }) {
 	dispatch({
 		type: FETCH_PREPARATIONS,
-		folderId: router.nextState.params.folderId,
+		folderId: router.match.params.folderId,
 	});
 }
 
