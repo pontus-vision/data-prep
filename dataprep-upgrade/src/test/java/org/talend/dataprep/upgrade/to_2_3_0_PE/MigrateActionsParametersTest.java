@@ -11,13 +11,6 @@
 
 package org.talend.dataprep.upgrade.to_2_3_0_PE;
 
-import static java.lang.Boolean.FALSE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.talend.dataprep.transformation.actions.common.ActionsUtils.CREATE_NEW_COLUMN;
-
-import java.util.Comparator;
-import java.util.List;
 import static java.lang.Boolean.TRUE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -54,7 +47,7 @@ public class MigrateActionsParametersTest extends Base_2_3_0_PE_Test {
                 .filter(a -> "numeric_ops".equals(a.getName())).findFirst();
 
         assertTrue(numericOpsAction.isPresent());
-        assertEquals(FALSE.toString(), numericOpsAction.get().getParameters().get(CREATE_NEW_COLUMN));
+        assertEquals(TRUE.toString(), numericOpsAction.get().getParameters().get(CREATE_NEW_COLUMN));
 
     }
 
