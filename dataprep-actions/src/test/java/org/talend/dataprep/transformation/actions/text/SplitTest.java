@@ -162,7 +162,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon_ipsum", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
+        parameters.put(Split.SEPARATOR_PARAMETER, "other_string");
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "_");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -184,7 +184,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon\tipsum", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
+        parameters.put(Split.SEPARATOR_PARAMETER, "other_string");
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "\t");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -210,7 +210,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         values.put("0002", "01/01/2015");
         final DataSetRow row = new DataSetRow(values);
 
-        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
+        parameters.put(Split.SEPARATOR_PARAMETER, "other_string");
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "");
 
         // when
@@ -229,7 +229,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         values.put("0002", "01/01/2015");
         final DataSetRow row = new DataSetRow(values);
 
-        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_REGEX);
+        parameters.put(Split.SEPARATOR_PARAMETER, "other_regex");
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "(");
 
         // when
@@ -244,7 +244,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
+        parameters.put(Split.SEPARATOR_PARAMETER, "other_string");
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "(");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -266,7 +266,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_REGEX);
+        parameters.put(Split.SEPARATOR_PARAMETER, "other_regex");
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -310,7 +310,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_REGEX);
+        parameters.put(Split.SEPARATOR_PARAMETER, "other_regex");
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien|fff");
 
         final Map<String, String> expectedValues = new HashMap<>();
