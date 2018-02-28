@@ -19,8 +19,6 @@ import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
 import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
-import java.util.*;
-
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
@@ -34,6 +32,12 @@ import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.converters.StringTrimmer;
 
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Trim leading and trailing characters.
  */
@@ -45,14 +49,20 @@ public class Trim extends AbstractActionMetadata implements ColumnAction {
      */
     public static final String TRIM_ACTION_NAME = "trim"; //$NON-NLS-1$
 
-    /** Padding Character. */
-    public static final String PADDING_CHAR_PARAMETER = "padding_character"; //$NON-NLS-1$
+    /**
+     * Padding Character.
+     */
+    static final String PADDING_CHAR_PARAMETER = "padding_character"; //$NON-NLS-1$
 
-    /** Custom Padding Character. */
-    public static final String CUSTOM_PADDING_CHAR_PARAMETER = "custom_padding_character"; //$NON-NLS-1$
+    /**
+     * Custom Padding Character.
+     */
+    static final String CUSTOM_PADDING_CHAR_PARAMETER = "custom_padding_character"; //$NON-NLS-1$
 
-    /** String Converter help class. */
-    public static final String STRING_TRIMMER = "string_trimmer"; //$NON-NLS-1$
+    /**
+     * String Converter help class.
+     */
+    private static final String STRING_TRIMMER = "string_trimmer"; //$NON-NLS-1$
 
     /**
      * Keys used in the values of different parameters:
@@ -81,22 +91,24 @@ public class Trim extends AbstractActionMetadata implements ColumnAction {
     }
 
     protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
-        return singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX).withType(STRING));
+        return singletonList(
+                ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX).withType(STRING)
+                        .withCopyMetadataFromId(context.getColumnId()));
     }
 
     @Override
-        public List<Parameter> getParameters(Locale locale) {
+    public List<Parameter> getParameters(Locale locale) {
         final List<Parameter> parameters = super.getParameters(locale);
         parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
 
         // @formatter:off
         parameters.add(selectParameter(locale)
                 .name(PADDING_CHAR_PARAMETER)
-                .item(WHITESPACE,WHITESPACE)
+                .item(WHITESPACE, WHITESPACE)
                 .item(CUSTOM, CUSTOM, parameter(locale).setName(CUSTOM_PADDING_CHAR_PARAMETER).setType(ParameterType.STRING).setDefaultValue(EMPTY).build(this))
                 .canBeBlank(true)
                 .defaultValue(WHITESPACE)
-                .build(this ));
+                .build(this));
         // @formatter:on
         return parameters;
     }
@@ -132,6 +144,6 @@ public class Trim extends AbstractActionMetadata implements ColumnAction {
 
     @Override
     public Set<Behavior> getBehavior() {
-        return EnumSet.of(Behavior.VALUES_COLUMN);
+        return EnumSet.of(Behavior.VALUES_COLUMN, Behavior.NEED_STATISTICS_PATTERN);
     }
 }
