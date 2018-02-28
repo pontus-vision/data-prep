@@ -12,6 +12,14 @@
 // ============================================================================
 package org.talend.dataprep.transformation.actions.phonenumber;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.dataprep.api.action.ActionDefinition;
@@ -28,13 +36,19 @@ import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.*;
 
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.*;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
-import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.*;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.DE_PHONE;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.FR_PHONE;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.PHONE;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.UK_PHONE;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.US_PHONE;
 
 public class FormatPhoneNumberTest extends AbstractMetadataBaseTest<FormatPhoneNumber> {
 
