@@ -51,25 +51,25 @@ public class Split extends AbstractActionMetadata implements ColumnAction {
     public static final String SPLIT_ACTION_NAME = "split"; //$NON-NLS-1$
 
     /** The split column appendix. */
-    public static final String SPLIT_APPENDIX = "_split_"; //$NON-NLS-1$
+    private static final String SPLIT_APPENDIX = "_split_"; //$NON-NLS-1$
 
     /** The selected separator within the provided list. */
-    public static final String SEPARATOR_PARAMETER = "separator"; //$NON-NLS-1$
+    private static final String SEPARATOR_PARAMETER = "separator"; //$NON-NLS-1$
 
     /** Choice of other separator as string. */
-    public static final String OTHER_STRING = "other_string";
+    private static final String OTHER_STRING = "other_string";
 
     /** Choice of other separator as regex. */
-    public static final String OTHER_REGEX = "other_regex";
+    private static final String OTHER_REGEX = "other_regex";
 
-    /** The string separator specified by the user. Should be used only if SEPARATOR_PARAMETER value is 'other'. */
-    protected static final String MANUAL_SEPARATOR_PARAMETER_STRING = "manual_separator_string"; //$NON-NLS-1$
+    /** The string separator specified by the user. Should be used only if SEPARATOR_PARAMETER value is 'other_string'. */
+    private static final String MANUAL_SEPARATOR_PARAMETER_STRING = "manual_separator_string"; //$NON-NLS-1$
 
-    /** The regex separator specified by the user. Should be used only if SEPARATOR_PARAMETER value is 'other'. */
-    protected static final String MANUAL_SEPARATOR_PARAMETER_REGEX = "manual_separator_regex"; //$NON-NLS-1$
+    /** The regex separator specified by the user. Should be used only if SEPARATOR_PARAMETER value is 'other_regex'. */
+    private static final String MANUAL_SEPARATOR_PARAMETER_REGEX = "manual_separator_regex"; //$NON-NLS-1$
 
-    /** Number of items produces by the split. */
-    protected static final String LIMIT = "limit"; //$NON-NLS-1$
+    /** Number of items produced by the split. */
+    private static final String LIMIT = "limit"; //$NON-NLS-1$
 
     /** This class' logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(Split.class);

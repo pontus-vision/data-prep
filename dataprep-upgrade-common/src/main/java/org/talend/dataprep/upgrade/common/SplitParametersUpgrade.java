@@ -23,6 +23,16 @@ import org.talend.dataprep.transformation.actions.text.Split;
 
 public class SplitParametersUpgrade {
 
+    private static final String SEPARATOR_PARAMETER = "separator";
+
+    private static final String OLD_OTHER_REGEX_PARAMETER = "other (regex)";
+
+    private static final String OLD_OTHER_STRING_PARAMETER = "other (string)";
+
+    private static final String NEW_OTHER_REGEX_PARAMETER = "other_regex";
+
+    private static final String NEW_OTHER_STRING_PARAMETER = "other_string";
+
     private SplitParametersUpgrade() {
     }
 
@@ -34,11 +44,11 @@ public class SplitParametersUpgrade {
 
     private static void updateAction(Action action) {
         final Map<String, String> parameters = action.getParameters();
-        final String separator = parameters.get(Split.SEPARATOR_PARAMETER);
-        if (Split.OLD_OTHER_REGEX.equals(separator)) {
-            parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_REGEX);
-        } else if (Split.OLD_OTHER_STRING.equals(separator)) {
-            parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
+        final String separator = parameters.get(SEPARATOR_PARAMETER);
+        if (OLD_OTHER_REGEX_PARAMETER.equals(separator)) {
+            parameters.put(SEPARATOR_PARAMETER, NEW_OTHER_REGEX_PARAMETER);
+        } else if (OLD_OTHER_STRING_PARAMETER.equals(separator)) {
+            parameters.put(SEPARATOR_PARAMETER, NEW_OTHER_STRING_PARAMETER);
         }
     }
 }

@@ -46,17 +46,25 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  */
 public class SplitTest extends AbstractMetadataBaseTest<Split> {
 
-    /**
-     * The action to test.
-     */
-    private final Split action = new Split();
+    // These constants are 'redefined' here because they are not meant to change.
+    private static final String SEPARATOR_PARAMETER = "separator";
+
+    private static final String OTHER_REGEX_PARAMETER = "other_regex";
+
+    private static final String OTHER_STRING_PARAMETER = "other_string";
+
+    private static final String MANUAL_SEPARATOR_PARAMETER_STRING = "manual_separator_string";
+
+    private static final String MANUAL_SEPARATOR_PARAMETER_REGEX = "manual_separator_regex";
+
+    private static final String LIMIT = "limit";
+
+    /** The action parameters. */
+    private Map<String, String> parameters;
 
     public SplitTest() {
         super(new Split());
     }
-
-    /** The action parameters. */
-    private Map<String, String> parameters;
 
     @Before
     public void init() throws IOException {
@@ -72,10 +80,10 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
     public void testParameters() throws Exception {
         final List<Parameter> parameters = action.getParameters(Locale.US);
         assertEquals(6, parameters.size());
-        assertEquals(1L, parameters.stream().filter(p -> StringUtils.equals(Split.LIMIT, p.getName())).count());
+        assertEquals(1L, parameters.stream().filter(p -> StringUtils.equals(LIMIT, p.getName())).count());
         final Optional<Parameter> separatorParameter = parameters
                 .stream() //
-                .filter(p -> StringUtils.equals(Split.SEPARATOR_PARAMETER, p.getName())) //
+                .filter(p -> StringUtils.equals(SEPARATOR_PARAMETER, p.getName())) //
                 .findFirst();
         assertTrue(separatorParameter.isPresent());
     }
@@ -116,7 +124,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon;ipsum", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, ";");
+        parameters.put(SEPARATOR_PARAMETER, ";");
 
         final Map<String, String> expectedValues = new HashMap<>();
         expectedValues.put("0000", "lorem bacon");
@@ -137,8 +145,8 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon_ipsum", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other_string");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "_");
+        parameters.put(SEPARATOR_PARAMETER, OTHER_STRING_PARAMETER);
+        parameters.put(MANUAL_SEPARATOR_PARAMETER_STRING, "_");
 
         final Map<String, String> expectedValues = new HashMap<>();
         expectedValues.put("0000", "lorem bacon");
@@ -159,8 +167,8 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon\tipsum", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other_string");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "\t");
+        parameters.put(SEPARATOR_PARAMETER, OTHER_STRING_PARAMETER);
+        parameters.put(MANUAL_SEPARATOR_PARAMETER_STRING, "\t");
 
         final Map<String, String> expectedValues = new HashMap<>();
         expectedValues.put("0000", "lorem bacon");
@@ -185,8 +193,8 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         values.put("0002", "01/01/2015");
         final DataSetRow row = new DataSetRow(values);
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other_string");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "");
+        parameters.put(SEPARATOR_PARAMETER, OTHER_STRING_PARAMETER);
+        parameters.put(MANUAL_SEPARATOR_PARAMETER_STRING, "");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -204,8 +212,8 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         values.put("0002", "01/01/2015");
         final DataSetRow row = new DataSetRow(values);
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other_regex");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "(");
+        parameters.put(SEPARATOR_PARAMETER, OTHER_REGEX_PARAMETER);
+        parameters.put(MANUAL_SEPARATOR_PARAMETER_STRING, "(");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -219,8 +227,8 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other_string");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "(");
+        parameters.put(SEPARATOR_PARAMETER, OTHER_STRING_PARAMETER);
+        parameters.put(MANUAL_SEPARATOR_PARAMETER_STRING, "(");
 
         final Map<String, String> expectedValues = new HashMap<>();
         expectedValues.put("0000", "lorem bacon");
@@ -241,8 +249,8 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other_regex");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien");
+        parameters.put(SEPARATOR_PARAMETER, OTHER_REGEX_PARAMETER);
+        parameters.put(MANUAL_SEPARATOR_PARAMETER_REGEX, "bien");
 
         final Map<String, String> expectedValues = new HashMap<>();
         expectedValues.put("0000", "lorem bacon");
@@ -263,8 +271,8 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other_regex");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien|fff");
+        parameters.put(SEPARATOR_PARAMETER, OTHER_REGEX_PARAMETER);
+        parameters.put(MANUAL_SEPARATOR_PARAMETER_REGEX, "bien|fff");
 
         final Map<String, String> expectedValues = new HashMap<>();
         expectedValues.put("0000", "lorem bacon");
@@ -415,8 +423,8 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon ipsum dolor amet swine leberkas pork belly", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "-");
-        parameters.put(Split.LIMIT, "4");
+        parameters.put(SEPARATOR_PARAMETER, "-");
+        parameters.put(LIMIT, "4");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -443,7 +451,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         values.put("0002", "01/01/2015");
         final DataSetRow row = new DataSetRow(values);
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "");
+        parameters.put(SEPARATOR_PARAMETER, "");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -461,7 +469,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         input.add(createMetadata("0002", "last update"));
         final RowMetadata rowMetadata = new RowMetadata(input);
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "");
+        parameters.put(SEPARATOR_PARAMETER, "");
 
         // when
         ActionTestWorkbench.test(rowMetadata, actionRegistry, factory.create(action, parameters));
@@ -488,7 +496,7 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         Optional<Parameter> parameter = new Split()
                 .getParameters(Locale.US)
                 .stream()
-                .filter(p -> StringUtils.equals(p.getName(), Split.SEPARATOR_PARAMETER))
+                .filter(p -> StringUtils.equals(p.getName(), SEPARATOR_PARAMETER))
                 .findFirst();
         if (parameter.isPresent()) {
             assertTrue(parameter.get().isCanBeBlank());
