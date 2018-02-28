@@ -1,0 +1,9 @@
+{
+  "settings": {
+    "sources": [
+      "src/settings",
+      "node_modules/@talend/dataset/lib/settings"
+    ],
+    "destination": "build/settings.json"
+  }
+}

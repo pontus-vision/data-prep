@@ -16,22 +16,21 @@
   -->
 
 <html ng-strict-di html-lang>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title><%= htmlWebpackPlugin.options.title %></title>
-        <meta name="viewport" content="width=device-width">
-        <link rel="shortcut icon" href="/assets/images/favicon.png" sizes="16x16 32x32 64x64 128x128" type="image/png">
-    </head>
-    <body disable-right-click>
-        <!--[if lt IE 10]>
-        <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-        <![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="shortcut icon" href="/assets/images/favicon.png" sizes="16x16 32x32 64x64 128x128" type="image/png">
+</head>
+<body disable-right-click>
+<!--[if lt IE 10]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
+    your browser</a> to improve your experience.</p>
+<![endif]-->
 
-        <<%= htmlWebpackPlugin.options.rootElement %>></<%= htmlWebpackPlugin.options.rootElement %>>
-
-        <script language="JavaScript">
-            fetchConfiguration().then(bootstrapDataPrepApplication.bind(null, ['<%= htmlWebpackPlugin.options.rootModule %>']));
-        </script>
-    </body>
+<div id="app">
+    <dataprep-app></dataprep-app>
+</div>
+</body>
 </html>
