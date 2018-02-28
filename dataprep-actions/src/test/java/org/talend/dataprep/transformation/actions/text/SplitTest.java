@@ -63,10 +63,6 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         parameters = ActionMetadataTestUtils.parseParameters(SplitTest.class.getResourceAsStream("splitAction.json"));
     }
 
-    private void initParametersWithOldParam() throws IOException {
-        parameters = ActionMetadataTestUtils.parseParameters(SplitTest.class.getResourceAsStream("splitActionOldParam.json"));
-    }
-
     @Test
     public void testName() throws Exception {
         assertEquals("split", action.getName());
@@ -107,27 +103,6 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         expectedValues.put("0003", "Bacon");
         expectedValues.put("0004", "ipsum dolor amet swine leberkas pork belly");
         expectedValues.put("0002", "01/01/2015");
-
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
-
-        // then
-        assertEquals(expectedValues, row.values());
-    }
-
-    @Test
-    public void test_apply_in_newcolumn_with_old_param() throws Exception {
-        // given
-        final DataSetRow row = getRow("lorem bacon", "Bacon ipsum dolor amet swine leberkas pork belly", "01/01/2015");
-
-        final Map<String, String> expectedValues = new HashMap<>();
-        expectedValues.put("0000", "lorem bacon");
-        expectedValues.put("0001", "Bacon ipsum dolor amet swine leberkas pork belly");
-        expectedValues.put("0003", "Bacon");
-        expectedValues.put("0004", "ipsum dolor amet swine leberkas pork belly");
-        expectedValues.put("0002", "01/01/2015");
-
-        initParametersWithOldParam();
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -284,55 +259,11 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
     }
 
     @Test
-    public void test_split_on_regex_with_old_param() {
-        // given
-        final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
-
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (regex)");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien");
-
-        final Map<String, String> expectedValues = new HashMap<>();
-        expectedValues.put("0000", "lorem bacon");
-        expectedValues.put("0001", "Je vais bien (tout va bien)");
-        expectedValues.put("0003", "Je vais ");
-        expectedValues.put("0004", " (tout va bien)");
-        expectedValues.put("0002", "01/01/2015");
-
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
-
-        // then
-        assertEquals(expectedValues, row.values());
-    }
-
-    @Test
     public void test_split_on_regex2() {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
         parameters.put(Split.SEPARATOR_PARAMETER, "other_regex");
-        parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien|fff");
-
-        final Map<String, String> expectedValues = new HashMap<>();
-        expectedValues.put("0000", "lorem bacon");
-        expectedValues.put("0001", "Je vais bien (tout va bien)");
-        expectedValues.put("0003", "Je vais ");
-        expectedValues.put("0004", " (tout va bien)");
-        expectedValues.put("0002", "01/01/2015");
-
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
-
-        // then
-        assertEquals(expectedValues, row.values());
-    }
-
-    @Test
-    public void test_split_on_regex2_with_old_param() {
-        // given
-        final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
-
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (regex)");
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien|fff");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -394,29 +325,6 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
     }
 
     @Test
-    public void should_split_row_twice_with_old_param() throws Exception {
-        // given
-        final DataSetRow row = getRow("lorem bacon", "Bacon ipsum dolor amet swine leberkas pork belly", "01/01/2015");
-
-        final Map<String, String> expectedValues = new HashMap<>();
-        expectedValues.put("0000", "lorem bacon");
-        expectedValues.put("0001", "Bacon ipsum dolor amet swine leberkas pork belly");
-        expectedValues.put("0005", "Bacon");
-        expectedValues.put("0006", "ipsum dolor amet swine leberkas pork belly");
-        expectedValues.put("0003", "Bacon");
-        expectedValues.put("0004", "ipsum dolor amet swine leberkas pork belly");
-        expectedValues.put("0002", "01/01/2015");
-
-        initParametersWithOldParam();
-
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters), factory.create(action, parameters));
-
-        // then
-        assertEquals(expectedValues, row.values());
-    }
-
-    @Test
     public void should_split_row_with_separator_at_the_end() {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon ", "01/01/2015");
@@ -436,27 +344,6 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
     }
 
     @Test
-    public void should_split_row_with_separator_at_the_end_and_old_param() throws Exception {
-        // given
-        final DataSetRow row = getRow("lorem bacon", "Bacon ", "01/01/2015");
-
-        final Map<String, String> expectedValues = new HashMap<>();
-        expectedValues.put("0000", "lorem bacon");
-        expectedValues.put("0001", "Bacon ");
-        expectedValues.put("0003", "Bacon");
-        expectedValues.put("0004", "");
-        expectedValues.put("0002", "01/01/2015");
-
-        initParametersWithOldParam();
-
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
-
-        // then
-        assertEquals(expectedValues, row.values());
-    }
-
-    @Test
     public void should_split_row_no_separator() {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon", "01/01/2015");
@@ -467,27 +354,6 @@ public class SplitTest extends AbstractMetadataBaseTest<Split> {
         expectedValues.put("0003", "Bacon");
         expectedValues.put("0004", "");
         expectedValues.put("0002", "01/01/2015");
-
-        // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
-
-        // then
-        assertEquals(expectedValues, row.values());
-    }
-
-    @Test
-    public void should_split_row_no_separator_with_old_param() throws Exception {
-        // given
-        final DataSetRow row = getRow("lorem bacon", "Bacon", "01/01/2015");
-
-        final Map<String, String> expectedValues = new HashMap<>();
-        expectedValues.put("0000", "lorem bacon");
-        expectedValues.put("0001", "Bacon");
-        expectedValues.put("0003", "Bacon");
-        expectedValues.put("0004", "");
-        expectedValues.put("0002", "01/01/2015");
-
-        initParametersWithOldParam();
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
