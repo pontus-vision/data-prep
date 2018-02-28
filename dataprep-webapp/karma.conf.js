@@ -29,7 +29,7 @@ module.exports = function (config) {
 		webpack: webpackConfig,
 
 		webpackServer: {
-			noInfo: true // prevent console spamming when running in Karma!
+		//	noInfo: true // prevent console spamming when running in Karma!
 		},
 
 		// available reporters: https://npmjs.org/browse/keyword/karma-reporter
@@ -63,7 +63,7 @@ module.exports = function (config) {
 		proxies: {
 			'/assets/': '/src/assets/',
 		},
-		
+
 		browserNoActivityTimeout: 120000,
 	});
 };

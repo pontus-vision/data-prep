@@ -11,19 +11,23 @@
     "clean": "rimraf ./build && rimraf ./coverage",
     "clean:build": "rimraf ./build",
     "clean:coverage": "rimraf ./coverage",
-    "build": "UV_THREADPOOL_SIZE=100 webpack --config config/webpack.config.dev.js --progress",
+    "build": "NODE_ENV=production webpack --config config/webpack.config.prod.js --progress",
     "prebuild": "rimraf ./build",
-    "build:dist": "webpack --config config/webpack.config.prod.js --progress",
-    "prebuild:dist": "rimraf ./build",
     "start": "npm run serve",
-    "serve": "NODE_ENV=developement API_URL=http://localhost:3030 webpack-dev-server --inline --config config/webpack.config.dev.js --progress  --content-base build/",
-    "serve:dist": "webpack-dev-server --config config/webpack.config.prod.js --progress --compress",
-    "test": "karma start",
-    "test:ci": "karma start karma.conf.ci.js",
-    "test:auto": "karma start --auto",
+    "serve": "NODE_ENV=development webpack-dev-server --config config/webpack.config.dev.js --progress --content-base build/",
+    "test": "NODE_ENV=test karma start && jest",
+    "test:ci": "NODE_ENV=test karma start karma.conf.ci.js && jest",
+    "test:auto": "NODE_ENV=test karma start --auto",
     "lint:es": "eslint --config .eslintrc --fix src",
     "lint:sass": "sass-lint -c .sass-lint.yml 'src/app/**/*.scss' -v -q",
     "stats": "webpack --config config/webpack.config.dev.js --profile -j > stats.json"
+  },
+  "jest": {
+    "testRegex": "/.*\\.test.js$",
+    "moduleNameMapper": {
+      "^.+\\.(css|scss)$": "<rootDir>/src/test/styleMock.js"
+    },
+    "setupTestFrameworkScriptFile": "<rootDir>/test-setup.js"
   },
   "dependencies": {
     "@talend/bootstrap-theme": "0.159.0",

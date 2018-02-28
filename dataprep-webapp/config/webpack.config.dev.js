@@ -1,10 +1,17 @@
-const config = require('./webpack.config');
 const webpack = require('webpack');
+const ReactCMFWebpackPlugin = require('@talend/react-cmf-webpack-plugin');
+
+const config = require('./webpack.config');
 
 config.devtool = 'inline-source-map';
-config.plugins.push(new webpack.DefinePlugin({
-	'process.env.NODE_ENV': JSON.stringify('development'),
-}));
+config.plugins.push(
+	new webpack.DefinePlugin({
+		'process.env.NODE_ENV': JSON.stringify('development'),
+	}),
+	new ReactCMFWebpackPlugin({
+		watch: true,
+	}),
+);
 
 config.watchOptions = {
 	aggregateTimeout: 300,
@@ -21,11 +28,6 @@ config.devServer = {
 		});
 	},
 	proxy: {
-		'/api/v1/semantic': {
-			target: 'http://dev.data-prep-ee.talend.lan:9999/gateway/dq/semanticservice',
-			changeOrigin: true,
-			secure: false,
-		},
 		'/api/v1/stream-websocket': {
 			target: process.env.API_URL || 'http://localhost',
 			ws: true,

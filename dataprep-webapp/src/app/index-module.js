@@ -163,7 +163,7 @@ function fetchConfiguration() {
 	return getAppConfiguration()
 		.then(({ config, appSettings }) => {
 			appSettings.provider = 'legacy';
-			appSettings.provider = 'catalog';
+			// appSettings.provider = 'catalog';
 
 			if (appSettings.provider.includes('catalog') && !(/playground/.test(window.location.href))) {
 				bootstrapReact();

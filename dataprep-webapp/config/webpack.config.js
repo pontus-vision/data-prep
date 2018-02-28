@@ -5,7 +5,6 @@ const autoprefixer = require('autoprefixer');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ReactCMFWebpackPlugin = require('@talend/react-cmf-webpack-plugin');
 
 const extractCSS = new ExtractTextPlugin({ filename: '[name]-[hash].css' });
 
@@ -48,9 +47,9 @@ function getSassLoaders(enableModules) {
 
 const isDevMode = process.env.NODE_ENV === 'developement';
 const isTestMode = process.env.NODE_ENV === 'test';
-// const isProdMode = process.env.NODE_ENV === 'production';
+const isProdMode = process.env.NODE_ENV === 'production';
 
-module.exports = {
+const config = {
 	entry: {
 		vendor: [
 			'babel-polyfill',
@@ -134,11 +133,25 @@ module.exports = {
 			'window.jQuery': 'jquery',
 			moment: 'moment',
 		}),
-		new HtmlWebpackPlugin({
+		new webpack.LoaderOptionsPlugin({
+			minimize: true,
+		}),
+	],
+	node: {
+		fs: 'empty',
+	},
+};
+
+if (!isTestMode) {
+	config.plugins = config.plugins.concat([
+		CopyWebpackPlugin([
+			{ from: 'src/assets/images', to: 'assets/images' },
+			{ from: 'src/assets/config/config.json', to: 'assets/config' },
+			{ from: 'src/i18n', to: 'i18n' },
+		]), new HtmlWebpackPlugin({
 			filename: './index.html',
 			template: INDEX_TEMPLATE_PATH,
 			title: 'Talend Data Preparation',
-			// inject: 'head',
 			// ensure loding order vendor/style/app
 			chunksSortMode: (a, b) => {
 				const aOrder = CHUNKS_ORDER.indexOf(a.names[0]);
@@ -151,21 +164,14 @@ module.exports = {
 				}
 				return 0;
 			},
-		}),
-		new CopyWebpackPlugin([
-			{ from: 'src/assets/images', to: 'assets/images' },
-			{ from: 'src/assets/config/config.json', to: 'assets/config' },
-			{ from: 'src/i18n', to: 'i18n' },
-		]),
-		new ReactCMFWebpackPlugin({
-			watch: isDevMode,
-		}),
-		new webpack.BannerPlugin({
+		}), new webpack.BannerPlugin({
 			banner: LICENSE_BANNER,
 		}),
 		new webpack.optimize.CommonsChunkPlugin({
 			name: 'vendor',
 			minChunks: Infinity,
 		}),
-	],
-};
+	]);
+}
+
+module.exports = config;
