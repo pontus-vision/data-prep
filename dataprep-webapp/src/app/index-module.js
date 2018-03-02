@@ -159,27 +159,23 @@ function bootstrapAngular(config, appSettings) {
 		.value('copyRights', config.copyRights);
 }
 
-function fetchConfiguration() {
-	return getAppConfiguration()
-		.then(({ config, appSettings }) => {
-			appSettings.provider = 'legacy';
-			// appSettings.provider = 'catalog';
+window.fetchConfiguration = getAppConfiguration;
 
-			if (appSettings.provider.includes('catalog') && !(/playground/.test(window.location.href))) {
-				bootstrapReact();
-			}
-			else {
-				bootstrapAngular(config, appSettings);
-				angular
-					.element(document)
-					.ready(() => angular.bootstrap(document, ['data-prep']));
-			}
-			return appSettings;
-		});
-}
+window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modules, { config, appSettings }) {
+	appSettings.provider = 'legacy';
+	// appSettings.provider = 'catalog';
 
-fetchConfiguration();
-
+	if (appSettings.provider.includes('catalog') && !(/playground/.test(window.location.href))) {
+		bootstrapReact();
+	}
+	else {
+		bootstrapAngular(config, appSettings);
+		angular
+			.element(document)
+			.ready(() => angular.bootstrap(document, modules));
+	}
+	return appSettings;
+};
 /* eslint-enable angular/window-service */
 
 export default MODULE_NAME;

@@ -8,6 +8,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const extractCSS = new ExtractTextPlugin({ filename: '[name]-[hash].css' });
 
+const APP_CONF = require('./app.conf.js');
 const LICENSE_BANNER = require('./license');
 const SASS_DATA = require('./sass.conf');
 const CHUNKS_ORDER = ['vendor', 'style', 'app'];
@@ -151,7 +152,11 @@ if (!isTestMode) {
 		]), new HtmlWebpackPlugin({
 			filename: './index.html',
 			template: INDEX_TEMPLATE_PATH,
-			title: 'Talend Data Preparation',
+			title: APP_CONF.title,
+			rootElement: APP_CONF.rootElement,
+			rootModule: APP_CONF.rootModule,
+			inject: 'head',
+
 			// ensure loding order vendor/style/app
 			chunksSortMode: (a, b) => {
 				const aOrder = CHUNKS_ORDER.indexOf(a.names[0]);
