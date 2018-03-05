@@ -1,30 +1,27 @@
-const path = require('path');
 const webpack = require('webpack');
+const ReactCMFWebpackPlugin = require('@talend/react-cmf-webpack-plugin');
 
 const config = require('./webpack.config');
 
+config.devtool = 'source-map';
+
 config.plugins = config.plugins.concat([
+	new ReactCMFWebpackPlugin({
+		quiet: true,
+	}),
 	new webpack.DefinePlugin({
 		'process.env.NODE_ENV': JSON.stringify('production'),
 	}),
 	new webpack.optimize.UglifyJsPlugin({
+		cache: true,
 		compress: {
 			warnings: false,
 		},
+		sourceMap: true,
 		comments: false,
 		mangle: true,
 		minimize: true,
 	}),
 ]);
-
-config.module.loaders.push({
-	test: /\.js$/,
-	enforce: 'pre',
-	use: 'stripcomment-loader',
-	exclude: [
-		/node_modules/,
-		/\.spec\.js$/,
-	],
-});
 
 module.exports = config;
