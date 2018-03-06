@@ -57,40 +57,42 @@ export const i18n = init({
 	wait: true, // globally set to wait for loaded translations in translate hoc
 });
 
+angular
+	.module(MODULE_NAME, [
+		ngSanitize,
+		ngTranslate,
+		uiRouter,
+		APP_MODULE, // bootstrap: app root
+		HOME_MODULE, // routing: home components
+		PLAYGROUND_MODULE, // routing: playground component
+		SERVICES_DATASET_MODULE, // configuration: refresh supported encodings
+		SERVICES_ERRORS_MODULE, // routing: common http errors management
+		SERVICES_REST_MODULE, // configuration: rest interceptors
+		SERVICES_STATE_MODULE,
+		SERVICES_UTILS_MODULE, // configuration: register constants (version, ...)
+		SETTINGS_MODULE, // configuration: get app settings
+	])
+	// Performance config
+	.config(($httpProvider) => {
+		'ngInject';
+		$httpProvider.useApplyAsync(true);
+	})
+	// Translate config
+	.config(($translateProvider) => {
+		'ngInject';
+		$translateProvider.useStaticFilesLoader({
+			prefix: 'i18n/',
+			suffix: '.json',
+		});
+		$translateProvider.useSanitizeValueStrategy(null);
+	})
+	// Router config
+	.config(routeConfig)
+	.run(routeInterceptor);
+
 function bootstrapAngular(config, appSettings) {
 	angular
-		.module(MODULE_NAME, [
-			ngSanitize,
-			ngTranslate,
-			uiRouter,
-			APP_MODULE, // bootstrap: app root
-			HOME_MODULE, // routing: home components
-			PLAYGROUND_MODULE, // routing: playground component
-			SERVICES_DATASET_MODULE, // configuration: refresh supported encodings
-			SERVICES_ERRORS_MODULE, // routing: common http errors management
-			SERVICES_REST_MODULE, // configuration: rest interceptors
-			SERVICES_STATE_MODULE,
-			SERVICES_UTILS_MODULE, // configuration: register constants (version, ...)
-			SETTINGS_MODULE, // configuration: get app settings
-		])
-		// Performance config
-		.config(($httpProvider) => {
-			'ngInject';
-			$httpProvider.useApplyAsync(true);
-		})
-		// Translate config
-		.config(($translateProvider) => {
-			'ngInject';
-			$translateProvider.useStaticFilesLoader({
-				prefix: 'i18n/',
-				suffix: '.json',
-			});
-			$translateProvider.useSanitizeValueStrategy(null);
-		})
-		// Router config
-		.config(routeConfig)
-		.run(routeInterceptor)
-		// Debug config
+	// Debug config
 		.config(($compileProvider) => {
 			'ngInject';
 			$compileProvider.debugInfoEnabled(config.enableDebug);
@@ -176,6 +178,7 @@ window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modu
 	}
 	return appSettings;
 };
+
 /* eslint-enable angular/window-service */
 
 export default MODULE_NAME;
