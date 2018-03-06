@@ -33,4 +33,4 @@ Feature: Perform scenarios with ExtractDateToken related action
   @CleanAfter
   Scenario: Remove original preparation after copying the preparation
     When I remove the preparation "Albums_Musique_prep"
-    Then I check that the preparation "Albums_Musique_prep" doesn't exist in the folder "/smoke/test"
+    Then I check that the preparation "Albums_Musique_prep" doesn't exist in the folder "/"
