@@ -57,7 +57,7 @@ export const i18n = init({
 	wait: true, // globally set to wait for loaded translations in translate hoc
 });
 
-angular
+const app = angular
 	.module(MODULE_NAME, [
 		ngSanitize,
 		ngTranslate,
@@ -91,7 +91,7 @@ angular
 	.run(routeInterceptor);
 
 function bootstrapAngular(config, appSettings) {
-	angular
+	app
 	// Debug config
 		.config(($compileProvider) => {
 			'ngInject';
@@ -164,8 +164,8 @@ function bootstrapAngular(config, appSettings) {
 window.fetchConfiguration = getAppConfiguration;
 
 window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modules, { config, appSettings }) {
-	appSettings.provider = 'legacy';
-	// appSettings.provider = 'catalog';
+	appSettings.provider = appSettings.provider || 'legacy';
+	appSettings.provider = 'catalog';
 
 	if (appSettings.provider.includes('catalog') && !(/playground/.test(window.location.href))) {
 		bootstrapReact();
