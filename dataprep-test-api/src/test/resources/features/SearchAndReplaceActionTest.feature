@@ -25,4 +25,4 @@ Feature: Perform scenarios with SearchAndReplace related action
   @CleanAfter
   Scenario: Remove original preparation after copying the preparation
     When I remove the preparation "best_sad_songs_of_all_time_prep"
-    Then I check that the preparation "best_sad_songs_of_all_time_prep" doesn't exist in the folder "/smoke/test"
+    Then I check that the preparation "best_sad_songs_of_all_time_prep" doesn't exist in the folder "/"

@@ -5,6 +5,7 @@ import cucumber.api.DataTable;
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -81,16 +82,31 @@ public class PreparationStep extends DataPrepStep {
         response.then().statusCode(200);
     }
 
+    @When("^I remove the preparation \"(.*)\"$")
+    public void removePreparation(String preparationName) throws IOException {
+        String prepId = context.getPreparationId(suffixName(preparationName));
+        api.deletePreparation(prepId).then().statusCode(200);
+        context.removePreparationRef(suffixName(preparationName));
+    }
+
+    @Then("^I check that the preparation \"(.*)\" doesn't exist in the folder \"(.*)\"$")
+    public void checkPreparationNotExist(String preparationName, String folder) throws IOException {
+        Assert.assertEquals(0, checkPrepExistsInTheFolder(preparationName, folder));
+    }
+
     @And("^I check that the preparation \"(.*)\" exists under the folder \"(.*)\"$")
-    public void checkExistPrep(String preparationName, String folder) throws IOException {
+    public void checkPrepExists(String preparationName, String folder) throws IOException {
+        Assert.assertEquals(1, checkPrepExistsInTheFolder(preparationName, folder));
+    }
+
+    private long checkPrepExistsInTheFolder(String preparationName, String folder) throws IOException {
         String suffixedPreparationName = suffixName(preparationName);
         String prepId = context.getPreparationId(suffixedPreparationName);
         FolderContent folderContent = folderUtil.listPreparation(folder);
 
-        long nb = folderContent.preparations.stream() //
+        return folderContent.preparations.stream() //
                 .filter(p -> p.id.equals(prepId) //
                         && p.name.equals(suffixedPreparationName)) //
                 .count();
-        Assert.assertEquals(1, nb);
     }
 }
