@@ -23,7 +23,7 @@
     "stats": "webpack --config config/webpack.config.dev.js --profile -j > stats.json"
   },
   "jest": {
-    "testRegex": "/.*\\.test.js$",
+    "testRegex": "/src/.*\\.test.js$",
     "moduleNameMapper": {
       "^.+\\.(css|scss)$": "<rootDir>/src/test/styleMock.js"
     },
