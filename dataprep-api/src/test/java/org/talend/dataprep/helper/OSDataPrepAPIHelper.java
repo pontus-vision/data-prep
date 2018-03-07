@@ -13,8 +13,6 @@
 
 package org.talend.dataprep.helper;
 
-import static com.jayway.restassured.http.ContentType.JSON;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +35,8 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSpecification;
+
+import static com.jayway.restassured.http.ContentType.JSON;
 
 /**
  * Utility class to allow dataprep-api integration tests.
@@ -501,5 +501,18 @@ public class OSDataPrepAPIHelper {
                 .baseUri(apiBaseUrl) //
                 .when() //
                 .get("/api/export/formats/preparations/" + preparationId);
+    }
+
+    /**
+     * Return the list of datasets
+     * @param queryParameters
+     * @return
+     */
+    public Response getDatasets(Map<String, String> queryParameters) {
+        return given() //
+                .baseUri(apiBaseUrl) //
+                .when() //
+                .queryParameters(queryParameters)
+                .get("/api/datasets");
     }
 }
