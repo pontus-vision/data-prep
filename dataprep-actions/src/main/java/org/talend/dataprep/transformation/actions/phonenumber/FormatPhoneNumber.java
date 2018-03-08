@@ -66,9 +66,9 @@ public class FormatPhoneNumber extends AbstractActionMetadata implements ColumnA
     /**
      * the follow 4 types is provided to user selection on UI
      */
-    static final String TYPE_INTERNATIONAL = "international"; //$NON-NLS-1$
+    public static final String TYPE_INTERNATIONAL = "international"; //$NON-NLS-1$
 
-    static final String TYPE_NATIONAL = "national"; //$NON-NLS-1$
+    public static final String TYPE_NATIONAL = "national"; //$NON-NLS-1$
 
     static final String TYPE_E164 = "E164"; //$NON-NLS-1$
 
