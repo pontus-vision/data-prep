@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -22,7 +22,13 @@ import static org.talend.dataprep.transformation.actions.category.ActionScope.CO
 import static org.talend.dataprep.transformation.actions.category.ActionScope.HIDDEN_IN_ACTION_LIST;
 import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.daikon.exception.TalendRuntimeException;
@@ -76,13 +82,7 @@ public class CreateNewColumn extends AbstractActionMetadata implements ColumnAct
      */
     public static final String NEW_COLUMN_NAME = "create_new_column_name";
 
-    public static final String OLD_CONSTANT_MODE = "A constant";
-
-    public static final String OLD_COLUMN_MODE = "Another column";
-
-    public static final String OLD_EMPTY_MODE = "Nothing, this column will be empty";
-
-    public static final String DEFAULT_NAME_FOR_NEW_COLUMN = "New column";
+    public static final String DEFAULT_NAME_FOR_NEW_COLUMN = "new column";
 
     @Override
     public String getName() {
@@ -155,15 +155,12 @@ public class CreateNewColumn extends AbstractActionMetadata implements ColumnAct
         String newValue = "";
         switch (parameters.get(MODE_PARAMETER)) {
         case EMPTY_MODE:
-        case OLD_EMPTY_MODE:
             newValue = "";
             break;
         case CONSTANT_MODE:
-        case OLD_CONSTANT_MODE:
             newValue = parameters.get(DEFAULT_VALUE_PARAMETER);
             break;
         case COLUMN_MODE:
-        case OLD_COLUMN_MODE:
             ColumnMetadata selectedColumn = rowMetadata.getById(parameters.get(SELECTED_COLUMN_PARAMETER));
             newValue = row.get(selectedColumn.getId());
             break;
