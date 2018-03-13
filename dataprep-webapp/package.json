@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@talend/bootstrap-theme": "0.164.0",
-    "@talend/dataset": "0.27.0",
+    "@talend/dataset": "0.32.0",
     "@talend/icons": "0.164.0",
     "@talend/react-cmf": "0.164.0",
     "@talend/react-cmf-webpack-plugin": "0.165.0",

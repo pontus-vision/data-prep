@@ -165,7 +165,7 @@ window.fetchConfiguration = getAppConfiguration;
 
 window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modules, { config, appSettings }) {
 	appSettings.provider = appSettings.provider || 'legacy';
-	appSettings.provider = 'catalog';
+	// appSettings.provider = 'catalog';
 
 	if (appSettings.provider.includes('catalog') && !(/playground/.test(window.location.href))) {
 		bootstrapReact();
@@ -176,7 +176,6 @@ window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modu
 			.element(document)
 			.ready(() => angular.bootstrap(document, modules));
 	}
-	return appSettings;
 };
 
 /* eslint-enable angular/window-service */

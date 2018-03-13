@@ -2,9 +2,9 @@ const path = require('path');
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const extractCSS = new ExtractTextPlugin({ filename: '[name]-[hash].css' });
 
@@ -17,6 +17,10 @@ const INDEX_TEMPLATE_PATH = path.resolve(__dirname, '../src/index.html');
 const STYLE_PATH = path.resolve(__dirname, '../src/app/index.scss');
 const STYLE_THEMED_PATH = path.resolve(__dirname, '../src/app/index.themed.scss');
 const VENDOR_PATH = path.resolve(__dirname, '../src/vendor.js');
+
+const isDevMode = process.env.NODE_ENV === 'developement';
+const isTestMode = process.env.NODE_ENV === 'test';
+const isProdMode = process.env.NODE_ENV === 'production';
 
 function getCommonStyleLoaders(enableModules) {
 	let cssOptions = {};
@@ -45,10 +49,6 @@ function getSassLoaders(enableModules) {
 			options: { sourceMap: true, data: SASS_DATA },
 		});
 }
-
-const isDevMode = process.env.NODE_ENV === 'developement';
-const isTestMode = process.env.NODE_ENV === 'test';
-const isProdMode = process.env.NODE_ENV === 'production';
 
 const config = {
 	entry: {
@@ -149,7 +149,8 @@ if (!isTestMode) {
 			{ from: 'src/assets/images', to: 'assets/images' },
 			{ from: 'src/assets/config/config.json', to: 'assets/config' },
 			{ from: 'src/i18n', to: 'i18n' },
-		]), new HtmlWebpackPlugin({
+		]),
+		new HtmlWebpackPlugin({
 			filename: './index.html',
 			template: INDEX_TEMPLATE_PATH,
 			title: APP_CONF.title,
@@ -169,7 +170,8 @@ if (!isTestMode) {
 				}
 				return 0;
 			},
-		}), new webpack.BannerPlugin({
+		}),
+		new webpack.BannerPlugin({
 			banner: LICENSE_BANNER,
 		}),
 		new webpack.optimize.CommonsChunkPlugin({

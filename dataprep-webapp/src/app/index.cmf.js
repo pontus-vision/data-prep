@@ -8,8 +8,6 @@ import configure from './configure';
 function bootstrap() {
 	return configure()
 		.then(({ browserHistory, store }) => {
-			console.log({ browserHistory, store });
-
 			/**
 			 * Render the CMF App
 			 */
