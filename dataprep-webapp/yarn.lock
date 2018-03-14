@@ -54,52 +54,52 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
-"@talend/bootstrap-theme@0.164.0":
-  version "0.164.0"
-  resolved "https://registry.yarnpkg.com/@talend/bootstrap-theme/-/bootstrap-theme-0.164.0.tgz#2b6f60fa0100395b3b16f712f4a7f015d29b08e0"
+"@talend/bootstrap-theme@0.166.0":
+  version "0.166.0"
+  resolved "https://registry.yarnpkg.com/@talend/bootstrap-theme/-/bootstrap-theme-0.166.0.tgz#a110ba9d3708a2acf3c8d2dcc43dc8877cbc7204"
   dependencies:
     bootstrap-sass "3.3.7"
 
-"@talend/dataset@0.32.0":
-  version "0.32.0"
-  resolved "https://registry.yarnpkg.com/@talend/dataset/-/dataset-0.32.0.tgz#cc06fbbb8f00817efd2d49e616f43b1f4e343608"
+"@talend/dataset@0.33.0":
+  version "0.33.0"
+  resolved "https://registry.yarnpkg.com/@talend/dataset/-/dataset-0.33.0.tgz#abd9a54876b9493e2c70ba83de99806815c43e96"
   dependencies:
     prop-types "15.5.10"
+    react-immutable-proptypes "2.1.0"
 
-"@talend/icons@0.164.0":
-  version "0.164.0"
-  resolved "https://registry.yarnpkg.com/@talend/icons/-/icons-0.164.0.tgz#f0f85652dae3593044ce404f0766fa7cdf624679"
+"@talend/icons@0.166.0":
+  version "0.166.0"
+  resolved "https://registry.yarnpkg.com/@talend/icons/-/icons-0.166.0.tgz#90a65eef3965e194bbd1782b9293d5d39570677f"
 
-"@talend/react-cmf-webpack-plugin@0.165.0":
-  version "0.165.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf-webpack-plugin/-/react-cmf-webpack-plugin-0.165.0.tgz#aa3fbdca34f88b3b3a7fe9a769aa3e5ce7704797"
+"@talend/react-cmf-cqrs@0.166.0":
+  version "0.166.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf-cqrs/-/react-cmf-cqrs-0.166.0.tgz#c0388c49029d79ac223c737159083c0cb2ab571d"
   dependencies:
-    "@talend/react-cmf" "^0.165.0"
+    babel-polyfill "6.26.0"
+    hoist-non-react-statics "^1.2.0"
+    mock-socket "^7.0.0"
+
+"@talend/react-cmf-webpack-plugin@0.166.0":
+  version "0.166.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf-webpack-plugin/-/react-cmf-webpack-plugin-0.166.0.tgz#18dfcd060fdbd44c048a04e7ae3b7dddaf514c25"
+  dependencies:
+    "@talend/react-cmf" "^0.166.0"
     chokidar "^2.0.2"
     deepmerge "1.5.1"
     mkdirp "^0.5.1"
 
-"@talend/react-cmf@0.164.0":
-  version "0.164.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.164.0.tgz#76d0ed7b31f82b1e7cea62c48aa810c84c52fef7"
+"@talend/react-cmf@0.166.0", "@talend/react-cmf@^0.166.0":
+  version "0.166.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.166.0.tgz#493c24d2c176f7ce7fe028f194920e0aa5daa3c1"
   dependencies:
     babel-polyfill "6.26.0"
     deepmerge "1.5.1"
     hoist-non-react-statics "^1.2.0"
     react-immutable-proptypes "2.1.0"
 
-"@talend/react-cmf@^0.165.0":
-  version "0.165.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.165.0.tgz#f1d66c53eb8999136f4048eed56fa0541cfaaaed"
-  dependencies:
-    babel-polyfill "6.26.0"
-    deepmerge "1.5.1"
-    hoist-non-react-statics "^1.2.0"
-    react-immutable-proptypes "2.1.0"
-
-"@talend/react-components@0.164.0":
-  version "0.164.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-components/-/react-components-0.164.0.tgz#7124df99a2c5713b1a8944412ae984b9a39e7af9"
+"@talend/react-components@0.166.0":
+  version "0.166.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-components/-/react-components-0.166.0.tgz#8428a7d318d9b74f9087a94cb68ffafc02d27b3c"
   dependencies:
     date-fns "1.27.2"
     lodash "4.17.4"
@@ -109,16 +109,17 @@
     react-debounce-input "3.1.0"
     react-virtualized "9.10.1"
 
-"@talend/react-containers@0.164.0":
-  version "0.164.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-containers/-/react-containers-0.164.0.tgz#a8ef3ff6fc7fbfb6c53e3cfeea48681df7251d31"
+"@talend/react-containers@0.166.0":
+  version "0.166.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-containers/-/react-containers-0.166.0.tgz#08190a34038cb73d678842fac3201dab708f6f9e"
   dependencies:
     react-immutable-proptypes "2.1.0"
 
-"@talend/react-forms@0.164.0":
-  version "0.164.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-forms/-/react-forms-0.164.0.tgz#40ce88c592a6bb45e69f581600aa59375303eb2f"
+"@talend/react-forms@0.166.0":
+  version "0.166.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-forms/-/react-forms-0.166.0.tgz#b130643f0977003b9dedd87a7f7ab66f731e6ef9"
   dependencies:
+    ajv "^6.2.1"
     classnames "2.2.5"
     keycode "2.1.9"
     lodash "4.17.4"
@@ -233,6 +234,14 @@ ajv@^5.0.0, ajv@^5.1.5:
     fast-deep-equal "^1.0.0"
     json-schema-traverse "^0.3.0"
     json-stable-stringify "^1.0.1"
+
+ajv@^6.2.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-6.2.1.tgz#28a6abc493a2abe0fb4c8507acaedb43fa550671"
+  dependencies:
+    fast-deep-equal "^1.0.0"
+    fast-json-stable-stringify "^2.0.0"
+    json-schema-traverse "^0.3.0"
 
 align-text@^0.1.1, align-text@^0.1.3:
   version "0.1.4"
@@ -909,7 +918,7 @@ babel-plugin-transform-async-to-generator@^6.22.0:
     babel-plugin-syntax-async-functions "^6.8.0"
     babel-runtime "^6.22.0"
 
-babel-plugin-transform-class-properties@^6.24.1:
+babel-plugin-transform-class-properties@6.24.1:
   version "6.24.1"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-class-properties/-/babel-plugin-transform-class-properties-6.24.1.tgz#6a79763ea61d33d36f37b611aa9def81a81b46ac"
   dependencies:
@@ -1118,7 +1127,7 @@ babel-plugin-transform-flow-strip-types@^6.22.0:
     babel-plugin-syntax-flow "^6.18.0"
     babel-runtime "^6.22.0"
 
-babel-plugin-transform-object-assign@^6.22.0:
+babel-plugin-transform-object-assign@6.22.0:
   version "6.22.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-object-assign/-/babel-plugin-transform-object-assign-6.22.0.tgz#f99d2f66f1a0b0d498e346c5359684740caa20ba"
   dependencies:
@@ -3584,6 +3593,10 @@ extsprintf@1.0.2:
 fast-deep-equal@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-1.0.0.tgz#96256a3bc975595eb36d82e9929d060d893439ff"
+
+fast-json-stable-stringify@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.0.0.tgz#d5142c0caee6b1189f87d3a76111064f86c8bbf2"
 
 fast-levenshtein@~2.0.4:
   version "2.0.6"
@@ -6062,6 +6075,10 @@ mkdirp@0.5.1, mkdirp@0.5.x, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1, mkdi
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
   dependencies:
     minimist "0.0.8"
+
+mock-socket@^7.0.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/mock-socket/-/mock-socket-7.1.0.tgz#482ecccafb0f0e86b8905ba2aa57c1fe73ba262d"
 
 modernizr@^3.3.1:
   version "3.3.1"

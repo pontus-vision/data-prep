@@ -11,13 +11,12 @@ import { browserHistory } from 'react-router';
 import { routerMiddleware } from 'react-router-redux';
 import createSagaMiddleware from 'redux-saga';
 import { all, call, fork } from 'redux-saga/effects';
-import { FETCH_PREPARATIONS } from './constants';
+
 import actions from './actions';
 import components from './components';
-import sagas from './saga';
-import appReducer from './reducers';
-
 import App from './components/App.container';
+import { FETCH_PREPARATIONS } from './constants';
+import sagas from './saga';
 
 const registerActionCreator = api.actionCreator.register;
 const registerComponent = api.component.register;
@@ -25,32 +24,50 @@ const registerComponents = api.component.registerMany;
 const registerExpressions = api.expression.registerMany;
 const registerRouteFunction = api.route.registerFunction;
 
-const dataprepLocalStorageKey = 'data-prep-app';
-
-function* rootSaga() {
-	yield all([
-		fork(sagaRouter, browserHistory, {}),
-		...sagas.help.map(call),
-		...sagas.preparation.map(call),
-		...sagas.version.map(call),
-	]);
-}
+const LOCAL_STORAGE_KEY = 'data-prep-app';
 
 /**
  * Initialize CMF configuration
  * - Register your components in the CMF dictionary
  * - Register action creators in CMF actions dictionary
  */
-export default function initialize() {
+export default function initialize(additionalConfiguration = {}) {
+	const {
+		additionalActionCreators,
+		additionalComponents,
+		additionalExpressions,
+		additionalPreReducers,
+		additionalRoutes,
+		additionalSagas,
+	} = additionalConfiguration;
+
+	const rootSagas = [
+		fork(sagaRouter, browserHistory, {}),
+		...sagas.help.map(call),
+		...sagas.preparation.map(call),
+	];
+
+	if (additionalSagas) {
+		additionalSagas.forEach((additionalSaga) => {
+			rootSagas.push(...additionalSaga.map(call));
+		});
+	}
+
+	function* rootSaga() {
+		yield all(rootSagas);
+	}
+
 	function appFactory(storage = {}) {
 		const { initialState, engine } = storage;
 
-		// const socketMiddleware = createWebsocketMiddleware();
-
-		cmfstore.addPreReducer([
+		const preReducers = [
 			dataset.preReducers.notificationReducer,
 			...dataset.hors,
-		]);
+		];
+		if (additionalPreReducers) {
+			preReducers.push(...additionalPreReducers);
+		}
+		cmfstore.addPreReducer(preReducers);
 
 		/**
 		 * Register react-router-redux router reducer (see https://github.com/reactjs/react-router-redux)
@@ -61,11 +78,9 @@ export default function initialize() {
 		 * Register your app reducers
 		 */
 		const sagaMiddleware = createSagaMiddleware();
-
-		const store = cmfstore.initialize(appReducer, initialState, undefined, [
+		const store = cmfstore.initialize(undefined, initialState, undefined, [
 			sagaMiddleware,
 		]);
-
 		sagaMiddleware.run(rootSaga);
 
 		api.registerInternals();
@@ -76,18 +91,33 @@ export default function initialize() {
 			type: FETCH_PREPARATIONS,
 			folderId: router.nextState.params.folderId,
 		}));
+		if (additionalRoutes) {
+			Object
+				.keys(additionalRoutes)
+				.map(k => registerRouteFunction(k, additionalRoutes[k]));
+		}
 
 		registerAllContainers();
+
 		dataset.configure();
+
 		/**
 		 * Register expressions in CMF expressions dictionary
 		 */
 		registerExpressions(api.expressions);
+		if (additionalExpressions) {
+			registerExpressions(additionalExpressions);
+		}
+
 		/**
 		 * Register components in CMF Components dictionary
 		 */
 		registerComponent('App', App);
 		registerComponents(components);
+		if (additionalComponents) {
+			registerComponents(additionalComponents);
+		}
+
 		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
@@ -103,12 +133,19 @@ export default function initialize() {
 		registerActionCreator('help:feedback:open', () => ({ type: 'ALERT', payload: 'help:feedback:open' }));
 		registerActionCreator('redirect', actions.redirect);
 		registerActionCreator('version:fetch', actions.version.fetch);
+		if (additionalActionCreators) {
+			Object
+				.keys(additionalActionCreators)
+				.map(k => registerActionCreator(k, additionalActionCreators[k]));
+		}
 
 		/**
 		 * Fetch the CMF settings and configure the CMF app
 		 */
 		store.dispatch(cmfActions.settingsActions.fetchSettings('/settings.json'));
+
 		reduxLocalStorage.saveOnReload({ engine, store });
+
 		return {
 			store,
 			browserHistory,
@@ -117,7 +154,7 @@ export default function initialize() {
 
 	return reduxLocalStorage
 		.loadInitialState({
-			key: dataprepLocalStorageKey,
+			key: LOCAL_STORAGE_KEY,
 			whitelist: [
 				['cmf', 'components', 'Container(SidePanel)'],
 				['cmf', 'components', 'Container(List)', 'preparations'],

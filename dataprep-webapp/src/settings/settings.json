@@ -92,10 +92,12 @@
     "indexRouteRedirect": {
       "path": "/preparations"
     },
-    "Container(HeaderBar)#default": {
+    "HeaderBar#default": {
+      "app": "Data Preparation",
       "logo": {
         "id": "talend-logo",
         "label": "Go to home page",
+        "isFull": false,
         "payload": {
           "type": "MENU_LINK",
           "cmf": {
@@ -120,13 +122,29 @@
           "tooltipPlacement": "bottom"
         },
         "id": "headerbar:search",
+        "docked": true,
         "onToggle": "headerbar:search:toggle"
       },
       "help": {
+        "id": "talend-documentation",
+        "label": "Help"
+      },
+      "information": {
         "actionId": "headerbar:help"
+      },
+      "products": {
+        "id": "talend-products",
+        "items": [
+          {
+            "icon": "talend-logo-dp",
+            "key": "talend-data-preparation",
+            "label": "Data Preparation",
+            "actionCreator": "menu:apps"
+          }
+        ]
       }
     },
-    "Container(SidePanel)#default": {
+    "SidePanel#default": {
       "actionIds": [
         "menu:preparations",
         "menu:datasets",
@@ -136,11 +154,17 @@
     "Version#default": {
       "displayVersionExpression": {
         "id": "cmf.collections.get",
-        "args": ["versions.displayVersion", []]
+        "args": [
+          "versions.displayVersion",
+          []
+        ]
       },
       "servicesExpression": {
         "id": "cmf.collections.get",
-        "args": ["versions.services", []]
+        "args": [
+          "versions.services",
+          []
+        ]
       }
     },
     "AboutModal#default": {
@@ -167,10 +191,22 @@
         "collectionId": "preparations",
         "list": {
           "columns": [
-            { "key": "name", "label": "Name" },
-            { "key": "author",  "label": "Author" },
-            { "key": "datasetName",  "label": "Dataset" },
-            { "key": "nbSteps",  "label": "Steps" }
+            {
+              "key": "name",
+              "label": "Name"
+            },
+            {
+              "key": "author",
+              "label": "Author"
+            },
+            {
+              "key": "datasetName",
+              "label": "Dataset"
+            },
+            {
+              "key": "nbSteps",
+              "label": "Steps"
+            }
           ],
           "titleProps": {
             "key": "name",
