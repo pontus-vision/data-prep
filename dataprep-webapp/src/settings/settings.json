@@ -134,17 +134,6 @@
           "help:community",
           "help:feedback:open"
         ]
-      },
-      "products": {
-        "id": "talend-products",
-        "items": [
-          {
-            "icon": "talend-logo-dp",
-            "key": "talend-data-preparation",
-            "label": "Data Preparation",
-            "actionCreator": "menu:apps"
-          }
-        ]
       }
     },
     "SidePanel#default": {

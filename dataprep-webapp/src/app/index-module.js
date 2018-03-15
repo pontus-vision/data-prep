@@ -165,7 +165,6 @@ window.fetchConfiguration = getAppConfiguration;
 
 window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modules, { config, appSettings }) {
 	appSettings.provider = appSettings.provider || 'legacy';
-	appSettings.provider = 'catalog';
 
 	if (appSettings.provider.includes('catalog') && !(/playground/.test(window.location.href))) {
 		bootstrapReact();
