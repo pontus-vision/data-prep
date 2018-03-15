@@ -70,3 +70,30 @@ export function setTitleEditionMode(event, { model }) {
 		payload: model.id,
 	};
 }
+
+export function addOpen() {
+	return {
+		type: 'MENU_LINK',
+		cmf: {
+			routerPush: '/preparations/add',
+		},
+	};
+}
+
+export function addOpenAddDataset() {
+	return {
+		type: 'MENU_LINK',
+		cmf: {
+			routerPush: '/preparations/add/dataset/add',
+		},
+	};
+}
+
+export function menuPreparation() {
+	return {
+		type: 'MENU_LINK',
+		cmf: {
+			routerReplace: '/preparations',
+		},
+	};
+}

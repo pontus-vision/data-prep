@@ -128,8 +128,6 @@
     },
     "Container(SidePanel)#default": {
       "actionIds": [
-        "menu:datastores",
-        "menu:datasets",
         "menu:preparations"
       ]
     },
@@ -185,17 +183,17 @@
         "path": "preparations/:folderId?",
         "component": "HomeListView",
         "view": "preparations",
-        "onEnter": "preparation:fetch"
-      },
-      {
-        "path": "datasets",
-        "component": "HomeListView",
-        "view": "datasets"
-      },
-      {
-        "path": "datastores",
-        "component": "HomeListView",
-        "view": "datastores"
+        "onEnter": "preparation:fetch",
+        "childRoutes" : [
+          {
+            "path": "add",
+            "component": "FirstDrawer"
+          },
+          {
+            "path": "add/dataset/add",
+            "component": "SecondDrawer"
+          }
+        ]
       }
     ]
   },

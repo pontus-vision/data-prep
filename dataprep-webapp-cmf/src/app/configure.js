@@ -1,13 +1,13 @@
 import { api, sagaRouter } from '@talend/react-cmf';
 import { registerAllContainers } from '@talend/react-containers/lib/register';
-import dataset from '@talend/dataset';
-import rating from '@talend/rating';
 import { all, call, fork } from 'redux-saga/effects';
 
 import actions from './actions';
 import sagas from './saga';
 
 import App from './components/App.container';
+import FirstDrawer from './router-v4/FirstDrawer';
+import SecondDrawer from './router-v4/SecondDrawer';
 
 
 const registerActionCreator = api.actionCreator.register;
@@ -16,14 +16,14 @@ const registerRouteFunction = api.route.registerFunction;
 
 export default {
 	initialize() {
-		dataset.configure();
-		rating.configure();
 
 		/**
 		 * Register components in CMF Components dictionary
 		 */
 		registerAllContainers();
 		registerComponent('App', App);
+		registerComponent('FirstDrawer', FirstDrawer);
+		registerComponent('SecondDrawer', SecondDrawer);
 
 		/**
 		 * Register route functions
@@ -33,6 +33,7 @@ export default {
 		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
+		registerActionCreator('preparation:add:open', actions.preparation.addOpen);
 		registerActionCreator('preparation:duplicate', actions.preparation.duplicate);
 		registerActionCreator('preparation:edit:submit', actions.preparation.rename);
 		registerActionCreator('preparation:edit:cancel', actions.preparation.cancelRename);
