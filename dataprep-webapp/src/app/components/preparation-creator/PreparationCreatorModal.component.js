@@ -24,7 +24,8 @@ export default class PreparationCreatorModal extends React.Component {
 					<Modal.Title>Talend Data Preparation</Modal.Title>
 				</Modal.Header>
 
-				<Modal.Body>Lol about</Modal.Body>
+				<Modal.Body>Modal content</Modal.Body>
+
 				<Modal.Footer>
 					<Button onClick={this.close}>Close</Button>
 				</Modal.Footer>

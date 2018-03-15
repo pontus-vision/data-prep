@@ -32,21 +32,13 @@ const LOCAL_STORAGE_KEY = 'data-prep-app';
  * - Register action creators in CMF actions dictionary
  */
 export default function initialize(additionalConfiguration = {}) {
-	const {
-		additionalActionCreators,
-		additionalComponents,
-		additionalExpressions,
-		additionalPreReducers,
-		additionalRoutes,
-		additionalSagas,
-	} = additionalConfiguration;
-
 	const rootSagas = [
 		fork(sagaRouter, browserHistory, {}),
 		...sagas.help.map(call),
 		...sagas.preparation.map(call),
 	];
 
+	const additionalSagas = additionalConfiguration.sagas;
 	if (additionalSagas) {
 		additionalSagas.forEach((additionalSaga) => {
 			rootSagas.push(...additionalSaga.map(call));
@@ -64,6 +56,7 @@ export default function initialize(additionalConfiguration = {}) {
 			dataset.preReducers.notificationReducer,
 			...dataset.hors,
 		];
+		const additionalPreReducers = additionalConfiguration.preReducers;
 		if (additionalPreReducers) {
 			preReducers.push(...additionalPreReducers);
 		}
@@ -78,12 +71,16 @@ export default function initialize(additionalConfiguration = {}) {
 		 * Register your app reducers
 		 */
 		const sagaMiddleware = createSagaMiddleware();
-		const store = cmfstore.initialize(undefined, initialState, undefined, [
-			sagaMiddleware,
-		]);
+		const store = cmfstore.initialize(
+			undefined,
+			initialState,
+			undefined,
+			[sagaMiddleware],
+		);
 		sagaMiddleware.run(rootSaga);
 
 		api.registerInternals();
+
 		/**
 		 * Register route functions
 		 */
@@ -91,10 +88,11 @@ export default function initialize(additionalConfiguration = {}) {
 			type: FETCH_PREPARATIONS,
 			folderId: router.nextState.params.folderId,
 		}));
-		if (additionalRoutes) {
+		const additionalRouteFunctions = additionalConfiguration.routeFunctions;
+		if (additionalRouteFunctions) {
 			Object
-				.keys(additionalRoutes)
-				.map(k => registerRouteFunction(k, additionalRoutes[k]));
+				.keys(additionalRouteFunctions)
+				.map(k => registerRouteFunction(k, additionalRouteFunctions[k]));
 		}
 
 		registerAllContainers();
@@ -105,6 +103,7 @@ export default function initialize(additionalConfiguration = {}) {
 		 * Register expressions in CMF expressions dictionary
 		 */
 		registerExpressions(api.expressions);
+		const additionalExpressions = additionalConfiguration.expressions;
 		if (additionalExpressions) {
 			registerExpressions(additionalExpressions);
 		}
@@ -114,6 +113,7 @@ export default function initialize(additionalConfiguration = {}) {
 		 */
 		registerComponent('App', App);
 		registerComponents(components);
+		const additionalComponents = additionalConfiguration.components;
 		if (additionalComponents) {
 			registerComponents(additionalComponents);
 		}
@@ -133,6 +133,7 @@ export default function initialize(additionalConfiguration = {}) {
 		registerActionCreator('help:feedback:open', () => ({ type: 'ALERT', payload: 'help:feedback:open' }));
 		registerActionCreator('redirect', actions.redirect);
 		registerActionCreator('version:fetch', actions.version.fetch);
+		const additionalActionCreators = additionalConfiguration.actionCreators;
 		if (additionalActionCreators) {
 			Object
 				.keys(additionalActionCreators)

@@ -1,6 +1,9 @@
 {
   "contentTypes": {},
   "actions": {
+    "divider": {
+      "divider": true
+    },
     "menu:preparations": {
       "id": "menu:preparations",
       "label": "Preparations",
@@ -11,17 +14,6 @@
           "routerReplace": "/preparations"
         }
       }
-    },
-    "headerbar:information": {
-      "id": "headerbar:information",
-      "name": "Information",
-      "items": [
-        "help:external",
-        "help:community",
-        "help:tour",
-        "help:about:open",
-        "help:feedback:open"
-      ]
     },
     "help:external": {
       "id": "help:external",
@@ -126,7 +118,22 @@
         "label": "Help"
       },
       "information": {
-        "actionId": "headerbar:information"
+        "id": "headerbar:information",
+        "bsStyle": "link",
+        "icon": "talend-info-circle",
+        "label": "Information",
+        "hideLabel": true,
+        "pullRight": true,
+        "noCaret": true,
+        "tooltipPlacement": "bottom",
+        "displayMode": "dropdown",
+        "actionIds": [
+          "help:about:open",
+          "help:tour",
+          "divider",
+          "help:community",
+          "help:feedback:open"
+        ]
       },
       "products": {
         "id": "talend-products",
