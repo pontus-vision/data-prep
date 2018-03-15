@@ -366,7 +366,6 @@ describe('Playground controller', () => {
 		});
 
 		describe('discard preparation', () => {
-
 			it('should call startLoader', inject((PlaygroundService) => {
 				// given
 				spyOn(PlaygroundService, 'startLoader');

@@ -18,9 +18,7 @@ const STYLE_PATH = path.resolve(__dirname, '../src/app/index.scss');
 const STYLE_THEMED_PATH = path.resolve(__dirname, '../src/app/index.themed.scss');
 const VENDOR_PATH = path.resolve(__dirname, '../src/vendor.js');
 
-const isDevMode = process.env.NODE_ENV === 'developement';
 const isTestMode = process.env.NODE_ENV === 'test';
-const isProdMode = process.env.NODE_ENV === 'production';
 
 function getCommonStyleLoaders(enableModules) {
 	let cssOptions = {};

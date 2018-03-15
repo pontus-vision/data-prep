@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const ReactCMFWebpackPlugin = require('@talend/react-cmf-webpack-plugin');
 
+const appConfig = require('./../src/assets/config/config.json');
 const config = require('./webpack.config');
 
 config.devtool = 'inline-source-map';
@@ -22,9 +23,8 @@ config.devServer = {
 	port: 3000,
 	setup(app) {
 		app.get('/assets/config/config.json', function (req, res) {
-			const configFile = require('./../src/assets/config/config.json');
-			configFile.serverUrl = 'http://localhost:8888';
-			res.json(configFile);
+			appConfig.serverUrl = 'http://localhost:8888';
+			res.json(appConfig);
 		});
 	},
 	proxy: {

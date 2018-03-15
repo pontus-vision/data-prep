@@ -23,7 +23,7 @@ export function* cancelRename() {
 		const preparations = yield select(state => state.cmf.collections.get('preparations'));
 		const updated = preparations.update(
 			preparations.findIndex(val => val.get('id') === payload),
-			val => val.set('display', 'text')
+			val => val.set('display', 'text'),
 		);
 		yield put(actions.collections.addOrReplace('preparations', updated));
 	}
@@ -74,7 +74,7 @@ export function* fetchPreparations() {
 
 					return adaptedFolders.concat(adaptedPreparations);
 				},
-			})
+			}),
 		);
 	}
 }
@@ -99,7 +99,7 @@ export function* setTitleEditionMode() {
 		const preparations = yield select(state => state.cmf.collections.get('preparations'));
 		const updated = preparations.update(
 			preparations.findIndex(val => val.get('id') === payload),
-			val => val.set('display', 'input')
+			val => val.set('display', 'input'),
 		);
 		yield put(actions.collections.addOrReplace('preparations', updated));
 	}

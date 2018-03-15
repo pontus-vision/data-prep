@@ -12,14 +12,10 @@
         }
       }
     },
-    "headerbar:help": {
-      "displayMode": "splitDropdown",
-      "id": "headerbar:help",
-      "name": "Help",
-      "href": "https://help.talend.com/search/all?filters=EnrichPlatform%7E%2522Talend+Data+Preparation%2522*EnrichVersion%7E%25222.1%2522&utm_medium=dpdesktop&utm_source=&content-lang=en",
-      "target": "_blank",
-      "pullRight": true,
-      "actionIds": [
+    "headerbar:information": {
+      "id": "headerbar:information",
+      "name": "Information",
+      "items": [
         "help:external",
         "help:community",
         "help:tour",
@@ -130,7 +126,7 @@
         "label": "Help"
       },
       "information": {
-        "actionId": "headerbar:help"
+        "actionId": "headerbar:information"
       },
       "products": {
         "id": "talend-products",
