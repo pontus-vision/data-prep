@@ -1,4 +1,4 @@
-import redirect from './redirect';
+import windowAction from './redirect';
 
 describe('Redirect action', () => {
 	it('should create a CMF redirection action', () => {
@@ -10,7 +10,7 @@ describe('Redirect action', () => {
 		};
 
 		// when
-		const action = redirect(event, data);
+		const action = windowAction.redirect(event, data);
 
 		// then
 		expect(action).toMatchSnapshot();

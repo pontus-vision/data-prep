@@ -41,5 +41,5 @@ AboutModal.propTypes = {
 	state: ImmutablePropTypes.contains({ show: PropTypes.bool }),
 	setState: PropTypes.func,
 	getComponent: PropTypes.func,
-	components: PropTypes.object,
+	components: PropTypes.shape(),
 };

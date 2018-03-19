@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component
-@ConfigurationProperties("dataset")
+@ConfigurationProperties(prefix = "dataset")
 public class DatasetConfiguration {
 
     private static final Logger LOGGER = getLogger(DatasetConfiguration.class);
@@ -30,7 +30,7 @@ public class DatasetConfiguration {
 
     @PostConstruct
     public void init() {
-        LOGGER.error("Dataset configuration is retrieved from properties");
+        LOGGER.info("Dataset configuration is retrieved from properties");
     }
 
     public static class Service {

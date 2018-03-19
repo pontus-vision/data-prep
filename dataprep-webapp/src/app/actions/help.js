@@ -1,5 +1,9 @@
 import { OPEN_ABOUT } from '../constants';
 
-export function openAbout() {
+function openAbout() {
 	return { type: OPEN_ABOUT };
 }
+
+export default {
+	openAbout,
+};

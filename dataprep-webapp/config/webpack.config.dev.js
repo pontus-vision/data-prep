@@ -1,10 +1,20 @@
+const path = require('path');
 const webpack = require('webpack');
 const ReactCMFWebpackPlugin = require('@talend/react-cmf-webpack-plugin');
 
 const appConfig = require('./../src/assets/config/config.json');
 const config = require('./webpack.config');
 
-config.devtool = 'inline-source-map';
+config.devtool = 'cheap-module-source-map';
+
+config.module.loaders.push({
+    test: /src\/.*\.js$/,
+    enforce: 'pre',
+    loader: 'eslint-loader',
+    exclude: /node_modules/,
+    options: { configFile: path.resolve(__dirname, '../.eslintrc') },
+});
+
 config.plugins.push(
 	new webpack.DefinePlugin({
 		'process.env.NODE_ENV': JSON.stringify('development'),

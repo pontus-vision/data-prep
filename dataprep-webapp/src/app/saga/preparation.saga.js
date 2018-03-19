@@ -17,7 +17,7 @@ const defaultHttpConfiguration = {
 	},
 };
 
-export function* cancelRename() {
+function* cancelRename() {
 	while (true) {
 		const { payload } = yield take(CANCEL_RENAME_PREPARATION);
 		const preparations = yield select(state => state.cmf.collections.get('preparations'));
@@ -29,7 +29,7 @@ export function* cancelRename() {
 	}
 }
 
-export function* duplicate() {
+function* duplicate() {
 	while (true) {
 		const prep = yield take(PREPARATION_DUPLICATE);
 		const newName = `test${Math.random()}`;
@@ -44,7 +44,7 @@ export function* duplicate() {
 	}
 }
 
-export function* fetchPreparations() {
+function* fetchPreparations() {
 	while (true) {
 		const { folderId = 'Lw==' } = yield take(FETCH_PREPARATIONS);
 		yield put(
@@ -79,7 +79,7 @@ export function* fetchPreparations() {
 	}
 }
 
-export function* rename() {
+function* rename() {
 	while (true) {
 		const { payload } = yield take(RENAME_PREPARATION);
 
@@ -93,7 +93,7 @@ export function* rename() {
 	}
 }
 
-export function* setTitleEditionMode() {
+function* setTitleEditionMode() {
 	while (true) {
 		const { payload } = yield take(SET_TITLE_EDITION_MODE);
 		const preparations = yield select(state => state.cmf.collections.get('preparations'));
@@ -105,9 +105,18 @@ export function* setTitleEditionMode() {
 	}
 }
 
-export function* openAbout() {
+function* openAbout() {
 	while (true) {
 		yield take(OPEN_PREPARATION_CREATOR);
 		yield put(actions.components.mergeState('PreparationCreatorModal', 'default', { show: true }));
 	}
 }
+
+export default {
+	cancelRename,
+	duplicate,
+	fetchPreparations,
+	rename,
+	setTitleEditionMode,
+	openAbout,
+};

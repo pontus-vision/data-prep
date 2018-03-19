@@ -8,8 +8,7 @@ import {
 	OPEN_PREPARATION_CREATOR,
 } from '../constants';
 
-
-export function openPreparation(event, { id, type }) {
+function openPreparation(event, { id, type }) {
 	switch (type) {
 	case 'folder':
 		return {
@@ -20,11 +19,11 @@ export function openPreparation(event, { id, type }) {
 			},
 		};
 	case 'preparation':
-			/* TODO
-			- get current url
-			- pass it in the url as 'return' query param
-			- playground must redirect to this return param on close
-			*/
+		/* TODO
+		- get current url
+		- pass it in the url as 'return' query param
+		- playground must redirect to this return param on close
+		*/
 		window.location.href = `${window.location.origin}/#/playground/preparation?prepid=${id}`;
 		break;
 	default:
@@ -32,12 +31,12 @@ export function openPreparation(event, { id, type }) {
 	}
 }
 
-export function fetchAll() {
+function fetchAll() {
 	// TODO [NC]: folderId
 	return { type: FETCH_PREPARATIONS };
 }
 
-export function duplicate(event, { model }) {
+function duplicate(event, { model }) {
 	return {
 		type: PREPARATION_DUPLICATE,
 		payload: {
@@ -46,7 +45,7 @@ export function duplicate(event, { model }) {
 	};
 }
 
-export function rename(event, data) {
+function rename(event, data) {
 	return {
 		type: RENAME_PREPARATION,
 		payload: {
@@ -56,20 +55,30 @@ export function rename(event, data) {
 	};
 }
 
-export function cancelRename(event, { id }) {
+function cancelRename(event, { id }) {
 	return {
 		type: CANCEL_RENAME_PREPARATION,
 		payload: id,
 	};
 }
 
-export function setTitleEditionMode(event, { model }) {
+function setTitleEditionMode(event, { model }) {
 	return {
 		type: SET_TITLE_EDITION_MODE,
 		payload: model.id,
 	};
 }
 
-export function openCreator() {
+function openCreator() {
 	return { type: OPEN_PREPARATION_CREATOR };
 }
+
+export default {
+	openPreparation,
+	fetchAll,
+	duplicate,
+	rename,
+	cancelRename,
+	setTitleEditionMode,
+	openCreator,
+};

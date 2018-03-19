@@ -4,8 +4,8 @@ import * as help from './help';
 import * as version from './version';
 
 export default {
-	redirect,
-	preparation,
-	help,
-	version,
+	redirect: redirect.default,
+	preparation: preparation.default,
+	help: help.default,
+	version: version.default,
 };

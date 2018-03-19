@@ -164,9 +164,9 @@ function bootstrapAngular(config, appSettings) {
 window.fetchConfiguration = getAppConfiguration;
 
 window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modules, { config, appSettings }) {
-	appSettings.provider = appSettings.provider || 'legacy';
+	const { provider = 'legacy' } = appSettings.context;
 
-	if (appSettings.provider.includes('catalog') && !(/playground/.test(window.location.href))) {
+	if (provider.includes('catalog') && !(/#\/(playground|export|version)/.test(window.location.href))) {
 		bootstrapReact();
 	}
 	else {

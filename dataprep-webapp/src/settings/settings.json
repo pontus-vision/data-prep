@@ -94,7 +94,7 @@
         }
       },
       "brand": {
-        "label": "Data Preparation (react-cmf)",
+        "label": "Data Preparation",
         "payload": {
           "type": "MENU_LINK",
           "cmf": {

@@ -11,7 +11,7 @@ export function* fetch() {
 					cmf: {
 						collectionId: 'versions',
 					},
-				}
+				},
 			),
 		);
 	}
