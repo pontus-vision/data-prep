@@ -2,7 +2,7 @@ import { call, take } from 'redux-saga/effects';
 import http from '@talend/react-cmf/lib/sagas/http';
 import { FETCH_VERSION } from '../constants';
 
-export function* fetch() {
+function* fetch() {
 	while (true) {
 		yield take(FETCH_VERSION);
 		yield call(
@@ -16,3 +16,7 @@ export function* fetch() {
 		);
 	}
 }
+
+export default {
+	fetch,
+};
