@@ -11,7 +11,7 @@ const extractCSS = new ExtractTextPlugin({ filename: '[name]-[hash].css' });
 const APP_CONF = require('./app.conf.js');
 const LICENSE_BANNER = require('./license');
 const SASS_DATA = require('./sass.conf');
-const CHUNKS_ORDER = ['vendor', 'style', 'app'];
+const CHUNKS_ORDER = ['vendor', 'style', 'style-themed', 'app'];
 
 const INDEX_TEMPLATE_PATH = path.resolve(__dirname, '../src/index.html');
 const STYLE_PATH = path.resolve(__dirname, '../src/app/index.scss');

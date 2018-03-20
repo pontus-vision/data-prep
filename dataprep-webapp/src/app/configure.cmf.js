@@ -24,8 +24,6 @@ const registerComponents = api.component.registerMany;
 const registerExpressions = api.expression.registerMany;
 const registerRouteFunction = api.route.registerFunction;
 
-const LOCAL_STORAGE_KEY = 'data-prep-app';
-
 /**
  * Initialize CMF configuration
  * - Register your components in the CMF dictionary
@@ -153,15 +151,16 @@ export default function initialize(additionalConfiguration = {}) {
 		};
 	}
 
+	const additionalLocalStorage = additionalConfiguration.localStorage || {};
 	return reduxLocalStorage
 		.loadInitialState({
-			key: LOCAL_STORAGE_KEY,
+			key: additionalLocalStorage.key || 'data-prep',
 			whitelist: [
 				['cmf', 'components', 'Container(SidePanel)'],
 				['cmf', 'components', 'Container(List)', 'preparations'],
 				['cmf', 'components', 'Container(List)', 'datasets'],
 				['cmf', 'components', 'Container(List)', 'datastores'],
-			],
+			].concat(additionalLocalStorage.whitelist || []),
 		})
 		.then(
 			storage => appFactory(storage),
