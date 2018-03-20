@@ -6,7 +6,7 @@ import { Notification, ShortcutManager } from '@talend/react-containers';
 // import i18n from '@talend/data-quality-semantic-ee/lib/app/i18n';
 
 import AboutModal from './AboutModal';
-import PreparationCreatorModal from './preparation-creator';
+import PreparationCreatorModal from '../../components/preparation-creator/index';
 
 export default function App(props) {
 	/**

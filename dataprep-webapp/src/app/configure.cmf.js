@@ -12,11 +12,11 @@ import { routerMiddleware } from 'react-router-redux';
 import createSagaMiddleware from 'redux-saga';
 import { all, call, fork } from 'redux-saga/effects';
 
-import actions from './actions';
-import components from './components';
-import App from './components/App.container';
-import { FETCH_PREPARATIONS } from './constants';
-import sagas from './saga';
+import actions from './next/actions';
+import components from './next/components/index';
+import App from './next/components/App.container';
+import { FETCH_PREPARATIONS } from './next/constants';
+import sagas from './next/sagas';
 
 const registerActionCreator = api.actionCreator.register;
 const registerComponent = api.component.register;
