@@ -15,7 +15,10 @@ import { all, call, fork } from 'redux-saga/effects';
 import actions from './next/actions';
 import components from './next/components/index';
 import App from './next/components/App.container';
-import { FETCH_PREPARATIONS } from './next/constants';
+import {
+	ALERT,
+	FETCH_PREPARATIONS,
+} from './next/constants';
 import sagas from './next/sagas';
 
 const registerActionCreator = api.actionCreator.register;
@@ -127,8 +130,8 @@ export default function initialize(additionalConfiguration = {}) {
 		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
 		registerActionCreator('preparation:add:open', actions.preparation.openCreator);
 		registerActionCreator('help:about:open', actions.help.openAbout);
-		registerActionCreator('help:tour', () => ({ type: 'ALERT', payload: 'help:tour' }));
-		registerActionCreator('help:feedback:open', () => ({ type: 'ALERT', payload: 'help:feedback:open' }));
+		registerActionCreator('help:tour', () => ({ type: ALERT, payload: 'help:tour' }));
+		registerActionCreator('help:feedback:open', () => ({ type: ALERT, payload: 'help:feedback:open' }));
 		registerActionCreator('redirect', actions.redirect);
 		registerActionCreator('version:fetch', actions.version.fetch);
 		const additionalActionCreators = additionalConfiguration.actionCreators;

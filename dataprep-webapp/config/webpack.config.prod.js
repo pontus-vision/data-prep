@@ -3,8 +3,6 @@ const ReactCMFWebpackPlugin = require('@talend/react-cmf-webpack-plugin');
 
 const config = require('./webpack.config');
 
-config.devtool = 'source-map';
-
 config.plugins = config.plugins.concat([
 	new ReactCMFWebpackPlugin({
 		quiet: true,

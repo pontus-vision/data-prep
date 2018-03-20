@@ -405,7 +405,7 @@ describe('Playground controller', () => {
 
 				// then
 				expect(StateService.resetPlayground).toHaveBeenCalled();
-				// expect($state.go).toHaveBeenCalledWith(HOME_PREPARATIONS_ROUTE, undefined);
+				expect($state.go).toHaveBeenCalledWith(HOME_PREPARATIONS_ROUTE, undefined);
 			}));
 		});
 
@@ -478,7 +478,7 @@ describe('Playground controller', () => {
 
 				// then
 				expect(StateService.resetPlayground).toHaveBeenCalled();
-				// expect($state.go).toHaveBeenCalledWith(HOME_PREPARATIONS_ROUTE, undefined);
+				expect($state.go).toHaveBeenCalledWith(HOME_PREPARATIONS_ROUTE, undefined);
 			}));
 
 			it('should determinate when submit is loading', () => {

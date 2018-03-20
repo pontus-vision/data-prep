@@ -5,7 +5,7 @@ const ReactCMFWebpackPlugin = require('@talend/react-cmf-webpack-plugin');
 const appConfig = require('./../src/assets/config/config.json');
 const config = require('./webpack.config');
 
-config.devtool = 'cheap-module-source-map';
+config.devtool = 'eval-source-map';
 
 config.module.loaders.push({
     test: /src\/.*\.js$/,
@@ -29,11 +29,14 @@ config.watchOptions = {
 	poll: 1000,
 };
 
+const SERVER_URL = 'http://localhost:8888';
+
 config.devServer = {
 	port: 3000,
+	contentBase: path.resolve(__dirname, '../build'),
 	setup(app) {
 		app.get('/assets/config/config.json', function (req, res) {
-			appConfig.serverUrl = 'http://localhost:8888';
+			appConfig.serverUrl = SERVER_URL;
 			res.json(appConfig);
 		});
 	},
@@ -48,9 +51,7 @@ config.devServer = {
 			secure: false,
 		},
 	},
-	stats: {
-		children: false,
-	},
+	stats: 'errors-only',
 	historyApiFallback: true,
 };
 
