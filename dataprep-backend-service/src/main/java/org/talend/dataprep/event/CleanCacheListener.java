@@ -1,5 +1,4 @@
 // ============================================================================
-//
 // Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
@@ -11,33 +10,45 @@
 //
 // ============================================================================
 
-package org.talend.dataprep.dataset.service.analysis.asynchronous;
+package org.talend.dataprep.event;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.dataset.event.DatasetImportedEvent;
 
 /**
- * Synchronous analysis of a dataset used for unit / integration tests.
+ * Spring listener on cache event
  */
 @Component
-@ConditionalOnProperty(name = "dataset.asynchronous.analysis", havingValue = "false")
-public class SyncBackgroundAnalysis {
-
-    @Autowired
-    private BackgroundAnalysis backgroundAnalysis;
+@ConditionalOnProperty(name = "dataprep.event.listener", havingValue = "spring")
+public class CleanCacheListener {
 
     /**
-     * Handle an application event.
+     * This class' logger.
+     */
+    private static final Logger LOGGER = getLogger(CleanCacheListener.class);
+
+    /**
+     * Utility to process event
+     */
+    @Autowired
+    private CacheEventProcessingUtil eventProcessingUtil;
+
+    /**
+     * Clean the whole dataset cache.
      *
-     * @param event the event to respond to
+     * @param event the event to respond to.
      */
 
     @EventListener
-    public void onEvent(DatasetImportedEvent event) {
-        String dataSetId = event.getSource();
-        backgroundAnalysis.analyze(dataSetId);
+    public void onEvent(CleanCacheEvent event) {
+        LOGGER.debug("Processing spring clean cache event: {}", event);
+
+        // We delete content cache key
+        eventProcessingUtil.processCleanCacheEvent(event.getSource(), event.isPartialKey());
     }
 }
