@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.dataset.*;
 import org.talend.dataprep.api.dataset.location.LocalStoreLocation;
 import org.talend.dataprep.api.service.info.VersionService;
-import org.talend.dataprep.schema.Schema;
+import org.talend.dataprep.api.dataset.Schema;
 
 /**
  * <p>

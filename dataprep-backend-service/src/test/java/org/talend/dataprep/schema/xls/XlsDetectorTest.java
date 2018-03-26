@@ -13,23 +13,23 @@
 
 package org.talend.dataprep.schema.xls;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 
-import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.dataprep.schema.AbstractSchemaTestUtils;
 import org.talend.dataprep.schema.Format;
+import org.talend.dataprep.schema.csv.CsvDetectorTest;
 
 public class XlsDetectorTest extends AbstractSchemaTestUtils {
 
     /** The format guesser to test. */
-    @Autowired
-    XlsDetector xlsDetector;
+    private XlsDetector xlsDetector = new XlsDetector();
 
     /**
      *
@@ -37,24 +37,24 @@ public class XlsDetectorTest extends AbstractSchemaTestUtils {
      */
     @Test(expected = IllegalArgumentException.class)
     public void should_not_read_null_input_stream() throws Exception {
-        xlsDetector.detect(null);
+        CsvDetectorTest.detect(xlsDetector, null);
     }
 
     @Test
     public void should_detect_old_xls_format() throws Exception {
         try (InputStream inputStream = this.getClass().getResourceAsStream("test.xls")) {
-            Format actual = xlsDetector.detect(inputStream);
+            Format actual = CsvDetectorTest.detect(xlsDetector, inputStream);
             assertTrue(actual.getFormatFamily() instanceof XlsFormatFamily);
-            assertTrue(StringUtils.equals("UTF-8", actual.getEncoding()));
+            assertTrue(UTF_8.equals(actual.getEncoding()));
         }
     }
 
     @Test
     public void should_detect_new_xls_format() throws Exception {
         try (InputStream inputStream = this.getClass().getResourceAsStream("test_new.xlsx")) {
-            Format actual = xlsDetector.detect(inputStream);
+            Format actual = CsvDetectorTest.detect(xlsDetector, inputStream);
             assertTrue(actual.getFormatFamily() instanceof XlsFormatFamily);
-            assertTrue(StringUtils.equals("UTF-8", actual.getEncoding()));
+            assertTrue(UTF_8.equals(actual.getEncoding()));
         }
     }
 
@@ -64,11 +64,11 @@ public class XlsDetectorTest extends AbstractSchemaTestUtils {
         String fileName = "TDP-375_xsl_read_as_csv.xls";
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            Format actual = xlsDetector.detect(inputStream);
+            Format actual = CsvDetectorTest.detect(xlsDetector, inputStream);
             Assert.assertNotNull(actual);
             assertTrue(actual.getFormatFamily() instanceof XlsFormatFamily);
             assertEquals(XlsFormatFamily.MEDIA_TYPE, actual.getFormatFamily().getMediaType());
-            assertTrue(StringUtils.equals("UTF-8", actual.getEncoding()));
+            assertTrue(UTF_8.equals(actual.getEncoding()));
         }
 
     }

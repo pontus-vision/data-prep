@@ -16,7 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,17 +25,13 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
-import org.talend.dataprep.exception.TDPException;
-import org.talend.dataprep.schema.AbstractSchemaTestUtils;
-import org.talend.dataprep.schema.Schema;
-import org.talend.dataprep.schema.SchemaParser;
+import org.talend.dataprep.api.dataset.Schema;
+import org.talend.dataprep.schema.*;
 
 /**
  * Unit test for the XLSSchemaParser class.
@@ -48,8 +43,7 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
     private final static Logger logger = LoggerFactory.getLogger(XlsSerializerTest.class);
 
     /** The parser to test. */
-    @Autowired
-    private XlsSchemaParser parser;
+    private XlsSchemaParser parser = new XlsSchemaParser();
 
     @Test
     public void should_parse_xls() throws IOException {
@@ -80,8 +74,8 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
         String fileName = "state_table.xls";
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            List<ColumnMetadata> columnMetadatas = parser.parse(getRequest(inputStream, "#852")).getSheetContents().get(0)
-                    .getColumnMetadatas();
+            List<SheetContent.ColumnMetadata> columnMetadatas = toSchema(parser.parse(getRequest(inputStream, "#852")))
+                    .metadata();
             assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(17);
         }
 
@@ -93,19 +87,20 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
         String fileName = "email_with_empty_rows.xlsx";
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            List<ColumnMetadata> columnMetadatas = parser.parse(getRequest(inputStream, "#852")).getSheetContents().get(0)
-                    .getColumnMetadatas();
+            List<SheetContent.ColumnMetadata>
+                    columnMetadatas = toSchema(parser.parse(getRequest(inputStream, "#852")))
+                    .metadata();
             assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(2);
         }
 
     }
 
-    @Test(expected = TDPException.class)
+    @Test(expected = TalendRuntimeException.class)
     public void read_xls_TDP_() throws Exception {
         String fileName = "many column.xlsx";
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            parser.parse(getRequest(inputStream, "#852")).getSheetContents().get(0).getColumnMetadatas();
+            toSchema(parser.parse(getRequest(inputStream, "#852"))).getSheetContents().get(0).getColumnMetadatas();
         }
     }
 
@@ -118,7 +113,7 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
             request = getRequest(inputStream, "My Dataset");
 
             // when
-            final Schema schema = parser.parse(request);
+            final Schema schema = toSchema(parser.parse(request));
 
             // then
             assertThat(schema.getSheetContents(), is(notNullValue()));
@@ -136,31 +131,13 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
             request = getRequest(inputStream, "My Dataset");
 
             // when
-            final Schema schema = parser.parse(request);
+            final Schema schema = toSchema(parser.parse(request));
 
             // then
             assertThat(schema.getSheetContents(), is(notNullValue()));
             assertThat(schema.draft(), is(true));
             assertThat(schema.getSheetName(), is("Sumary"));
         }
-    }
-
-    @Test
-    public void should_not_accept_csv_update() throws Exception {
-        final DataSetMetadata metadata = metadataBuilder.metadata().id("toto").formatFamilyId("formatGuess#csv").build();
-        assertFalse(parser.accept(metadata));
-    }
-
-    @Test
-    public void should_not_accept_xls_update() throws Exception {
-        final DataSetMetadata metadata = metadataBuilder.metadata().id("tata").formatFamilyId("formatGuess#xls").build();
-        assertFalse(parser.accept(metadata));
-    }
-
-    @Test
-    public void should_not_accept_html_update() throws Exception {
-        final DataSetMetadata metadata = metadataBuilder.metadata().id("tata").formatFamilyId("formatGuess#html").build();
-        assertFalse(parser.accept(metadata));
     }
 
     @Test
@@ -320,12 +297,11 @@ public class XlsSchemaParserTest extends AbstractSchemaTestUtils {
      * @throws IOException if an error occurs while reading the excel file.
      */
     private void checkColumnsName(InputStream inputStream, String... expectedColsName) throws IOException {
-
         DataSetMetadata datasetMetadata = ioTestUtils.getSimpleDataSetMetadata();
 
-        Schema result = parser.parse(new SchemaParser.Request(inputStream, datasetMetadata));
-        List<ColumnMetadata> columns = result.getSheetContents().get(0).getColumnMetadatas();
-        final List<String> actual = columns.stream().map(ColumnMetadata::getName).collect(Collectors.toList());
+        Schema result = toSchema(parser.parse(new MetadataBasedFormatAnalysisRequest(inputStream, datasetMetadata)));
+        List<SheetContent.ColumnMetadata> columns = result.metadata();
+        final List<String> actual = columns.stream().map(SheetContent.ColumnMetadata::getName).collect(Collectors.toList());
 
         assertThat(actual).containsExactly(expectedColsName);
     }

@@ -16,6 +16,7 @@ package org.talend.dataprep.api.dataset;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.talend.dataprep.api.dataset.location.LocalStoreLocation;
 import org.talend.dataprep.parameters.Parameter;
@@ -24,6 +25,8 @@ import org.talend.dataprep.schema.FormatFamily;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * Information about the dataset location.
@@ -104,6 +107,14 @@ public interface DataSetLocation extends Serializable {
     default String getLabel() {
         // it's needed for some imports that hold their label, by default it's null
         return null;
+    }
+
+    /**
+     * When the serializer needs additionnal parameters from the Location.
+     */
+    // This is an horrible hack because we put schema data into location
+    default Map<String, String> additionalParameters() {
+        return emptyMap();
     }
 
 }

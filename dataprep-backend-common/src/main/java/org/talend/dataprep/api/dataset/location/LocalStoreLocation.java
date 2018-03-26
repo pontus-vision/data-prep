@@ -65,7 +65,7 @@ public class LocalStoreLocation implements DataSetLocation {
 
     @Override
     public String toMediaType(FormatFamily formatFamily) {
-        return formatFamily.getMediaType();
+        return formatFamily.getMediaType().toString();
     }
 
     @Override

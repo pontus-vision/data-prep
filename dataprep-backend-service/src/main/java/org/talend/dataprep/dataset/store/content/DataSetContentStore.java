@@ -13,29 +13,39 @@
 
 package org.talend.dataprep.dataset.store.content;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.task.TaskExecutor;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.DataSetContent;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.json.DataSetRowIterator;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.dataset.row.InvalidMarker;
+import org.talend.dataprep.conversions.BeanConversionService;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 import org.talend.dataprep.quality.AnalyzerService;
-import org.talend.dataprep.schema.FormatFamilyFactory;
-import org.talend.dataprep.schema.Serializer;
+import org.talend.dataprep.schema.*;
 import org.talend.dataquality.common.inference.Analyzer;
 import org.talend.dataquality.common.inference.Analyzers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import javax.annotation.Resource;
+
+import static org.slf4j.LoggerFactory.getLogger;
+import static org.talend.dataprep.exception.error.CommonErrorCodes.UNABLE_TO_SERIALIZE_TO_JSON;
 
 /**
  * Base class for DataSet content stores.
@@ -46,15 +56,23 @@ public abstract class DataSetContentStore {
     private long sampleSize;
 
     @Autowired
-    AnalyzerService service;
-
-    /** Format guesser factory. */
-    @Autowired
-    protected FormatFamilyFactory factory;
+    private AnalyzerService service;
 
     /** DataPrep ready jackson builder. */
     @Autowired
     protected ObjectMapper mapper;
+
+    /** Task executor used to serialize CSV dataset into JSON. */
+    @Resource(name = "serializer#csv#executor")
+    private TaskExecutor executor;
+
+    @Autowired
+    private BeanConversionService beanConversionService;
+
+    @Autowired
+    private DataprepSchema dataprepSchema;
+
+    private static final Logger LOGGER = getLogger(DataSetContentStore.class);
 
     /**
      * Stores (persists) a data set raw content to a storage. The only expectation is for {@link #get(DataSetMetadata)}
@@ -102,9 +120,37 @@ public abstract class DataSetContentStore {
      * rows in stream).
      */
     protected InputStream get(DataSetMetadata dataSetMetadata, long limit) {
-        DataSetContent content = dataSetMetadata.getContent();
-        Serializer serializer = factory.getFormatFamily(content.getFormatFamilyId()).getSerializer();
-        return serializer.serialize(getAsRaw(dataSetMetadata, limit), dataSetMetadata, limit);
+        FormatFamily formatFamily = dataprepSchema.getFormatFamily(dataSetMetadata.getContent().getFormatFamilyId());
+        DeSerializer deSerializer = dataprepSchema.getDeserializer(formatFamily.getMediaType());
+        InputStream rawContent = getAsRaw(dataSetMetadata, limit);
+
+        try {
+            PipedInputStream pipe = new PipedInputStream();
+            PipedOutputStream jsonOutput = new PipedOutputStream(pipe);
+            // Serialize asynchronously for better performance (especially if caller doesn't consume all, see sampling).
+            executor.execute(() -> {
+                Format format = new Format(formatFamily, Charset.forName(dataSetMetadata.getEncoding()));
+                SheetContent content = beanConversionService.convert(dataSetMetadata, SheetContent.class);
+
+                try (DeSerializer.RecordReader reader = deSerializer.deserialize(rawContent, format, content);
+                        JsonRecordWriter writer = new JsonRecordWriter(jsonOutput)) {
+                    int recordsRead = 0;
+                    DeSerializer.Record record = reader.read();
+                    while (record != null && recordsRead++ < limit) {
+                        writer.writeRecord(record);
+                        record = reader.read();
+                    }
+                } catch (IOException e) {
+                    // if the consumer closed the stream, it's OK
+                    LOGGER.debug("stream closed for serialization, this may by normal if the consumer closed it", e.getMessage());
+                } catch (Exception e) {
+                    throw new TDPException(UNABLE_TO_SERIALIZE_TO_JSON, e);
+                }
+            });
+            return pipe;
+        } catch (IOException e) {
+            throw new TDPException(UNABLE_TO_SERIALIZE_TO_JSON, e);
+        }
     }
 
     /**
@@ -139,22 +185,21 @@ public abstract class DataSetContentStore {
         final List<ColumnMetadata> columns = dataSetMetadata.getRowMetadata().getColumns();
         final Analyzer<Analyzers.Result> analyzer = service.build(columns, AnalyzerService.Analysis.QUALITY);
 
-        dataSetRowStream = dataSetRowStream.filter(r -> !r.isEmpty()).map(r -> {
-            final String[] values = r.order(columns).toArray(DataSetRow.SKIP_TDP_ID);
-            analyzer.analyze(values);
-            return r;
-        }) //
-        .map(new InvalidMarker(columns, analyzer)) // Mark invalid columns as detected by provided analyzer.
-        .map(r -> { //
-            r.setTdpId(tdpId.getAndIncrement());
-            return r;
-        }).onClose(() -> { //
-            try {
-                inputStream.close();
-            } catch (Exception e) {
-                throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
-            }
-        });
+        dataSetRowStream = dataSetRowStream //
+                .filter(r -> !r.isEmpty()) //
+                .peek(r -> {
+                    final String[] values = r.order(columns).toArray(DataSetRow.SKIP_TDP_ID);
+                    analyzer.analyze(values);
+                }) //
+                .map(new InvalidMarker(columns, analyzer)) // Mark invalid columns as detected by provided analyzer.
+                .peek(r -> r.setTdpId(tdpId.getAndIncrement())) //
+                .onClose(() -> { //
+                    try {
+                        inputStream.close();
+                    } catch (Exception e) {
+                        throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
+                    }
+                });
 
         return dataSetRowStream;
     }

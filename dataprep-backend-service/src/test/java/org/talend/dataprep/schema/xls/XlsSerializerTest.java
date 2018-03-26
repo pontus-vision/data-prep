@@ -12,41 +12,41 @@
 
 package org.talend.dataprep.schema.xls;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.data.MapEntry.entry;
-import static org.junit.Assert.assertThat;
-import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
-import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import org.apache.poi.ss.usermodel.Cell;
+import org.assertj.core.api.Assertions;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.talend.dataprep.api.dataset.DataSetMetadata;
+import org.talend.dataprep.api.dataset.Schema;
+import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.dataset.DataSetMetadataBuilder;
+import org.talend.dataprep.schema.*;
+import org.talend.dataprep.schema.SheetContent.ColumnMetadata;
+import org.talend.dataprep.schema.csv.CsvDetectorTest;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.assertj.core.api.Assertions;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.DataSetMetadata;
-import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.dataset.DataSetMetadataBuilder;
-import org.talend.dataprep.schema.AbstractSchemaTestUtils;
-import org.talend.dataprep.schema.CompositeFormatDetector;
-import org.talend.dataprep.schema.Format;
-import org.talend.dataprep.schema.Schema;
-import org.talend.dataprep.test.LocalizationRule;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.data.MapEntry.entry;
+import static org.junit.Assert.assertThat;
+import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
+import static org.talend.dataprep.schema.MetadataBasedFormatAnalysisRequest.convertToApiColumns;
+import static org.talend.dataprep.schema.csv.CsvSerializerTest.getSchemaFromDataSetMetadata;
+import static org.talend.dataprep.schema.csv.CsvSerializerTest.serializeToJson;
+import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
 public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
@@ -56,20 +56,11 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
     private DataSetMetadataBuilder metadataBuilder;
 
     /** The format guesser to test. */
-    @Autowired
-    CompositeFormatDetector formatDetector;
+    private XlsDetector formatDetector = new XlsDetector();
 
-    @Autowired
-    private XlsSchemaParser xlsSchemaParser;
+    private XlsSchemaParser xlsSchemaParser = new XlsSchemaParser();
 
-    @Autowired
-    private XlsSerializer xlsSerializer;
-
-    @Autowired
-    private ObjectMapper mapper;
-
-    @Rule
-    public LocalizationRule rule = new LocalizationRule(Locale.US);
+    private XlsSerializer xlsSerializer = new XlsSerializer();
 
     private List<Map<String, String>> getValuesFromFile(String fileName, DataSetMetadata dataSetMetadata) throws Exception {
 
@@ -81,7 +72,7 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
     private List<Map<String, String>> getValuesFromInputStream(InputStream inputStream, DataSetMetadata dataSetMetadata) throws Exception {
 
-        InputStream jsonStream = xlsSerializer.serialize(inputStream, dataSetMetadata, -1);
+        InputStream jsonStream = serializeToJson(inputStream, dataSetMetadata, xlsSerializer);
         //String json = IOUtils.toString(jsonStream);
 
         //logger.debug("json: {}", json);
@@ -102,7 +93,7 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
     }
 
     private Format assertFormat(InputStream inputStream) throws Exception {
-        Format format = formatDetector.detect(inputStream);
+        Format format = CsvDetectorTest.detect(formatDetector, inputStream);
         Assert.assertNotNull(format);
         Assert.assertTrue(format.getFormatFamily() instanceof XlsFormatFamily);
         Assert.assertEquals(XlsFormatFamily.MEDIA_TYPE, format.getFormatFamily().getMediaType());
@@ -116,22 +107,10 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
 
-            List<ColumnMetadata> columnMetadatas = xlsSchemaParser.parse(getRequest(inputStream, "#456")).getSheetContents()
+            List<ColumnMetadata> columnMetadatas = toSchema(xlsSchemaParser.parse(getRequest(inputStream, "#456"))).getSheetContents()
                     .get(0).getColumnMetadatas();
 
             Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(4);
-
-            ColumnMetadata columnMetadataFound = columnMetadatas.stream()
-                    .filter(columnMetadata -> StringUtils.equals(columnMetadata.getName(), "country")).findFirst().get();
-
-            Assertions.assertThat(columnMetadataFound.getType()).isEqualTo(Type.STRING.getName());
-
-            columnMetadataFound = columnMetadatas.stream()
-                    .filter(columnMetadata -> StringUtils.equals(columnMetadata.getName(), "note")).findFirst().get();
-
-            Assertions.assertThat(columnMetadataFound.getType())
-                    .isEqualTo(newFormat ? Type.STRING.getName() : Type.NUMERIC.getName());
-
         }
 
     }
@@ -144,14 +123,14 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
         Format format;
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            format = formatDetector.detect(inputStream);
+            format = CsvDetectorTest.detect(formatDetector, inputStream);
             Assert.assertNotNull(format);
             Assert.assertTrue(format.getFormatFamily() instanceof XlsFormatFamily);
             Assert.assertEquals(XlsFormatFamily.MEDIA_TYPE, format.getFormatFamily().getMediaType());
         }
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            List<ColumnMetadata> columnsMetadata = xlsSchemaParser.parse(getRequest(inputStream, "#852")).getSheetContents()
+            List<ColumnMetadata> columnsMetadata = toSchema(xlsSchemaParser.parse(getRequest(inputStream, "#852"))).getSheetContents()
                     .get(0).getColumnMetadatas();
             logger.debug("columnsMetadata: {}", columnsMetadata);
             Assertions.assertThat(columnsMetadata).isNotNull().isNotEmpty().hasSize(17);
@@ -161,10 +140,7 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
     @Test
     public void read_xls_file_then_serialize() throws Exception {
-
         String fileName = "test.xls";
-
-        Format format;
 
         DataSetMetadata dataSetMetadata = metadataBuilder.metadata().id("beer").build();
 
@@ -172,11 +148,13 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
 
-            List<ColumnMetadata> columnMetadatas = xlsSchemaParser //
-                    .parse(getRequest(inputStream, "#123")) //
+            Schema schema = toSchema(xlsSchemaParser //
+                    .parse(getRequest(inputStream, "#123")));
+            List<ColumnMetadata> columnsMetadata = schema //
                     .getSheetContents().get(0).getColumnMetadatas();
 
-            dataSetMetadata.getRowMetadata().setColumns(columnMetadatas);
+            dataSetMetadata.getContent().setParameters(schema.getSheetContents().iterator().next().getParameters());
+            dataSetMetadata.getRowMetadata().setColumns(convertToApiColumns(columnsMetadata));
 
         }
 
@@ -229,20 +207,18 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
 
-            List<ColumnMetadata> columnMetadatas = xlsSchemaParser //
-                    .parse(getRequest(inputStream, "#7563")) //
-                    .getSheetContents().get(0).getColumnMetadatas();
+            List<SheetContent> sheetContents = toSchema(xlsSchemaParser //
+                    .parse(getRequest(inputStream, "#7563"))) //
+                    .getSheetContents();
+            List<ColumnMetadata> columnsMetadata = sheetContents.get(0).getColumnMetadatas();
 
-            dataSetMetadata.getRowMetadata().setColumns(columnMetadatas);
+            dataSetMetadata.getContent().setParameters(sheetContents.iterator().next().getParameters());
+            dataSetMetadata.getRowMetadata().setColumns(convertToApiColumns(columnsMetadata));
 
-            logger.debug("columnMetadatas: {}", columnMetadatas);
-            Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(8);
+            logger.debug("columnsMetadata: {}", columnsMetadata);
+            Assertions.assertThat(columnsMetadata).isNotNull().isNotEmpty().hasSize(8);
 
-            ColumnMetadata columnMetadata = columnMetadatas.get(2);
-
-            Assertions.assertThat(columnMetadata.getType()).isEqualTo(Type.STRING.getName());
-
-            Assertions.assertThat(columnMetadata.getHeaderSize()).isEqualTo(1);
+            ColumnMetadata columnMetadata = columnsMetadata.get(2);
 
             Assertions.assertThat(columnMetadata.getName()).isEqualTo("NoAuto");
 
@@ -276,21 +252,18 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
         assertFormat(fileName);
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            List<ColumnMetadata> columnMetadatas = xlsSchemaParser.parse(getRequest(inputStream, "#951")).getSheetContents()
+            List<SheetContent> sheetContents =
+                    toSchema(xlsSchemaParser.parse(getRequest(inputStream, "#951"))).getSheetContents();
+            List<ColumnMetadata> columnMetadataList = sheetContents
                     .get(0).getColumnMetadatas();
 
-            logger.debug("columnMetadatas: {}", columnMetadatas);
-            Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(13);
+            logger.debug("columnMetadataList: {}", columnMetadataList);
+            Assertions.assertThat(columnMetadataList).isNotNull().isNotEmpty().hasSize(13);
 
-            ColumnMetadata columnMetadata = columnMetadatas.get(7);
-
-            Assertions.assertThat(columnMetadata.getHeaderSize()).isEqualTo(1);
-
+            ColumnMetadata columnMetadata = columnMetadataList.get(7);
             Assertions.assertThat(columnMetadata.getName()).isEqualTo("CP");
-
-            Assertions.assertThat(columnMetadata.getType()).isEqualTo(Type.STRING.getName());
-
-            dataSetMetadata.getRowMetadata().setColumns(columnMetadatas);
+            dataSetMetadata.getContent().setParameters(sheetContents.iterator().next().getParameters());
+            dataSetMetadata.getRowMetadata().setColumns(convertToApiColumns(columnMetadataList));
 
         }
 
@@ -321,7 +294,7 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
 
-            List<Schema.SheetContent> sheetContents = xlsSchemaParser.parseAllSheets(getRequest(inputStream, "#8"));
+            List<SheetContent> sheetContents = xlsSchemaParser.parseAllSheets(getRequest(inputStream, "#8"));
 
             List<ColumnMetadata> columnsMetadata = sheetContents.stream()
                     .filter(sheetContent -> "Leads".equals(sheetContent.getName())).findFirst().get().getColumnMetadatas();
@@ -331,10 +304,9 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
             Assertions.assertThat(columnsMetadata).isNotNull().isNotEmpty().hasSize(6);
 
             ColumnMetadata columnMetadata = columnsMetadata.get(4);
-            Assertions.assertThat(columnMetadata.getHeaderSize()).isEqualTo(1);
             Assertions.assertThat(columnMetadata.getName()).isEqualTo("age");
-            Assertions.assertThat(columnMetadata.getType()).isEqualTo(Type.STRING.getName());
-            dataSetMetadata.getRowMetadata().setColumns(columnsMetadata);
+            dataSetMetadata.getContent().setParameters(sheetContents.iterator().next().getParameters());
+            dataSetMetadata.getRowMetadata().setColumns(convertToApiColumns(columnsMetadata));
         }
 
         List<Map<String, String>> values = getValuesFromFile(fileName, dataSetMetadata);
@@ -377,30 +349,37 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
         Format format = assertFormat("excel_numbers.xls");
         // Test number serialization in XLS type guess
         InputStream input = this.getClass().getResourceAsStream("excel_numbers.xls");
-        final String result = IOUtils.toString(format.getFormatFamily().getSerializer().serialize(input, metadata, -1), UTF_8);
+
+        ByteArrayOutputStream jsonRawResult = new ByteArrayOutputStream();
+
+        SheetContent schema = getSchemaFromDataSetMetadata(metadata);
+
+        try(DeSerializer.RecordReader reader =
+                format.getFormatFamily().getDeSerializer().deserialize(input, format, schema);
+                JsonRecordWriter writer = new JsonRecordWriter(jsonRawResult)) {
+            DeSerializer.Record record = reader.read();
+            while (record != null) {
+                writer.writeRecord(record);
+                record = reader.read();
+            }
+        }
+
+        final String result = new String(jsonRawResult.toByteArray(), UTF_8);
         final String expected = "[{\"0000\":\"1\",\"0001\":\"123\"},{\"0000\":\"2\",\"0001\":\"123.1\"},{\"0000\":\"3\",\"0001\":\"209.9\"}]";
         assertThat(result, sameJSONAs(expected));
     }
 
     @Test
     public void read_xls_TDP_332() throws Exception {
-
         String fileName = "customersDate.xls";
 
         assertFormat(fileName);
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            List<ColumnMetadata> columnMetadatas = xlsSchemaParser.parse(getRequest(inputStream, "#0267")).getSheetContents()
+            List<ColumnMetadata> columnMetadatas = toSchema(xlsSchemaParser.parse(getRequest(inputStream, "#0267"))).getSheetContents()
                     .get(0).getColumnMetadatas();
             logger.debug("columnMetadatas: {}", columnMetadatas);
             Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(10);
-
-            ColumnMetadata columnMetadataDate = columnMetadatas.stream() //
-                    .filter(columnMetadata -> columnMetadata.getName().equalsIgnoreCase("date")) //
-                    .findFirst().get();
-
-            Assertions.assertThat(columnMetadataDate.getType()).isEqualTo("date");
-
         }
     }
 
@@ -414,14 +393,15 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
         DataSetMetadata dataSetMetadata = metadataBuilder.metadata().id("beer").sheetName(sheetName).build();
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            List<Schema.SheetContent> sheetContents = xlsSchemaParser.parseAllSheets(getRequest(inputStream, "#8"));
-            List<ColumnMetadata> columnMetadatas = sheetContents.stream()
+            List<SheetContent> sheetContents = xlsSchemaParser.parseAllSheets(getRequest(inputStream, "#8"));
+            List<ColumnMetadata> columnMetadataList = sheetContents.stream()
                     .filter(sheetContent -> sheetName.equals(sheetContent.getName())).findFirst().get().getColumnMetadatas();
-            logger.debug("columnMetadatas: {}", columnMetadatas);
+            logger.debug("columnMetadataList: {}", columnMetadataList);
 
-            Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(33);
+            Assertions.assertThat(columnMetadataList).isNotNull().isNotEmpty().hasSize(33);
 
-            dataSetMetadata.getRowMetadata().setColumns(columnMetadatas);
+            dataSetMetadata.getContent().setParameters(sheetContents.iterator().next().getParameters());
+            dataSetMetadata.getRowMetadata().setColumns(convertToApiColumns(columnMetadataList));
         }
 
         List<Map<String, String>> values = getValuesFromFile(fileName, dataSetMetadata);
@@ -446,16 +426,17 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
 
-            List<Schema.SheetContent> sheetContents = xlsSchemaParser.parseAllSheets(getRequest(inputStream, "#8"));
+            List<SheetContent> sheetContents = xlsSchemaParser.parseAllSheets(getRequest(inputStream, "#8"));
 
-            List<ColumnMetadata> columnMetadatas = sheetContents.stream()
+            List<ColumnMetadata> columnMetadataList = sheetContents.stream()
                     .filter(sheetContent -> sheetName.equals(sheetContent.getName())).findFirst().get().getColumnMetadatas();
 
-            logger.debug("columnMetadatas: {}", columnMetadatas);
+            logger.debug("columnMetadataList: {}", columnMetadataList);
 
-            Assertions.assertThat(columnMetadatas).isNotNull().isNotEmpty().hasSize(2);
+            Assertions.assertThat(columnMetadataList).isNotNull().isNotEmpty().hasSize(2);
 
-            dataSetMetadata.getRowMetadata().setColumns(columnMetadatas);
+            dataSetMetadata.getContent().setParameters(sheetContents.iterator().next().getParameters());
+            dataSetMetadata.getRowMetadata().setColumns(convertToApiColumns(columnMetadataList));
         }
 
         List<Map<String, String>> values = getValuesFromFile(fileName, dataSetMetadata);
@@ -480,11 +461,13 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
         DataSetMetadata dataSetMetadata = metadataBuilder.metadata().id("epics").build();
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
+            Schema schema = toSchema(xlsSchemaParser.parse(getRequest(inputStream, "#456")));
+            dataSetMetadata.getContent().setParameters(schema.getSheetContents().iterator().next().getParameters());
             dataSetMetadata.getRowMetadata() //
-                    .setColumns(xlsSchemaParser.parse(getRequest(inputStream, "#456")) //
+                    .setColumns(convertToApiColumns(schema //
                             .getSheetContents() //
                             .get(0) //
-                            .getColumnMetadatas());
+                            .getColumnMetadatas()));
         }
 
         Assertions.assertThat(dataSetMetadata.getRowMetadata().getColumns()) //
@@ -557,7 +540,7 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
 
-            List<Schema.SheetContent> sheetContents = xlsSchemaParser.parseAllSheets(getRequest(inputStream, "#8"));
+            List<SheetContent> sheetContents = xlsSchemaParser.parseAllSheets(getRequest(inputStream, "#8"));
 
             List<ColumnMetadata> columnsMetadata = sheetContents.get(0).getColumnMetadatas();
 
@@ -565,7 +548,8 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
 
             Assertions.assertThat(columnsMetadata).isNotNull().isNotEmpty();
 
-            dataSetMetadata.getRowMetadata().setColumns(columnsMetadata);
+            dataSetMetadata.getContent().setParameters(sheetContents.iterator().next().getParameters());
+            dataSetMetadata.getRowMetadata().setColumns(convertToApiColumns(columnsMetadata));
         }
         return dataSetMetadata;
     }
@@ -578,13 +562,12 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
     private void checkExcelFile(String fileName) throws IOException {
         Format format;
         try (InputStream inputStream = this.getClass().getResourceAsStream(fileName)) {
-            format = formatDetector.detect(inputStream);
+            format = CsvDetectorTest.detect(formatDetector, inputStream);
             Assert.assertNotNull(format);
             Assert.assertTrue(format.getFormatFamily() instanceof XlsFormatFamily);
             Assert.assertEquals(XlsFormatFamily.MEDIA_TYPE, format.getFormatFamily().getMediaType());
         }
     }
-
 
     @Test
     public void read_huge_xls_file_then_serialize() throws Exception {
@@ -604,13 +587,11 @@ public class XlsSerializerTest extends AbstractSchemaTestUtils {
         }
 
         try (InputStream inputStream = Files.newInputStream(path)) {
-
-            List<ColumnMetadata> columnMetadatas = xlsSchemaParser //
-                .parse(getRequest(inputStream, "#123")) //
+            List<ColumnMetadata> columnsMetadata = toSchema(xlsSchemaParser //
+                .parse(getRequest(inputStream, "#123"))) //
                 .getSheetContents().get(0).getColumnMetadatas();
 
-            dataSetMetadata.getRowMetadata().setColumns(columnMetadatas);
-
+            dataSetMetadata.getRowMetadata().setColumns(convertToApiColumns(columnsMetadata));
         }
         try (InputStream inputStream = Files.newInputStream(path)) {
             List<Map<String, String>> values = getValuesFromInputStream( inputStream, dataSetMetadata );

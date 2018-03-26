@@ -13,16 +13,7 @@
 
 package org.talend.dataprep.transformation.format;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.fasterxml.jackson.core.JsonParser;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -34,13 +25,22 @@ import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.schema.MetadataBasedFormatAnalysisRequest;
 import org.talend.dataprep.schema.SchemaParser;
 import org.talend.dataprep.transformation.api.transformer.Transformer;
 import org.talend.dataprep.transformation.api.transformer.TransformerFactory;
 import org.talend.dataprep.transformation.api.transformer.TransformerWriter;
 import org.talend.dataprep.transformation.api.transformer.configuration.Configuration;
 
-import com.fasterxml.jackson.core.JsonParser;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit test for the XlsWriter.
@@ -277,7 +277,7 @@ public class XlsWriterTest extends BaseFormatTest {
             }
         }
         DataSetMetadata metadata = metadataBuilder.metadata().id("123").build();
-        return new SchemaParser.Request(Files.newInputStream(path), metadata);
+        return new MetadataBasedFormatAnalysisRequest(Files.newInputStream(path), metadata);
     }
 
     /**

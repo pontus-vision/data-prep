@@ -73,6 +73,11 @@
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.talend.dataprep</groupId>
+            <artifactId>format-detection</artifactId>
+            <version>2.6.0-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
             <!-- DQ uses log4j2 -->

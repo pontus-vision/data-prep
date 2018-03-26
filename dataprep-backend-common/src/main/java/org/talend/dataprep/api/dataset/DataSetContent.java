@@ -94,10 +94,18 @@ public class DataSetContent implements Serializable {
         this.nbRecords = lines;
     }
 
+    /**
+     * @deprecated This is a schema parameter now
+     */
+    @Deprecated
     public int getNbLinesInHeader() {
         return this.nbLinesInHeader;
     }
 
+    /**
+     * @deprecated This is a schema parameter now
+     */
+    @Deprecated
     public void setNbLinesInHeader(int nbLinesInHeader) {
         this.nbLinesInHeader = nbLinesInHeader;
     }

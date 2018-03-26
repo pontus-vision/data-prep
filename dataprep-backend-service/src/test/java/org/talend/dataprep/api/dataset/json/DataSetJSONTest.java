@@ -39,7 +39,7 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.dataset.DataSetMetadataBuilder;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
-import org.talend.dataprep.schema.csv.CSVFormatFamily;
+import org.talend.dataprep.schema.csv.CsvFormatFamily;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -154,8 +154,8 @@ public class DataSetJSONTest extends ServiceBaseTest {
                 .row(columnBuilder).build();
 
         final DataSetContent content = metadata.getContent();
-        content.addParameter(CSVFormatFamily.SEPARATOR_PARAMETER, ",");
-        content.setFormatFamilyId(new CSVFormatFamily().getBeanId());
+        content.addParameter(CsvFormatFamily.SEPARATOR_PARAMETER, ",");
+        content.setFormatFamilyId(new CsvFormatFamily().getBeanId());
         content.setMediaType("text/csv");
         metadata.getLifecycle().qualityAnalyzed(true);
         metadata.getLifecycle().schemaAnalyzed(true);
@@ -172,8 +172,8 @@ public class DataSetJSONTest extends ServiceBaseTest {
     public void testRoundTrip() throws Exception {
         DataSet dataSet = from(DataSetJSONTest.class.getResourceAsStream("test3.json"));
         final DataSetMetadata metadata = dataSet.getMetadata();
-        metadata.getContent().addParameter(CSVFormatFamily.SEPARATOR_PARAMETER, ",");
-        metadata.getContent().setFormatFamilyId(new CSVFormatFamily().getBeanId());
+        metadata.getContent().addParameter(CsvFormatFamily.SEPARATOR_PARAMETER, ",");
+        metadata.getContent().setFormatFamilyId(new CsvFormatFamily().getBeanId());
         assertNotNull(metadata);
         StringWriter writer = new StringWriter();
         to(dataSet, writer);

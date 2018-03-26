@@ -33,7 +33,6 @@ import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.service.info.VersionService;
 import org.talend.dataprep.dataset.store.content.DataSetContentStore;
 import org.talend.dataprep.dataset.store.metadata.DataSetMetadataRepository;
-import org.talend.dataprep.schema.FormatFamilyFactory;
 import org.talend.dataprep.security.Security;
 import org.talend.dataprep.security.SecurityProxy;
 import org.talend.dataprep.user.store.UserDataRepository;
@@ -75,9 +74,6 @@ public abstract class DataSetBaseTest extends ServiceBaseTest {
     @Autowired
     @Qualifier("ContentStore#local")
     protected DataSetContentStore contentStore;
-
-    @Autowired
-    protected FormatFamilyFactory factory;
 
     @Autowired
     protected DataSetMetadataBuilder metadataBuilder;

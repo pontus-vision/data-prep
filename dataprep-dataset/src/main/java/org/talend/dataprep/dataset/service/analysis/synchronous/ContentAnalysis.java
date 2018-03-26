@@ -30,7 +30,7 @@ import org.talend.dataprep.dataset.service.analysis.DataSetAnalyzer;
 import org.talend.dataprep.dataset.store.content.ContentStoreRouter;
 import org.talend.dataprep.dataset.store.metadata.DataSetMetadataRepository;
 import org.talend.dataprep.lock.DistributedLock;
-import org.talend.dataprep.schema.csv.CSVFormatFamily;
+import org.talend.dataprep.schema.csv.CsvFormatFamily;
 
 /**
  * This analyzer means to index the content for search.
@@ -91,13 +91,12 @@ public class ContentAnalysis implements SynchronousDataSetAnalyzer {
      * @param metadata the dataset metadata to update.
      */
     private void updateHeaderAndFooter(DataSetMetadata metadata) {
-
         DataSetContent datasetContent = metadata.getContent();
         // parameters
         final Map<String, String> parameters = metadata.getContent().getParameters();
         int headerNBLines = 1;
         try {
-            headerNBLines = Integer.parseInt(parameters.get(CSVFormatFamily.HEADER_NB_LINES_PARAMETER));
+            headerNBLines = Integer.parseInt(parameters.get(CsvFormatFamily.HEADER_NB_LINES_PARAMETER));
         } catch (NumberFormatException e) {
             LOG.info("No header information for {}, let's use the first line as header.", metadata.getId());
         }

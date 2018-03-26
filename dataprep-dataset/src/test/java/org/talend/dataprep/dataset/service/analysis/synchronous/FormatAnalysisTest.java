@@ -26,7 +26,7 @@ import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.dataset.DataSetBaseTest;
 import org.talend.dataprep.dataset.service.DataSetServiceTest;
-import org.talend.dataprep.schema.csv.CSVFormatFamily;
+import org.talend.dataprep.schema.csv.CsvFormatFamily;
 import org.talend.dataprep.schema.xls.XlsFormatFamily;
 
 
@@ -63,7 +63,7 @@ public class FormatAnalysisTest extends DataSetBaseTest {
 
         final DataSetMetadata updated = dataSetMetadataRepository.get(id);
         assertNotNull(updated);
-        assertThat(updated.getContent().getFormatFamilyId(), is(CSVFormatFamily.BEAN_ID));
+        assertThat(updated.getContent().getFormatFamilyId(), is(CsvFormatFamily.BEAN_ID));
         assertThat(updated.getContent().getMediaType(), is("text/csv"));
         assertThat(updated.getEncoding(), is("windows-1252"));
         //assertThat(updated.getContent().getParameters().get("SEPARATOR"), is(";"));
@@ -79,7 +79,7 @@ public class FormatAnalysisTest extends DataSetBaseTest {
         formatAnalysis.analyze(id);
         final DataSetMetadata actual = dataSetMetadataRepository.get(id);
         assertThat(actual, notNullValue());
-        assertThat(actual.getContent().getFormatFamilyId(), is(CSVFormatFamily.BEAN_ID));
+        assertThat(actual.getContent().getFormatFamilyId(), is(CsvFormatFamily.BEAN_ID));
         assertThat(actual.getContent().getMediaType(), is("text/csv"));
         assertThat(actual.getContent().getParameters().get("SEPARATOR"), is(";"));
     }
@@ -93,7 +93,7 @@ public class FormatAnalysisTest extends DataSetBaseTest {
         formatAnalysis.analyze(id);
         final DataSetMetadata actual = dataSetMetadataRepository.get(id);
         assertThat(actual, notNullValue());
-        assertThat(actual.getContent().getFormatFamilyId(), is(CSVFormatFamily.BEAN_ID));
+        assertThat(actual.getContent().getFormatFamilyId(), is(CsvFormatFamily.BEAN_ID));
         assertThat(actual.getContent().getMediaType(), is("text/csv"));
         assertThat(actual.getContent().getParameters().get("SEPARATOR"), is("\t"));
         assertThat(actual.getEncoding(), is("UTF-16LE"));
@@ -112,7 +112,7 @@ public class FormatAnalysisTest extends DataSetBaseTest {
         formatAnalysis.analyze(id);
         final DataSetMetadata actual = dataSetMetadataRepository.get(id);
         assertThat(actual, notNullValue());
-        assertThat(actual.getContent().getFormatFamilyId(), is(CSVFormatFamily.BEAN_ID));
+        assertThat(actual.getContent().getFormatFamilyId(), is(CsvFormatFamily.BEAN_ID));
         assertThat(actual.getContent().getMediaType(), is("text/csv"));
         assertThat(actual.getContent().getParameters().get("SEPARATOR"), is(","));
         assertThat(actual.getEncoding(), is("UTF-16LE"));
@@ -143,7 +143,7 @@ public class FormatAnalysisTest extends DataSetBaseTest {
         assertThat(actual, notNullValue());
         assertThat(actual.getContent().getFormatFamilyId(), is(XlsFormatFamily.BEAN_ID));
         assertThat(actual.getContent().getMediaType(), is("application/vnd.ms-excel"));
-        assertThat(actual.getContent().getParameters().isEmpty(), is(true));
+        assertThat(actual.getContent().getParameters().isEmpty(), is(false));
     }
 
 }

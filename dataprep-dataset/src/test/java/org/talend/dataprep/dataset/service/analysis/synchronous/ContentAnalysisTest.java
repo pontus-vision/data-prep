@@ -31,7 +31,7 @@ import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.location.LocalStoreLocation;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.dataset.DataSetBaseTest;
-import org.talend.dataprep.schema.csv.CSVFormatFamily;
+import org.talend.dataprep.schema.csv.CsvFormatFamily;
 
 public class ContentAnalysisTest extends DataSetBaseTest {
 
@@ -67,7 +67,7 @@ public class ContentAnalysisTest extends DataSetBaseTest {
     public void testAnalysisWithHeaderParameter() {
         final DataSetMetadata metadata = metadataBuilder.metadata() //
                 .id(UUID.randomUUID().toString()) //
-                .parameter(CSVFormatFamily.HEADER_NB_LINES_PARAMETER, "56").build();
+                .parameter(CsvFormatFamily.HEADER_NB_LINES_PARAMETER, "56").build();
         createCsvDataSet(metadata, "5_lines.csv");
 
         contentAnalysis.analyze(metadata.getId());
@@ -117,8 +117,8 @@ public class ContentAnalysisTest extends DataSetBaseTest {
      */
     private void createCsvDataSet(DataSetMetadata metadata, String source) {
         metadata.setLocation(new LocalStoreLocation());
-        metadata.getContent().setFormatFamilyId(CSVFormatFamily.BEAN_ID);
-        metadata.getContent().addParameter(CSVFormatFamily.SEPARATOR_PARAMETER, ",");
+        metadata.getContent().setFormatFamilyId(CsvFormatFamily.BEAN_ID);
+        metadata.getContent().addParameter(CsvFormatFamily.SEPARATOR_PARAMETER, ",");
         dataSetMetadataRepository.save(metadata);
         contentStore.storeAsRaw(metadata, this.getClass().getResourceAsStream(source));
     }

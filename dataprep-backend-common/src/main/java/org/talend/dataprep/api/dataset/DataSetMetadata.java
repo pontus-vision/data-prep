@@ -16,9 +16,6 @@ package org.talend.dataprep.api.dataset;
 import java.io.Serializable;
 import java.util.Objects;
 
-import org.talend.dataprep.schema.Schema;
-import org.talend.dataprep.schema.Serializer;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -100,8 +97,6 @@ public class DataSetMetadata implements Serializable {
     /**
      * indicates what encoding should be used to read raw content. Defaults to UTF-8 but may be changed depending on
      * content.
-     *
-     * @see Serializer#serialize(java.io.InputStream, DataSetMetadata, long)
      */
     @JsonProperty("encoding")
     private String encoding = "UTF-8";

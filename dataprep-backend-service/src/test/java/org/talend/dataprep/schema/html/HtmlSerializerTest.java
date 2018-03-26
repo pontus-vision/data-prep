@@ -13,15 +13,8 @@
 
 package org.talend.dataprep.schema.html;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hamcrest.CoreMatchers.is;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
@@ -32,47 +25,48 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.schema.AbstractSchemaTestUtils;
-import org.talend.dataprep.schema.Schema;
-import org.talend.dataprep.schema.SchemaParser;
-import org.talend.dataprep.schema.UnsupportedFormatFamily;
+import org.talend.dataprep.schema.MetadataBasedFormatAnalysisRequest;
+import org.talend.dataprep.api.dataset.Schema;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hamcrest.CoreMatchers.is;
+import static org.talend.dataprep.schema.MetadataBasedFormatAnalysisRequest.convertToApiColumns;
+import static org.talend.dataprep.schema.csv.CsvSerializerTest.serializeToJson;
 
 public class HtmlSerializerTest extends AbstractSchemaTestUtils {
 
     private final static Logger logger = LoggerFactory.getLogger(HtmlSchemaParserTest.class);
 
-    @Autowired
-    private HtmlSchemaParser htmlSchemaGuesser;
+    private HtmlSchemaParser htmlSchemaGuesser = new HtmlSchemaParser();
 
-    @Autowired
-    private HtmlSerializer htmlSerializer;
+    private HtmlSerializer htmlSerializer = new HtmlSerializer();
 
-    @Autowired
-    private HtmlFormatFamily htmlFormatFamily;
-
-    @Autowired
-    private UnsupportedFormatFamily unsupportedFormatFamily;
+    private HtmlFormatFamily htmlFormatFamily = new HtmlFormatFamily();
 
     @Test
     public void html_serializer() throws Exception {
 
-        final SchemaParser.Request request;
+        final MetadataBasedFormatAnalysisRequest request;
         final Schema result;
         try (InputStream inputStream = this.getClass().getResourceAsStream("sales-force.xls")) {
             // We do know the format and therefore we go directly to the HTML schema guessing
             request = getRequest(inputStream, "#2");
             request.getMetadata().setEncoding("UTF-16");
 
-            result = htmlSchemaGuesser.parse(request);
+            result = toSchema(htmlSchemaGuesser.parse(request));
         }
 
         try (InputStream inputStream = this.getClass().getResourceAsStream("sales-force.xls")) {
 
-            request.getMetadata().getRowMetadata().setColumns(result.getSheetContents().get(0).getColumnMetadatas());
+            request.getMetadata().getRowMetadata().setColumns(convertToApiColumns(result.metadata()));
 
-            InputStream jsonStream = htmlSerializer.serialize(inputStream, request.getMetadata(), -1);
+            InputStream jsonStream = serializeToJson(inputStream, request.getMetadata(), htmlSerializer);
 
             String json = IOUtils.toString(jsonStream, UTF_8);
 
@@ -98,23 +92,23 @@ public class HtmlSerializerTest extends AbstractSchemaTestUtils {
     @Test
     public void html_serializer_with_jira_export() throws Exception {
 
-        final SchemaParser.Request request;
+        final MetadataBasedFormatAnalysisRequest request;
         final Schema result;
         try (InputStream inputStream = this.getClass().getResourceAsStream("jira_export.xls")) {
             // We do know the format and therefore we go directly to the HTML schema guessing
             request = getRequest(inputStream, "#2");
             request.getMetadata().setEncoding("UTF-16");
 
-            result = htmlSchemaGuesser.parse(request);
+            result = toSchema(htmlSchemaGuesser.parse(request));
         }
 
         try (InputStream inputStream = this.getClass().getResourceAsStream("jira_export.xls")) {
 
-            final List<ColumnMetadata> columns = result.getSheetContents().get(0).getColumnMetadatas();
+            final List<ColumnMetadata> columns = convertToApiColumns(result.metadata());
             Assert.assertThat(columns.size(), is(98));
             request.getMetadata().getRowMetadata().setColumns(columns);
 
-            InputStream jsonStream = htmlSerializer.serialize(inputStream, request.getMetadata(), -1);
+            InputStream jsonStream = serializeToJson(inputStream, request.getMetadata(), htmlSerializer);
 
             String json = IOUtils.toString(jsonStream, UTF_8);
             ObjectMapper mapper = new ObjectMapper();

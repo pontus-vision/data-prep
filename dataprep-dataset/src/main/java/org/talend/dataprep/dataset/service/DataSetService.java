@@ -12,50 +12,9 @@
 
 package org.talend.dataprep.dataset.service;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.StreamSupport.stream;
-import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-import static org.talend.daikon.exception.ExceptionContext.build;
-import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_CONTENT;
-import static org.talend.dataprep.exception.error.DataSetErrorCodes.INVALID_DATASET_NAME;
-import static org.talend.dataprep.exception.error.DataSetErrorCodes.MAX_STORAGE_MAY_BE_EXCEEDED;
-import static org.talend.dataprep.exception.error.DataSetErrorCodes.UNABLE_CREATE_DATASET;
-import static org.talend.dataprep.exception.error.DataSetErrorCodes.UNABLE_TO_CREATE_OR_UPDATE_DATASET;
-import static org.talend.dataprep.exception.error.DataSetErrorCodes.UNSUPPORTED_CONTENT;
-import static org.talend.dataprep.i18n.DataprepBundle.message;
-import static org.talend.dataprep.quality.AnalyzerService.Analysis.SEMANTIC;
-import static org.talend.dataprep.util.SortAndOrderHelper.getDataSetMetadataComparator;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.Resource;
-
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -66,23 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.talend.daikon.exception.ExceptionContext;
-import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.DataSet;
+import org.talend.dataprep.api.dataset.*;
 import org.talend.dataprep.api.dataset.DataSetGovernance.Certification;
-import org.talend.dataprep.api.dataset.DataSetLocation;
-import org.talend.dataprep.api.dataset.DataSetMetadata;
-import org.talend.dataprep.api.dataset.Import;
 import org.talend.dataprep.api.dataset.Import.ImportBuilder;
-import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.location.DataSetLocationService;
 import org.talend.dataprep.api.dataset.location.LocalStoreLocation;
 import org.talend.dataprep.api.dataset.location.locator.DataSetLocatorService;
@@ -116,10 +63,10 @@ import org.talend.dataprep.metrics.Timed;
 import org.talend.dataprep.metrics.VolumeMetered;
 import org.talend.dataprep.parameters.jsonschema.ComponentProperties;
 import org.talend.dataprep.quality.AnalyzerService;
-import org.talend.dataprep.schema.DraftValidator;
+import org.talend.dataprep.schema.DataprepSchema;
 import org.talend.dataprep.schema.FormatFamily;
-import org.talend.dataprep.schema.FormatFamilyFactory;
-import org.talend.dataprep.schema.Schema;
+import org.talend.dataprep.schema.SheetContent;
+import org.talend.dataprep.schema.xls.XlsFormatFamily;
 import org.talend.dataprep.security.PublicAPI;
 import org.talend.dataprep.security.Security;
 import org.talend.dataprep.user.store.UserDataRepository;
@@ -128,9 +75,32 @@ import org.talend.dataprep.util.SortAndOrderHelper.Sort;
 import org.talend.dataquality.common.inference.Analyzer;
 import org.talend.dataquality.common.inference.Analyzers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import javax.annotation.Resource;
+import java.io.*;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.StreamSupport.stream;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static org.talend.daikon.exception.ExceptionContext.build;
+import static org.talend.dataprep.dataset.service.analysis.synchronous.FormatAnalysis.convertToApiColumns;
+import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_CONTENT;
+import static org.talend.dataprep.exception.error.DataSetErrorCodes.*;
+import static org.talend.dataprep.i18n.DataprepBundle.message;
+import static org.talend.dataprep.quality.AnalyzerService.Analysis.SEMANTIC;
+import static org.talend.dataprep.util.SortAndOrderHelper.getDataSetMetadataComparator;
 
 @RestController
 @Api(value = "datasets", basePath = "/datasets", description = "Operations on data sets")
@@ -157,7 +127,7 @@ public class DataSetService extends BaseDataSetService {
      * Format guess factory.
      */
     @Autowired
-    private FormatFamilyFactory formatFamilyFactory;
+    private DataprepSchema dataprepSchema;
 
     /**
      * Dataset locator (used for remote datasets).
@@ -242,7 +212,7 @@ public class DataSetService extends BaseDataSetService {
             predicates.add("governance.certificationStep = '" + Certification.CERTIFIED + "'");
         }
 
-        if (StringUtils.isNotEmpty(name)) {
+        if (isNotEmpty(name)) {
             final String regex = "(?i)" + Pattern.quote(name);
             final String filter;
             if (nameStrict) {
@@ -557,12 +527,12 @@ public class DataSetService extends BaseDataSetService {
 
         DataSetMetadata original = dataSetMetadataRepository.get(dataSetId);
         if (original == null) {
-            return StringUtils.EMPTY;
+            return EMPTY;
         }
 
         // use a default name if empty (original name + " Copy" )
         final String newName;
-        if (StringUtils.isBlank(copyName)) {
+        if (isBlank(copyName)) {
             newName = message("dataset.copy.newname", original.getName());
         } else {
             newName = copyName;
@@ -665,7 +635,7 @@ public class DataSetService extends BaseDataSetService {
                 final DataSetMetadataBuilder datasetBuilder = metadataBuilder.metadata().id(currentDataSetMetadata.getId());
                 datasetBuilder.copyNonContentRelated(currentDataSetMetadata);
                 datasetBuilder.modified(System.currentTimeMillis());
-                if (!StringUtils.isEmpty(name)) {
+                if (!isEmpty(name)) {
                     datasetBuilder.name(name);
                 }
                 final DataSetMetadata updatedDataSetMetadata = datasetBuilder.build();
@@ -783,13 +753,13 @@ public class DataSetService extends BaseDataSetService {
             HttpResponseContext.header("Location", "/datasets/" + dataSetId + "/content");
             return DataSet.empty(); // dataset not anymore a draft so preview doesn't make sense.
         }
-        if (StringUtils.isNotEmpty(sheetName)) {
+        if (isNotEmpty(sheetName)) {
             dataSetMetadata.setSheetName(sheetName);
         }
         // take care of previous data without schema parser result
         if (dataSetMetadata.getSchemaParserResult() != null) {
             // sheet not yet set correctly so use the first one
-            if (StringUtils.isEmpty(dataSetMetadata.getSheetName())) {
+            if (isEmpty(dataSetMetadata.getSheetName())) {
                 String theSheetName = dataSetMetadata.getSchemaParserResult().getSheetContents().get(0).getName();
                 LOG.debug("preview for dataSetMetadata: {} with sheetName: {}", dataSetId, theSheetName);
                 dataSetMetadata.setSheetName(theSheetName);
@@ -797,7 +767,7 @@ public class DataSetService extends BaseDataSetService {
 
             String theSheetName = dataSetMetadata.getSheetName();
 
-            Optional<Schema.SheetContent> sheetContentFound = dataSetMetadata
+            Optional<SheetContent> sheetContentFound = dataSetMetadata
                     .getSchemaParserResult()
                     .getSheetContents()
                     .stream()
@@ -809,13 +779,13 @@ public class DataSetService extends BaseDataSetService {
                 return DataSet.empty(); // No sheet found, returns empty content.
             }
 
-            List<ColumnMetadata> columnMetadatas = sheetContentFound.get().getColumnMetadatas();
+            List<ColumnMetadata> columnMetadata = convertToApiColumns(sheetContentFound.get().getColumnMetadatas());
 
             if (dataSetMetadata.getRowMetadata() == null) {
                 dataSetMetadata.setRowMetadata(new RowMetadata(emptyList()));
             }
 
-            dataSetMetadata.getRowMetadata().setColumns(columnMetadatas);
+            dataSetMetadata.getRowMetadata().setColumns(columnMetadata);
         } else {
             LOG.warn("dataset#{} has draft status but any SchemaParserResult");
         }
@@ -871,7 +841,7 @@ public class DataSetService extends BaseDataSetService {
 
                 // update the sheet content (in case of a multi-sheet excel file)
                 if (metadataForUpdate.getSchemaParserResult() != null) {
-                    Optional<Schema.SheetContent> sheetContentFound = metadataForUpdate
+                    Optional<SheetContent> sheetContentFound = metadataForUpdate
                             .getSchemaParserResult()
                             .getSheetContents()
                             .stream()
@@ -879,7 +849,7 @@ public class DataSetService extends BaseDataSetService {
                             .findFirst();
 
                     if (sheetContentFound.isPresent()) {
-                        List<ColumnMetadata> columnMetadatas = sheetContentFound.get().getColumnMetadatas();
+                        List<ColumnMetadata> columnMetadatas = convertToApiColumns(sheetContentFound.get().getColumnMetadatas());
                         if (metadataForUpdate.getRowMetadata() == null) {
                             metadataForUpdate.setRowMetadata(new RowMetadata(emptyList()));
                         }
@@ -903,12 +873,10 @@ public class DataSetService extends BaseDataSetService {
 
                 // Validate that the new data set metadata and removes the draft status
                 final String formatFamilyId = dataSetMetadata.getContent().getFormatFamilyId();
-                if (formatFamilyFactory.hasFormatFamily(formatFamilyId)) {
-                    FormatFamily format = formatFamilyFactory.getFormatFamily(formatFamilyId);
-                    try {
-                        DraftValidator draftValidator = format.getDraftValidator();
-                        DraftValidator.Result result = draftValidator.validate(dataSetMetadata);
-                        if (result.isDraft()) {
+                if (dataprepSchema.hasFormatFamily(formatFamilyId)) {
+                    FormatFamily format = dataprepSchema.getFormatFamily(formatFamilyId);
+                    if (format instanceof XlsFormatFamily) {
+                        if (isEmpty(dataSetMetadata.getSheetName())) {
                             // This is not an exception case: data set may remain a draft after update (although rather
                             // unusual)
                             LOG.warn("Data set #{} is still a draft after update.", dataSetId);
@@ -916,8 +884,6 @@ public class DataSetService extends BaseDataSetService {
                         }
                         // Data set metadata to update is no longer a draft
                         metadataForUpdate.setDraft(false);
-                    } catch (UnsupportedOperationException e) {
-                        // no need to validate draft here
                     }
                 }
 

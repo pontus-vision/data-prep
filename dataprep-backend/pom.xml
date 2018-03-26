@@ -61,6 +61,7 @@
         <start-class>fill.this.value.in.service.module</start-class>
     </properties>
     <modules>
+        <module>../format-detection</module>
         <module>../dataprep-backend-common</module>
         <module>../dataprep-backend-service</module>
         <module>../dataprep-backend-service-parent</module>

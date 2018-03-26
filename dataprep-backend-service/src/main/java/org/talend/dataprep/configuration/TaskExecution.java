@@ -18,6 +18,7 @@ import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.talend.dataprep.schema.csv.CsvSerializer;
 
 /**
  * Return the async task execution configuration.
@@ -57,7 +58,7 @@ public class TaskExecution {
 
     /**
      * @return A {@link TaskExecutor} for non-blocking CSV serialization.
-     * @see org.talend.dataprep.schema.csv.CSVSerializer
+     * @see CsvSerializer
      */
     @Bean(name = "serializer#csv#executor")
     TaskExecutor getCsvTaskExecutor() {
@@ -66,7 +67,7 @@ public class TaskExecution {
 
     /**
      * @return A {@link TaskExecutor} for non-blocking HTML serialization.
-     * @see org.talend.dataprep.schema.csv.CSVSerializer
+     * @see CsvSerializer
      */
     @Bean(name = "serializer#html#executor")
     TaskExecutor getHtmlTaskExecutor() {
