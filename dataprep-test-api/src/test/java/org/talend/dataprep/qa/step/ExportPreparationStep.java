@@ -3,8 +3,10 @@ package org.talend.dataprep.qa.step;
 import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,32 +43,17 @@ public class ExportPreparationStep extends DataPrepStep {
         exporter.exportSample(params);
     }
 
-    @When("^I get the export formats for the preparation \"(.*)\"$")
-    public void whenIGetExportFormat(String preparationName) throws IOException {
+    @Then("^I check that \"(.*)\" available export formats are :$")
+    public void thenIReceivedTheRightExportFormatList(String preparationName, DataTable dataTable) throws IOException {
         String preparationId = context.getPreparationId(suffixName(preparationName));
-
         Response apiResponse = api.getExportFormats(preparationId);
+        ExportFormatMessage[] exportFormats =
+                objectMapper.readValue(apiResponse.getBody().asString(), ExportFormatMessage[].class);
 
-        ExportFormatMessage[] parameters = objectMapper.readValue(apiResponse.getBody().asString(), ExportFormatMessage[].class);
-        context.storePreparationExportFormat(preparationName, parameters);
-    }
-
-    @Then("^I received the right \"(.*)\" export format for preparation \"(.*)\"$")
-    public void thenIReceievedTheRightExportFormat(String exportFormatId, String preparationName) throws IOException {
-        final InputStream expectedJson = ExportPreparationStep.class.getResourceAsStream("export/" + exportFormatId + ".json");
-        ExportFormatMessage expectedExportFormat = objectMapper.readValue(expectedJson, ExportFormatMessage.class);
-
-        ExportFormatMessage[] exportFormats = context.getExportFormatsByPreparationName(preparationName);
-        ExportFormatMessage foundExportFormat = null;
-
-        for (ExportFormatMessage exportFormat : exportFormats) {
-            if (exportFormat.getId().equals(exportFormatId)) {
-                foundExportFormat = exportFormat;
-                break;
-            }
-        }
-
-        Assert.assertNotNull(exportFormatId + " not found", foundExportFormat);
-        Assert.assertEquals(expectedExportFormat, foundExportFormat);
+        List<String> exportFormatsIds = Arrays
+                .stream(exportFormats) //
+                .map(ExportFormatMessage::getId) //
+                .collect(Collectors.toList());
+        Assert.assertTrue(exportFormatsIds.containsAll(dataTable.asList(String.class)));
     }
 }

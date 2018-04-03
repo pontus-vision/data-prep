@@ -14,13 +14,19 @@
 package org.talend.dataprep.qa.config;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.format.export.ExportFormatMessage;
 import org.talend.dataprep.helper.api.Action;
 import org.talend.dataprep.qa.dto.Folder;
 
@@ -51,8 +57,6 @@ public class FeatureContext {
 
     private Map<String, Action> actionByAlias = new HashMap<>();
 
-    private Map<String, ExportFormatMessage[]> parametersByPreparationName = new HashMap<>();
-
     private SortedSet<Folder> folders = new TreeSet<>((o1, o2) -> {
         // reverse order : the longer string is the first one.
         if (o1 == null && o2 == null)
@@ -72,11 +76,28 @@ public class FeatureContext {
     /**
      * Add a suffix to a name depending of the execution instance.
      *
-     * @param name the to suffix.
+     * @param name the name to suffix.
      * @return the suffixed name.
      */
     public static String suffixName(String name) {
         return name + TI_SUFFIX_UID;
+    }
+
+    /**
+     * Add a suffix to a name depending of the execution instance.
+     *
+     * @param folderPath  to suffix.
+     * @return the suffixed folderPath.
+     */
+    public static String suffixFolderName(String folderPath) {
+        // The Home folder does not be suffixed
+        if (StringUtils.equals(folderPath,"/")) {
+            return folderPath;
+        }
+        // 2 cases, following the path starts from the root or not
+        return folderPath.startsWith("/") ?
+                "/" + folderPath.substring(1).replace("/",TI_SUFFIX_UID+"/")+TI_SUFFIX_UID :
+                folderPath.replace("/",TI_SUFFIX_UID+"/")+TI_SUFFIX_UID;
     }
 
     /**
@@ -295,17 +316,4 @@ public class FeatureContext {
     public void clearFolders() {
         folders.clear();
     }
-
-    public void storePreparationExportFormat(String preparationName, ExportFormatMessage[] parameters) {
-        parametersByPreparationName.put(preparationName, parameters);
-    }
-
-    public void clearPreparationExportFormat() {
-        parametersByPreparationName.clear();
-    }
-
-    public ExportFormatMessage[] getExportFormatsByPreparationName(String preparationName) {
-        return parametersByPreparationName.get(preparationName);
-    }
-
 }
