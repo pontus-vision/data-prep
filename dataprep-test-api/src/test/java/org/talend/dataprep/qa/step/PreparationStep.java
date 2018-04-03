@@ -2,6 +2,7 @@ package org.talend.dataprep.qa.step;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.talend.dataprep.qa.config.FeatureContext.suffixFolderName;
 import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
 
 import java.io.IOException;
@@ -77,8 +78,8 @@ public class PreparationStep extends DataPrepStep {
     public void movePreparation(String preparationName, DataTable dataTable) throws IOException {
         Map<String, String> params = dataTable.asMap(String.class, String.class);
         List<Folder> folders = folderUtil.listFolders();
-        Folder originFolder = folderUtil.extractFolder(params.get(ORIGIN), folders);
-        Folder destFolder = folderUtil.extractFolder(params.get(DESTINATION), folders);
+        Folder originFolder = folderUtil.extractFolder(suffixFolderName(params.get(ORIGIN)), folders);
+        Folder destFolder = folderUtil.extractFolder(suffixFolderName(params.get(DESTINATION)), folders);
         String prepId = context.getPreparationId(suffixName(preparationName));
         Response response = api.movePreparation(prepId, originFolder.id, destFolder.id,
                 suffixName(params.get(NEW_PREPARATION_NAME)));
@@ -107,7 +108,7 @@ public class PreparationStep extends DataPrepStep {
 
     @Then("^I check that the preparation \"(.*)\" doesn't exist in the folder \"(.*)\"$")
     public void checkPreparationNotExist(String preparationName, String folder) throws IOException {
-        Assert.assertEquals(0, checkPrepExistsInTheFolder(preparationName, folder));
+        assertEquals(0, checkPrepExistsInTheFolder(preparationName, suffixFolderName(folder)));
     }
 
     @And("I check that the preparations \"(.*)\" and \"(.*)\" have the same steps$")
@@ -117,14 +118,14 @@ public class PreparationStep extends DataPrepStep {
         PreparationDetails prepDet1 = getPreparationDetails(prepId1);
         PreparationDetails prepDet2 = getPreparationDetails(prepId2);
 
-        Assert.assertEquals(prepDet1.actions, prepDet2.actions);
-        Assert.assertEquals(prepDet1.steps.size(), prepDet2.steps.size());
+        assertEquals(prepDet1.actions, prepDet2.actions);
+        assertEquals(prepDet1.steps.size(), prepDet2.steps.size());
         context.storeObject("copiedPrep", prepDet1);
     }
 
     @And("^I check that the preparation \"(.*)\" exists under the folder \"(.*)\"$")
     public void checkPrepExists(String preparationName, String folder) throws IOException {
-        Assert.assertEquals(1, checkPrepExistsInTheFolder(preparationName, folder));
+        Assert.assertEquals(1, checkPrepExistsInTheFolder(preparationName, suffixFolderName(folder)));
     }
 
     private long checkPrepExistsInTheFolder(String preparationName, String folder) throws IOException {
