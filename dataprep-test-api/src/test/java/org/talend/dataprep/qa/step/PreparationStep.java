@@ -91,7 +91,7 @@ public class PreparationStep extends DataPrepStep {
         Map<String, String> params = dataTable.asMap(String.class, String.class);
         String suffixedPreparationName = suffixName(params.get(NEW_PREPARATION_NAME));
         List<Folder> folders = folderUtil.listFolders();
-        Folder destFolder = folderUtil.extractFolder(params.get(DESTINATION), folders);
+        Folder destFolder = folderUtil.extractFolder(suffixFolderName(params.get(DESTINATION)), folders);
         String prepId = context.getPreparationId(suffixName(preparationName));
         String newPreparationId = api.copyPreparation(prepId, destFolder.id, suffixedPreparationName).then().statusCode(200)
                 .extract().body().asString();
@@ -108,7 +108,7 @@ public class PreparationStep extends DataPrepStep {
 
     @Then("^I check that the preparation \"(.*)\" doesn't exist in the folder \"(.*)\"$")
     public void checkPreparationNotExist(String preparationName, String folder) throws IOException {
-        assertEquals(0, checkPrepExistsInTheFolder(preparationName, suffixFolderName(folder)));
+        Assert.assertEquals(0, checkPrepExistsInTheFolder(preparationName, folder));
     }
 
     @And("I check that the preparations \"(.*)\" and \"(.*)\" have the same steps$")
@@ -125,13 +125,13 @@ public class PreparationStep extends DataPrepStep {
 
     @And("^I check that the preparation \"(.*)\" exists under the folder \"(.*)\"$")
     public void checkPrepExists(String preparationName, String folder) throws IOException {
-        Assert.assertEquals(1, checkPrepExistsInTheFolder(preparationName, suffixFolderName(folder)));
+        Assert.assertEquals(1, checkPrepExistsInTheFolder(preparationName, folder));
     }
 
-    private long checkPrepExistsInTheFolder(String preparationName, String folder) throws IOException {
+    private long checkPrepExistsInTheFolder(String preparationName, String folderName) throws IOException {
         String suffixedPreparationName = suffixName(preparationName);
         String prepId = context.getPreparationId(suffixedPreparationName);
-        FolderContent folderContent = folderUtil.listPreparation(folder);
+        FolderContent folderContent = folderUtil.listPreparation(suffixFolderName(folderName));
 
         return folderContent.preparations.stream() //
                 .filter(p -> p.id.equals(prepId) //
