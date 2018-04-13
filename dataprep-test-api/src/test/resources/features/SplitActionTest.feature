@@ -1,6 +1,6 @@
 Feature: Perform scenarios with SplitAction related action
 
-  Scenario: TDP-2673 (TDP-4926/TDP-5057) related bug fix
+  Scenario: TDP-2673 TDP-4926 TDP-5057 related bug fix
     # Remark : the split action will change the type of one of the new column
     Given I upload the dataset "/data/Albums_Musique.txt" with name "Albums_Musique_dataset"
     Given I create a preparation with name "Albums_Musique_prep", based on "Albums_Musique_dataset" dataset
@@ -29,4 +29,4 @@ Feature: Perform scenarios with SplitAction related action
   @CleanAfter
   Scenario: Remove SplitAction preparation Albums_Musique_prep
     When I remove the preparation "Albums_Musique_prep"
-    Then I check that the preparation "Albums_Musique_prep" doesn't exist in the folder "/"
+    Then I check that the preparation "/Albums_Musique_prep" doesn't exist

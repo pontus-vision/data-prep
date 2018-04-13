@@ -13,17 +13,17 @@
 
 package org.talend.dataprep.api.service.settings.context.provider;
 
+import static java.util.Arrays.asList;
+
 import java.util.List;
 import java.util.Locale;
 
-import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.service.settings.AppSettingsProvider;
 import org.talend.dataprep.api.service.settings.context.api.ContextSettings;
 import org.talend.dataprep.dataset.DatasetConfiguration;
-import org.talend.dataprep.ui.UiConfiguration;
-
-import static java.util.Arrays.asList;
+import org.talend.dataprep.security.Security;
 
 /**
  * Default documentation settings provider
@@ -33,16 +33,16 @@ public class ContextProvider implements AppSettingsProvider<ContextSettings> {
 
     private final DatasetConfiguration datasetConfiguration;
 
-    private final UiConfiguration uiConfiguration;
+    @Autowired
+    private Security security;
 
-    public ContextProvider(DatasetConfiguration datasetConfiguration, UiConfiguration uiConfiguration) {
+    public ContextProvider(DatasetConfiguration datasetConfiguration) {
         this.datasetConfiguration = datasetConfiguration;
-        this.uiConfiguration = uiConfiguration;
     }
 
     @Override
     public List<ContextSettings> getSettings() {
-        Locale locale = LocaleContextHolder.getLocale();
+        final Locale locale = security.getLocale();
         return asList( //
                 ContextSettings
                         .builder() //
@@ -58,11 +58,6 @@ public class ContextProvider implements AppSettingsProvider<ContextSettings> {
                         .builder() //
                         .id("language") //
                         .value(locale.getLanguage()) //
-                        .build(), //
-                ContextSettings
-                        .builder() //
-                        .id("theme") //
-                        .value(uiConfiguration.hasTheme()) //
                         .build(), //
                 ContextSettings
                         .builder() //

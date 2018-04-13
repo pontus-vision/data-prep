@@ -10,19 +10,13 @@
 //
 // ============================================================================
 
-package org.talend.dataprep.maintenance.preparation;
+package org.talend.dataprep.event;
 
-import java.util.Set;
+public enum MessageClass {
 
-import org.talend.dataprep.api.preparation.Step;
+    DATASET_MESSAGE,
+    DQ_MESSAGE,
+    PREPARATION_MESSAGE,
+    CACHE_MESSAGE
 
-/**
- * Interface that defines a way to retrieve orphan steps (steps that are not used anymore).
- */
-public interface OrphanStepsFinder {
-
-    /**
-     * @return all orphan steps.
-     */
-    Set<Step> getOrphanSteps();
 }

@@ -19,10 +19,10 @@
     <parent>
         <groupId>org.talend.dataprep</groupId>
         <artifactId>dataprep-backend</artifactId>
-        <version>2.6.0-SNAPSHOT</version>
+        <version>3.0.0-SNAPSHOT</version>
         <relativePath>../dataprep-backend/pom.xml</relativePath>
     </parent>
-    <version>2.6.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <name>dataprep-backend-service</name>
     <packaging>jar</packaging>
     <artifactId>dataprep-backend-service</artifactId>
@@ -136,6 +136,10 @@
         <dependency>
             <groupId>org.talend.dataprep</groupId>
             <artifactId>dataprep-actions</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.dataprep</groupId>
+            <artifactId>dataprep-avro-message</artifactId>
         </dependency>
         <!-- OTHER DEPENDENCIES -->
         <dependency>

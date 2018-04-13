@@ -2,6 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 
+const TalendHTML = require('@talend/html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -17,6 +19,8 @@ const INDEX_TEMPLATE_PATH = path.resolve(__dirname, '../src/index.html');
 const STYLE_PATH = path.resolve(__dirname, '../src/app/index.scss');
 const STYLE_THEMED_PATH = path.resolve(__dirname, '../src/app/index.themed.scss');
 const VENDOR_PATH = path.resolve(__dirname, '../src/vendor.js');
+
+const AppLoader = require('@talend/react-components/lib/AppLoader/constant').default;
 
 const isTestMode = process.env.NODE_ENV === 'test';
 
@@ -154,8 +158,8 @@ if (!isTestMode) {
 			title: APP_CONF.title,
 			rootElement: APP_CONF.rootElement,
 			rootModule: APP_CONF.rootModule,
-			inject: 'head',
-
+			inject: 'body',
+			loader: AppLoader.APP_LOADER,
 			// ensure loding order vendor/style/app
 			chunksSortMode: (a, b) => {
 				const aOrder = CHUNKS_ORDER.indexOf(a.names[0]);
@@ -169,6 +173,10 @@ if (!isTestMode) {
 				return 0;
 			},
 		}),
+        new TalendHTML({
+            loadCSSAsync: true,
+            appLoaderIcon: appConf.icon,
+        }),
 		new webpack.BannerPlugin({
 			banner: LICENSE_BANNER,
 		}),

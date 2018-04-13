@@ -40,6 +40,8 @@ import d3LocaleFr from '../lib/d3.locale.fr';
 
 const MODULE_NAME = 'data-prep';
 
+window.MODULE_NAME = MODULE_NAME;
+
 const I18N_DOMAIN_COMPONENTS = 'tui-components';
 const I18N_DOMAIN_FORMS = 'tui-forms';
 
@@ -90,21 +92,27 @@ const app = angular
 	.config(routeConfig)
 	.run(routeInterceptor);
 
-function bootstrapAngular(config, appSettings) {
-	app
-	// Debug config
-		.config(($compileProvider) => {
-			'ngInject';
-			$compileProvider.debugInfoEnabled(config.enableDebug);
-		})
-		.config(($translateProvider) => {
-			'ngInject';
+window.fetchConfiguration = function fetchConfiguration() {
+	return getAppConfiguration().then(({ config, appSettings }) => {
+		app
+			// Debug config
+			.config(($compileProvider) => {
+				'ngInject';
+				$compileProvider.debugInfoEnabled(config.enableDebug);
+			})
+			.config(($httpProvider, $translateProvider) => {
+				'ngInject';
 
 			preferredLanguage =
 				(appSettings.context && appSettings.context.language) ||
 				fallbackLng;
 
-			$translateProvider.preferredLanguage(preferredLanguage);
+				const preferredLocale = appSettings.context && appSettings.context.locale;
+				if (preferredLocale) {
+					$httpProvider.defaults.headers.common['Accept-Language'] = preferredLocale;
+				}
+
+				$translateProvider.preferredLanguage(preferredLanguage);
 
 			moment.locale(preferredLanguage);
 
@@ -161,8 +169,6 @@ function bootstrapAngular(config, appSettings) {
 		.value('copyRights', config.copyRights);
 }
 
-window.fetchConfiguration = getAppConfiguration;
-
 window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modules, { config, appSettings }) {
 	const { provider = 'legacy' } = appSettings.context;
 
@@ -173,7 +179,7 @@ window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modu
 		bootstrapAngular(config, appSettings);
 		angular
 			.element(document)
-			.ready(() => angular.bootstrap(document, modules));
+			.ready(() => angular.bootstrap(document, [window.MODULE_NAME]));
 	}
 };
 

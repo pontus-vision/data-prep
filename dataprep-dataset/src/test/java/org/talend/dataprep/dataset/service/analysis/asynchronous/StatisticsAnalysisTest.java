@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
@@ -27,7 +28,7 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.statistics.PatternFrequency;
 import org.talend.dataprep.dataset.DataSetBaseTest;
-import org.talend.dataprep.dataset.event.DataSetImportedEvent;
+import org.talend.dataprep.dataset.event.DatasetImportedEvent;
 import org.talend.dataprep.dataset.service.analysis.synchronous.ContentAnalysis;
 import org.talend.dataprep.dataset.service.analysis.synchronous.FormatAnalysis;
 import org.talend.dataprep.dataset.service.analysis.synchronous.SchemaAnalysis;
@@ -89,14 +90,14 @@ public class StatisticsAnalysisTest extends DataSetBaseTest {
      * @return the analyzed dataset metadata.
      */
     private DataSetMetadata initializeDataSetMetadata(InputStream content) {
-        String id = String.valueOf(random.nextInt(10000));
+        String id = UUID.randomUUID().toString();
         final DataSetMetadata metadata = metadataBuilder.metadata().id(id).build();
         dataSetMetadataRepository.save(metadata);
         contentStore.storeAsRaw(metadata, content);
         formatAnalysis.analyze(id);
         contentAnalysis.analyze(id);
         schemaAnalysis.analyze(id);
-        statisticsAnalysis.onApplicationEvent(new DataSetImportedEvent(id));
+        statisticsAnalysis.onEvent(new DatasetImportedEvent(id));
 
         final DataSetMetadata analyzed = dataSetMetadataRepository.get(id);
         assertThat(analyzed.getLifecycle().schemaAnalyzed(), is(true));

@@ -13,6 +13,7 @@
 
 package org.talend.dataprep.dataset.service;
 
+import static java.util.Comparator.comparingInt;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.dataprep.exception.error.DataSetErrorCodes.DATASET_NAME_ALREADY_USED;
 
@@ -26,7 +27,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.dataset.DataSetMetadataBuilder;
-import org.talend.dataprep.dataset.event.DataSetImportedEvent;
+import org.talend.dataprep.dataset.event.DatasetImportedEvent;
 import org.talend.dataprep.dataset.service.analysis.DataSetAnalyzer;
 import org.talend.dataprep.dataset.service.analysis.synchronous.SynchronousDataSetAnalyzer;
 import org.talend.dataprep.dataset.store.content.ContentStoreRouter;
@@ -63,7 +64,7 @@ public abstract class BaseDataSetService {
      */
     @PostConstruct
     public void initialize() {
-        synchronousAnalyzers.sort((analyzer1, analyzer2) -> analyzer1.order() - analyzer2.order());
+        synchronousAnalyzers.sort(comparingInt(SynchronousDataSetAnalyzer::order));
     }
 
     static void assertDataSetMetadata(DataSetMetadata dataSetMetadata, String dataSetId) {
@@ -131,7 +132,7 @@ public abstract class BaseDataSetService {
         // perform async analysis
         if (performAsyncBackgroundAnalysis) {
             LOG.debug("starting async background analysis");
-            publisher.publishEvent(new DataSetImportedEvent(id));
+            publisher.publishEvent(new DatasetImportedEvent(id));
         } else {
             LOG.info("skipping asynchronous background analysis");
         }
