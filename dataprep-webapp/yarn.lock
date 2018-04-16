@@ -54,9 +54,9 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
-"@talend/bootstrap-theme@0.166.0":
-  version "0.166.0"
-  resolved "https://registry.yarnpkg.com/@talend/bootstrap-theme/-/bootstrap-theme-0.166.0.tgz#a110ba9d3708a2acf3c8d2dcc43dc8877cbc7204"
+"@talend/bootstrap-theme@0.178.0":
+  version "0.178.0"
+  resolved "https://registry.yarnpkg.com/@talend/bootstrap-theme/-/bootstrap-theme-0.178.0.tgz#6b4cfed95a16d670927725aa39340fb197386a8b"
   dependencies:
     bootstrap-sass "3.3.7"
 
@@ -67,41 +67,46 @@
     prop-types "15.5.10"
     react-immutable-proptypes "2.1.0"
 
-"@talend/icons@0.166.0":
-  version "0.166.0"
-  resolved "https://registry.yarnpkg.com/@talend/icons/-/icons-0.166.0.tgz#90a65eef3965e194bbd1782b9293d5d39570677f"
+"@talend/html-webpack-plugin@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@talend/html-webpack-plugin/-/html-webpack-plugin-0.0.3.tgz#461c7d0877e497ca7c8f63ccbf7ef8603edf64f5"
 
-"@talend/react-cmf-cqrs@0.166.0":
-  version "0.166.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf-cqrs/-/react-cmf-cqrs-0.166.0.tgz#c0388c49029d79ac223c737159083c0cb2ab571d"
+"@talend/icons@0.178.0":
+  version "0.178.0"
+  resolved "https://registry.yarnpkg.com/@talend/icons/-/icons-0.178.0.tgz#8b0526838b5580f21e401a9ad656973bc1e3f33b"
+
+"@talend/react-cmf-cqrs@0.178.0":
+  version "0.178.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf-cqrs/-/react-cmf-cqrs-0.178.0.tgz#c690520d77e6c41698fdedc451ec770da7fc2e8f"
   dependencies:
     babel-polyfill "6.26.0"
     hoist-non-react-statics "^1.2.0"
     mock-socket "^7.0.0"
 
-"@talend/react-cmf-webpack-plugin@0.166.0":
-  version "0.166.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf-webpack-plugin/-/react-cmf-webpack-plugin-0.166.0.tgz#18dfcd060fdbd44c048a04e7ae3b7dddaf514c25"
+"@talend/react-cmf-webpack-plugin@0.178.0":
+  version "0.178.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf-webpack-plugin/-/react-cmf-webpack-plugin-0.178.0.tgz#06a211ad527d2fd9d10eccea1adb35f86e613008"
   dependencies:
-    "@talend/react-cmf" "^0.166.0"
+    "@talend/react-cmf" "^0.178.0"
     chokidar "^2.0.2"
     deepmerge "1.5.1"
     mkdirp "^0.5.1"
 
-"@talend/react-cmf@0.166.0", "@talend/react-cmf@^0.166.0":
-  version "0.166.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.166.0.tgz#493c24d2c176f7ce7fe028f194920e0aa5daa3c1"
+"@talend/react-cmf@0.178.0", "@talend/react-cmf@^0.178.0":
+  version "0.178.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.178.0.tgz#96713586d228b8f1aad910a5cbe6064cdee3a9c4"
   dependencies:
     babel-polyfill "6.26.0"
     deepmerge "1.5.1"
     hoist-non-react-statics "^1.2.0"
     react-immutable-proptypes "2.1.0"
 
-"@talend/react-components@0.166.0":
-  version "0.166.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-components/-/react-components-0.166.0.tgz#8428a7d318d9b74f9087a94cb68ffafc02d27b3c"
+"@talend/react-components@0.178.0":
+  version "0.178.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-components/-/react-components-0.178.0.tgz#b55d86d6d03cd75c862ee690b99576989459216c"
   dependencies:
     date-fns "1.27.2"
+    immutable "3.8.1"
     lodash "4.17.4"
     rc-slider "8.4.1"
     rc-tooltip "3.7.0"
@@ -109,19 +114,19 @@
     react-debounce-input "3.1.0"
     react-virtualized "9.10.1"
 
-"@talend/react-containers@0.166.0":
-  version "0.166.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-containers/-/react-containers-0.166.0.tgz#08190a34038cb73d678842fac3201dab708f6f9e"
+"@talend/react-containers@0.178.0":
+  version "0.178.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-containers/-/react-containers-0.178.0.tgz#bda5d6e1b6f494b8b541c50a0b9583e9a22cea99"
   dependencies:
     react-immutable-proptypes "2.1.0"
 
-"@talend/react-forms@0.166.0":
-  version "0.166.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-forms/-/react-forms-0.166.0.tgz#b130643f0977003b9dedd87a7f7ab66f731e6ef9"
+"@talend/react-forms@0.178.0":
+  version "0.178.0"
+  resolved "https://registry.yarnpkg.com/@talend/react-forms/-/react-forms-0.178.0.tgz#45fab7fd0431d840ca884aa37141be82b089ac43"
   dependencies:
     ajv "^6.2.1"
     classnames "2.2.5"
-    keycode "2.1.9"
+    keycode "2.2.0"
     lodash "4.17.4"
     prop-types "15.5.10"
     react-autowhatever "10.1.0"
@@ -5512,6 +5517,10 @@ kew@~0.7.0:
 keycode@2.1.9:
   version "2.1.9"
   resolved "https://registry.yarnpkg.com/keycode/-/keycode-2.1.9.tgz#964a23c54e4889405b4861a5c9f0480d45141dfa"
+
+keycode@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/keycode/-/keycode-2.2.0.tgz#3d0af56dc7b8b8e5cba8d0a97f107204eec22b04"
 
 keycode@^2.1.2:
   version "2.1.8"

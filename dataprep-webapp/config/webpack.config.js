@@ -3,21 +3,19 @@ const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 
 const TalendHTML = require('@talend/html-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const extractCSS = new ExtractTextPlugin({ filename: '[name]-[hash].css' });
 
-const APP_CONF = require('./app.conf.js');
+const APP_CONF = require('./app.conf');
 const LICENSE_BANNER = require('./license');
 const SASS_DATA = require('./sass.conf');
-const CHUNKS_ORDER = ['vendor', 'style', 'style-themed', 'app'];
+const CHUNKS_ORDER = ['vendor', 'style', 'app'];
 
 const INDEX_TEMPLATE_PATH = path.resolve(__dirname, '../src/index.html');
 const STYLE_PATH = path.resolve(__dirname, '../src/app/index.scss');
-const STYLE_THEMED_PATH = path.resolve(__dirname, '../src/app/index.themed.scss');
 const VENDOR_PATH = path.resolve(__dirname, '../src/vendor.js');
 
 const AppLoader = require('@talend/react-components/lib/AppLoader/constant').default;
@@ -59,7 +57,6 @@ const config = {
 			VENDOR_PATH,
 		],
 		style: STYLE_PATH,
-		'style-themed': STYLE_THEMED_PATH,
 		app: ['babel-polyfill', 'whatwg-fetch', './src/app/index-module.js'],
 	},
 	output: {
@@ -175,7 +172,7 @@ if (!isTestMode) {
 		}),
         new TalendHTML({
             loadCSSAsync: true,
-            appLoaderIcon: appConf.icon,
+            appLoaderIcon: APP_CONF.icon,
         }),
 		new webpack.BannerPlugin({
 			banner: LICENSE_BANNER,

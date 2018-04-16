@@ -92,27 +92,26 @@ const app = angular
 	.config(routeConfig)
 	.run(routeInterceptor);
 
-window.fetchConfiguration = function fetchConfiguration() {
-	return getAppConfiguration().then(({ config, appSettings }) => {
-		app
-			// Debug config
-			.config(($compileProvider) => {
-				'ngInject';
-				$compileProvider.debugInfoEnabled(config.enableDebug);
-			})
-			.config(($httpProvider, $translateProvider) => {
-				'ngInject';
+window.bootstrapAngular = function bootstrapAngular({ config, appSettings }) {
+	app
+	// Debug config
+		.config(($compileProvider) => {
+			'ngInject';
+			$compileProvider.debugInfoEnabled(config.enableDebug);
+		})
+		.config(($httpProvider, $translateProvider) => {
+			'ngInject';
 
 			preferredLanguage =
 				(appSettings.context && appSettings.context.language) ||
 				fallbackLng;
 
-				const preferredLocale = appSettings.context && appSettings.context.locale;
-				if (preferredLocale) {
-					$httpProvider.defaults.headers.common['Accept-Language'] = preferredLocale;
-				}
+			const preferredLocale = appSettings.context && appSettings.context.locale;
+			if (preferredLocale) {
+				$httpProvider.defaults.headers.common['Accept-Language'] = preferredLocale;
+			}
 
-				$translateProvider.preferredLanguage(preferredLanguage);
+			$translateProvider.preferredLanguage(preferredLanguage);
 
 			moment.locale(preferredLanguage);
 
@@ -167,21 +166,25 @@ window.fetchConfiguration = function fetchConfiguration() {
 	angular
 		.module(SERVICES_UTILS_MODULE)
 		.value('copyRights', config.copyRights);
-}
-
-window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modules, { config, appSettings }) {
-	const { provider = 'legacy' } = appSettings.context;
-
-	if (provider.includes('catalog') && !(/#\/(playground|export|version)/.test(window.location.href))) {
-		bootstrapReact();
-	}
-	else {
-		bootstrapAngular(config, appSettings);
-		angular
-			.element(document)
-			.ready(() => angular.bootstrap(document, [window.MODULE_NAME]));
-	}
 };
+
+getAppConfiguration()
+	.then(({ config, appSettings }) => {
+		// appSettings.context.provider = 'catalog';
+		const { provider = 'legacy' } = appSettings.context;
+
+		if (provider.includes('catalog') && !(/#\/(playground|export|version)/.test(window.location.href))) {
+			console.info('Bootstrap React CMF');
+			bootstrapReact();
+		}
+		else {
+			console.info('Bootstrap Angular');
+			window.bootstrapAngular({ config, appSettings });
+			angular
+				.element(document)
+				.ready(() => angular.bootstrap(document, [window.MODULE_NAME]));
+		}
+	});
 
 /* eslint-enable angular/window-service */
 
