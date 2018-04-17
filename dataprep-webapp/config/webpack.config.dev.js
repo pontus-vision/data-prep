@@ -8,11 +8,11 @@ const config = require('./webpack.config');
 config.devtool = 'eval-source-map';
 
 config.module.loaders.push({
-    test: /src\/.*\.js$/,
-    enforce: 'pre',
-    loader: 'eslint-loader',
-    exclude: /node_modules/,
-    options: { configFile: path.resolve(__dirname, '../.eslintrc') },
+	test:	/src\/.*\.js$/,
+	enforce: 'pre',
+	loader: 'eslint-loader',
+	exclude: /node_modules/,
+	options: { configFile: path.resolve(__dirname, '../.eslintrc') },
 });
 
 config.plugins.push(

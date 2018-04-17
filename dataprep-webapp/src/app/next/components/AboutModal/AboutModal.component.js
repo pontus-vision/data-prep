@@ -38,8 +38,8 @@ export default class AboutModal extends React.Component {
 }
 AboutModal.displayName = 'AboutModal';
 AboutModal.propTypes = {
-	state: ImmutablePropTypes.contains({ show: PropTypes.bool }),
-	setState: PropTypes.func,
-	getComponent: PropTypes.func,
-	components: PropTypes.shape(),
+	state: ImmutablePropTypes.contains({ show: PropTypes.bool }).isRequired,
+	setState: PropTypes.func.isRequired,
+	getComponent: PropTypes.func.isRequired,
+	components: PropTypes.shape().isRequired,
 };

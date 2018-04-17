@@ -23,8 +23,8 @@ function Version(props) {
 }
 Version.displayName = 'Version';
 Version.propTypes = {
-	displayVersion: PropTypes.string,
-	services: PropTypes.arrayOf(PropTypes.shape()),
+	displayVersion: PropTypes.string.isRequired,
+	services: PropTypes.arrayOf(PropTypes.shape()).isRequired,
 };
 
 export default Version;

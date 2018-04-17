@@ -30,5 +30,5 @@ export default function App(props) {
 
 App.displayName = 'App';
 App.propTypes = {
-	children: React.PropTypes.element,
+	children: React.PropTypes.element.isRequired,
 };

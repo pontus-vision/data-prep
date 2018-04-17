@@ -170,10 +170,10 @@ if (!isTestMode) {
 				return 0;
 			},
 		}),
-        new TalendHTML({
-            loadCSSAsync: true,
-            appLoaderIcon: APP_CONF.icon,
-        }),
+		new TalendHTML({
+			loadCSSAsync: true,
+			appLoaderIcon: APP_CONF.icon,
+		}),
 		new webpack.BannerPlugin({
 			banner: LICENSE_BANNER,
 		}),

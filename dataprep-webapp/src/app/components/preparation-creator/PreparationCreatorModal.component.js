@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Modal, Button } from 'react-bootstrap';
+import { Button, Modal } from 'react-bootstrap';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 export default class PreparationCreatorModal extends React.Component {
@@ -35,6 +35,6 @@ export default class PreparationCreatorModal extends React.Component {
 }
 PreparationCreatorModal.displayName = 'PreparationCreatorModal';
 PreparationCreatorModal.propTypes = {
-	state: ImmutablePropTypes.contains({ show: PropTypes.bool }),
-	setState: PropTypes.func,
+	state: ImmutablePropTypes.contains({ show: PropTypes.bool }).isRequired,
+	setState: PropTypes.func.isRequired,
 };
