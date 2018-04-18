@@ -301,10 +301,6 @@ public class RowMetadata implements Serializable {
         return clone;
     }
 
-    public Schema toSchema() {
-        return RowMetadataUtils.toSchema(this);
-    }
-
     /**
      * Move column with id <code>movedColumnId</code> <b>after</b> <code>columnId</code>. If you have:
      *

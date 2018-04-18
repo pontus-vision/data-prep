@@ -56,6 +56,8 @@ public class JsonWriter implements TransformerWriter {
 
     private static final String RECORDS_FIELD_NAME = "records";
 
+    private OutputStream output;
+
     /** The data-prep ready jackson module. */
     @Autowired
     private transient ObjectMapper mapper;
@@ -102,6 +104,8 @@ public class JsonWriter implements TransformerWriter {
         } catch (IOException e) {
             throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
         }
+    }
+
     /**
      * Init the writer.
      *
@@ -109,7 +113,6 @@ public class JsonWriter implements TransformerWriter {
      */
     @PostConstruct
     private void init() throws IOException {
-        this.generator = mapper.getFactory().createGenerator(output);
         openRootObject();
     }
 

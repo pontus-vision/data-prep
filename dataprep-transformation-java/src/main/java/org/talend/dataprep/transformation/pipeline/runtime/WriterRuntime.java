@@ -45,9 +45,6 @@ class WriterRuntime implements RuntimeNode {
 
         try {
             if (!startRecords) {
-                writer.startObject();
-                writer.fieldName("records");
-                writer.startArray();
                 startRecords = true;
             }
             lastRowMetadata = row.getRowMetadata();
@@ -104,24 +101,9 @@ class WriterRuntime implements RuntimeNode {
 
         try {
             // no row received, let's switch to the fallback row metadata
-            if (!startRecords) {
-                writer.startObject();
-                writer.fieldName("records");
-                writer.startArray();
-            }
-
-            writer.endArray(); // <- end records
-            writer.fieldName("metadata"); // <- start metadata
-            writer.startObject();
-
-            writer.fieldName("columns");
             if (lastRowMetadata != null) {
                 writer.write(lastRowMetadata);
             }
-
-            writer.endObject();
-
-            writer.endObject(); // <- end data set
             writer.flush();
         } catch (IOException e) {
             LOGGER.error("Unable to end writer.", e);

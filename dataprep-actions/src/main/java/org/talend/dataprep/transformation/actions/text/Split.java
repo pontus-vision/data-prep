@@ -24,6 +24,8 @@ import static org.talend.dataprep.transformation.actions.context.ActionContext.A
 import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;

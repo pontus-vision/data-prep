@@ -15,7 +15,11 @@ package org.talend.dataprep.transformation.format;
 import static org.talend.dataprep.exception.error.TransformationErrorCodes.UNABLE_TO_PERFORM_EXPORT;
 import static org.talend.dataprep.transformation.format.XlsFormat.XLSX;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Map;
 
@@ -36,7 +40,7 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.TransformationErrorCodes;
-import org.talend.dataprep.transformation.api.transformer.TransformerWriter;
+import org.talend.dataprep.transformation.pipeline.node.TransformerWriter;
 import org.talend.dataprep.util.FilesHelper;
 import org.talend.dataprep.util.NumericHelper;
 

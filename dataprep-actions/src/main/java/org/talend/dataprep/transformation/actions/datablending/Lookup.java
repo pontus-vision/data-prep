@@ -23,22 +23,21 @@ import static org.talend.dataprep.transformation.actions.category.ActionScope.HI
 import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.COLUMN_ID;
 import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.CANCELED;
 import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
-import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.*;
 import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_ID;
 import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_NAME;
 import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_JOIN_ON;
 import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_JOIN_ON_NAME;
 import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_SELECTED_COLS;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
-import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 

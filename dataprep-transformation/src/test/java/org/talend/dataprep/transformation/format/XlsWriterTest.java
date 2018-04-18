@@ -37,8 +37,8 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.schema.SchemaParser;
 import org.talend.dataprep.transformation.api.transformer.Transformer;
 import org.talend.dataprep.transformation.api.transformer.TransformerFactory;
-import org.talend.dataprep.transformation.api.transformer.TransformerWriter;
 import org.talend.dataprep.transformation.api.transformer.configuration.Configuration;
+import org.talend.dataprep.transformation.pipeline.node.TransformerWriter;
 
 import com.fasterxml.jackson.core.JsonParser;
 

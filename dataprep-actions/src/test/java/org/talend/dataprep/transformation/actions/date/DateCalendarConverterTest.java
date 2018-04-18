@@ -11,6 +11,35 @@
 // ============================================================================
 package org.talend.dataprep.transformation.actions.date;
 
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
+import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValueBuilder.value;
+import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValuesBuilder.builder;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
+import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.COLUMN_ID;
+import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.ROW_ID;
+import static org.talend.dataprep.transformation.actions.date.DateCalendarConverter.CalendarUnit;
+import static org.talend.dataprep.transformation.actions.date.DateCalendarConverter.IS_FROM_CHRONOLOGY_INTERNAL_KEY;
+import static org.talend.dataprep.transformation.actions.date.DateCalendarConverter.IS_TO_CHRONOLOGY_INTERNAL_KEY;
+import static org.talend.dataprep.transformation.actions.date.DateCalendarConverter.parseDateFromPatterns;
+
+import java.io.IOException;
+import java.time.DateTimeException;
+import java.time.chrono.AbstractChronology;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.junit.Test;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
@@ -20,26 +49,9 @@ import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.ActionDefinition;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
+import org.talend.dataprep.transformation.actions.context.ActionContext;
+import org.talend.dataprep.transformation.actions.context.TransformationContext;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
-import org.talend.dataprep.transformation.api.action.context.ActionContext;
-import org.talend.dataprep.transformation.api.action.context.TransformationContext;
-
-import java.io.IOException;
-import java.time.DateTimeException;
-import java.time.chrono.AbstractChronology;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
-import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
-import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValueBuilder.value;
-import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValuesBuilder.builder;
-import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
-import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
-import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.COLUMN_ID;
-import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.ROW_ID;
-import static org.talend.dataprep.transformation.actions.date.DateCalendarConverter.*;
 
 /**
  * Test class for DateCalendarConverter action. Creates one consumer, and test it.

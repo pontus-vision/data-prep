@@ -23,6 +23,7 @@ import static org.talend.dataprep.transformation.actions.category.ActionScope.HI
 import static org.talend.dataprep.transformation.actions.context.ActionContext.ActionStatus.OK;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
