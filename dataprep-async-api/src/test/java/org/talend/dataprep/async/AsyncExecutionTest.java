@@ -1,13 +1,14 @@
 package org.talend.dataprep.async;
 
-import com.google.common.collect.Lists;
-
-import org.junit.Test;
+import static java.util.Comparator.naturalOrder;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import static java.util.Comparator.naturalOrder;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
+
+import com.google.common.collect.Lists;
 
 public class AsyncExecutionTest {
 

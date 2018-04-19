@@ -14,7 +14,9 @@ package org.talend.dataprep.async;
 
 import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.talend.dataprep.async.AsyncAspectTestMockController.cancelled;
 import static org.talend.dataprep.async.AsyncAspectTestMockController.stopped;
 
@@ -36,8 +38,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.talend.dataprep.api.export.ExportParameters;
 import org.talend.dataprep.async.repository.ManagedTaskRepository;
-import org.talend.dataprep.exception.TDPException;
-import org.talend.dataprep.exception.error.TransformationErrorCodes;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 /**
  * Unit test for the org.talend.dataprep.async.AsyncAspect class.

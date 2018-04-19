@@ -12,8 +12,8 @@
 
 package org.talend.dataprep.async.repository;
 
-import org.talend.dataprep.async.AsyncExecution;
 import org.talend.dataprep.async.AsyncExecutionWatcher;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 @FunctionalInterface
 public interface AsyncExecutionUpdaterRegistry {

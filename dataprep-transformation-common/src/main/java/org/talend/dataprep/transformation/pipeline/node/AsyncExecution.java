@@ -10,21 +10,17 @@
 //
 // ============================================================================
 
-package org.talend.dataprep.async;
+package org.talend.dataprep.transformation.pipeline.node;
 
 import java.util.Comparator;
 import java.util.UUID;
-import java.util.function.Function;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.daikon.exception.error.ErrorCode;
-import org.talend.dataprep.async.progress.ExecutionProgress;
-import org.talend.dataprep.exception.ErrorCodeDto;
-import org.talend.dataprep.exception.error.CommonErrorCodes;
-import org.talend.dataprep.exception.error.TransformationErrorCodes;
+import org.talend.dataprep.async.AsyncExecutionResult;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -143,12 +139,7 @@ public class AsyncExecution implements Comparable<AsyncExecution> {
     }
 
     public void setError(ErrorCode error) {
-        if (error instanceof ErrorCodeDto) {
-            LOGGER.debug("Execution '{}' has error from underlying service '{}'", getId(), error);
-            this.error = TransformationErrorCodes.UNABLE_TO_TRANSFORM_DATASET;
-        } else {
-            this.error = error;
-        }
+        this.error = error;
     }
 
     public ExecutionProgress getProgress() {
@@ -209,8 +200,6 @@ public class AsyncExecution implements Comparable<AsyncExecution> {
     public void setException(Throwable error) {
         if (error instanceof TalendRuntimeException) {
             setError(((TalendRuntimeException) error).getCode());
-        } else {
-            setError(CommonErrorCodes.UNEXPECTED_EXCEPTION);
         }
     }
 

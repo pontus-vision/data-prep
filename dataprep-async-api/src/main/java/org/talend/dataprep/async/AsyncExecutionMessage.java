@@ -12,6 +12,8 @@
 
 package org.talend.dataprep.async;
 
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 

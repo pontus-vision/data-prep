@@ -13,6 +13,7 @@
 package org.talend.dataprep.async;
 
 import org.springframework.context.ApplicationContext;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 @FunctionalInterface
 public interface AsyncExecutionWatcher {

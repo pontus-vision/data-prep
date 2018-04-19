@@ -14,7 +14,7 @@ package org.talend.dataprep.async.repository;
 
 import java.util.stream.Stream;
 
-import org.talend.dataprep.async.AsyncExecution;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 /**
  * Defines the managed task repository interface. This interface only stores information relative to executions (i.e. it does not

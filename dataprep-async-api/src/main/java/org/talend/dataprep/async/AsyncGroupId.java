@@ -12,7 +12,13 @@
 
 package org.talend.dataprep.async;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 /**
  * Annotation to indicate the {@link AsyncExecution#getGroup()} value for the created execution.

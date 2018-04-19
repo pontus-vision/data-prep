@@ -18,10 +18,11 @@ import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.dataprep.async.AsyncExecution;
 import org.talend.dataprep.async.AsyncExecutionResult;
 import org.talend.dataprep.async.repository.ManagedTaskRepository;
 import org.talend.dataprep.transformation.pipeline.Signal;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
+import org.talend.dataprep.transformation.pipeline.node.ExecutionProgress;
 
 /**
  * This class helps code that runs asynchronously to:

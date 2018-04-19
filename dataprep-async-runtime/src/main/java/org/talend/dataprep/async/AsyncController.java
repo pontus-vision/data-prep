@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.talend.dataprep.async.repository.ManagedTaskRepository;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.TransformationErrorCodes;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 @RestController
 public class AsyncController {

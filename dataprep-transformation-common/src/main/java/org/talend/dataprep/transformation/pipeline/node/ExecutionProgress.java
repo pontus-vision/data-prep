@@ -11,7 +11,7 @@
 //
 // ============================================================================
 
-package org.talend.dataprep.async.progress;
+package org.talend.dataprep.transformation.pipeline.node;
 
 /**
  * Asynchronous sampling progress information.

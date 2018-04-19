@@ -20,9 +20,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.async.AsyncExecution;
 import org.talend.dataprep.async.repository.ManagedTaskRepository;
-import org.talend.dataprep.transformation.async.command.*;
+import org.talend.dataprep.transformation.async.command.GetAsyncExecution;
+import org.talend.dataprep.transformation.async.command.GetGroupExecutions;
+import org.talend.dataprep.transformation.async.command.ListAllExecutions;
+import org.talend.dataprep.transformation.async.command.RemoveAsyncExecution;
+import org.talend.dataprep.transformation.async.command.SaveAsyncExecution;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

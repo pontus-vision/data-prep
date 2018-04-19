@@ -36,6 +36,7 @@ import org.talend.dataprep.async.result.ResultUrlGenerator;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 import org.talend.dataprep.http.HttpResponseContext;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 import org.talend.dataprep.util.AspectHelper;
 
 /**

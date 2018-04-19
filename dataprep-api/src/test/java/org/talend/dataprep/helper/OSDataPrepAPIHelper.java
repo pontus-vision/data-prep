@@ -14,8 +14,8 @@
 package org.talend.dataprep.helper;
 
 import static com.jayway.restassured.http.ContentType.JSON;
-import static org.talend.dataprep.async.AsyncExecution.Status.NEW;
-import static org.talend.dataprep.async.AsyncExecution.Status.RUNNING;
+import static org.talend.dataprep.transformation.pipeline.node.AsyncExecution.Status.NEW;
+import static org.talend.dataprep.transformation.pipeline.node.AsyncExecution.Status.RUNNING;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,11 +36,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.async.AsyncExecution;
 import org.talend.dataprep.async.AsyncExecutionMessage;
 import org.talend.dataprep.helper.api.Action;
 import org.talend.dataprep.helper.api.ActionRequest;
 import org.talend.dataprep.helper.api.PreparationRequest;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;

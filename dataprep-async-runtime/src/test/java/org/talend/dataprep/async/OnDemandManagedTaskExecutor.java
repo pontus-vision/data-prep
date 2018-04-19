@@ -12,7 +12,9 @@
 
 package org.talend.dataprep.async;
 
-import static org.talend.dataprep.async.AsyncExecution.Status.*;
+import static org.talend.dataprep.transformation.pipeline.node.AsyncExecution.Status.DONE;
+import static org.talend.dataprep.transformation.pipeline.node.AsyncExecution.Status.FAILED;
+import static org.talend.dataprep.transformation.pipeline.node.AsyncExecution.Status.RUNNING;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +25,6 @@ import java.util.concurrent.CancellationException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.dataprep.async.progress.ExecutionContext;
@@ -31,6 +32,7 @@ import org.talend.dataprep.async.repository.ManagedTaskRepository;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.TransformationErrorCodes;
 import org.talend.dataprep.transformation.pipeline.Signal;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 /**
  * Managed task executor that run tasks on demand and synchronously.

@@ -39,12 +39,12 @@ import org.springframework.http.HttpStatus;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.preparation.Preparation;
-import org.talend.dataprep.async.AsyncExecution;
 import org.talend.dataprep.async.AsyncExecutionMessage;
 import org.talend.dataprep.cache.CacheKeyGenerator;
 import org.talend.dataprep.cache.ContentCache;
 import org.talend.dataprep.cache.TransformationCacheKey;
 import org.talend.dataprep.dataset.event.DatasetUpdatedEvent;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 import org.talend.dataquality.semantic.broadcast.TdqCategories;
 
 import com.fasterxml.jackson.databind.JsonNode;

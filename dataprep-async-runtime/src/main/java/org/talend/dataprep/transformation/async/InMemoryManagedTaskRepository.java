@@ -19,8 +19,8 @@ import java.util.stream.Stream;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.async.AsyncExecution;
 import org.talend.dataprep.async.repository.ManagedTaskRepository;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 /**
  * In-Memory implementation for the ManagedTaskRepository (only for tests)

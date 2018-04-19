@@ -35,14 +35,14 @@ public class ProgressNode extends BasicNode implements Monitored {
     private long receivedRows = 0;
 
     /** Function that supplies the progress object to from this. */
-    private Function<Monitored, Object> progressSupplier;
+    private Function<Monitored, ExecutionProgress> progressSupplier;
 
     /**
      * Constructor.
      *
      * @param progressSupplier the function progress object supplier.
      */
-    public ProgressNode(Function<Monitored, Object> progressSupplier) {
+    public ProgressNode(Function<Monitored, ExecutionProgress> progressSupplier) {
         this.progressSupplier = progressSupplier;
     }
 

@@ -13,7 +13,7 @@
 package org.talend.dataprep.async;
 
 import static java.util.Optional.ofNullable;
-import static org.talend.dataprep.async.AsyncExecution.Status.DONE;
+import static org.talend.dataprep.transformation.pipeline.node.AsyncExecution.Status.DONE;
 
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +38,7 @@ import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.TransformationErrorCodes;
 import org.talend.dataprep.security.Security;
 import org.talend.dataprep.transformation.pipeline.Signal;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 /**
  * Managed task executor based on a local thread pool.

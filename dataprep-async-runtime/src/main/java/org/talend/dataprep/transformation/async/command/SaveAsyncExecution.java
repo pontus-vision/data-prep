@@ -28,10 +28,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.async.AsyncExecution;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
+import org.talend.dataprep.transformation.pipeline.node.AsyncExecution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
