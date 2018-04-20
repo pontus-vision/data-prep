@@ -94,17 +94,6 @@ public abstract class ExecutorVisitor<R> extends Visitor<Node> {
         };
     }
 
-    @Nonnull
-    Function<DataSetRow, DataSetRow> handleStepNode(StepNode stepNode) {
-        return row -> {
-            final RowMetadata stepRowMetadata = stepNode.getStepRowMetadata();
-            if (stepRowMetadata != null) {
-                row.setRowMetadata(stepRowMetadata);
-            }
-            return row;
-        };
-    }
-
     @Override
     public Node visitStep(StepNode stepNode) {
         super.visitStep(stepNode);

@@ -105,6 +105,7 @@ class WriterRuntime implements RuntimeNode {
                 writer.write(lastRowMetadata);
             }
             writer.flush();
+            writer.close();
         } catch (IOException e) {
             LOGGER.error("Unable to end writer.", e);
         }

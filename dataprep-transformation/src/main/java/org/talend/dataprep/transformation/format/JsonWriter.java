@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -101,19 +99,10 @@ public class JsonWriter implements TransformerWriter {
     public void setOutput(OutputStream output) {
         try {
             this.generator = mapper.getFactory().createGenerator(output);
+            openRootObject();
         } catch (IOException e) {
             throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
         }
-    }
-
-    /**
-     * Init the writer.
-     *
-     * @throws IOException if an error occurs.
-     */
-    @PostConstruct
-    private void init() throws IOException {
-        openRootObject();
     }
 
     @Override
