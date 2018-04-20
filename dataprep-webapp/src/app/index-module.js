@@ -92,7 +92,7 @@ const app = angular
 	.config(routeConfig)
 	.run(routeInterceptor);
 
-window.bootstrapAngular = function bootstrapAngular({ config, appSettings }) {
+window.bootstrapAngular = function bootstrapAngular(appSettings) {
 	app
 	// Debug config
 		.config(($compileProvider) => {
@@ -144,7 +144,7 @@ window.bootstrapAngular = function bootstrapAngular({ config, appSettings }) {
 				HelpService.register(help);
 			}
 
-			RestURLs.register(config, appSettings.uris);
+			RestURLs.register(appSettings.uris);
 
 			// dataset encodings
 			DatasetService.refreshSupportedEncodings();
@@ -162,14 +162,10 @@ window.bootstrapAngular = function bootstrapAngular({ config, appSettings }) {
 				);
 			});
 		});
-
-	angular
-		.module(SERVICES_UTILS_MODULE)
-		.value('copyRights', config.copyRights);
 };
 
 getAppConfiguration()
-	.then(({ config, appSettings }) => {
+	.then((appSettings) => {
 		// appSettings.context.provider = 'catalog';
 		const { provider = 'legacy' } = appSettings.context;
 
@@ -179,7 +175,7 @@ getAppConfiguration()
 		}
 		else {
 			console.info('Bootstrap Angular');
-			window.bootstrapAngular({ config, appSettings });
+			window.bootstrapAngular(appSettings);
 			angular
 				.element(document)
 				.ready(() => angular.bootstrap(document, [window.MODULE_NAME]));
