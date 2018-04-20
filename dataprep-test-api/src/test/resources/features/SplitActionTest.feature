@@ -1,4 +1,5 @@
-Feature: Perform scenarios with ExtractDateToken related action
+@EnvOS @EnvOnPremise @EnvCloud
+Feature: Perform scenarios with SplitAction related action
 
   Scenario: TDP-2673 (TDP-4926/TDP-5057) related bug fix
     # Remark : the split action will change the type of one of the new column

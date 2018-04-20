@@ -1,4 +1,5 @@
-Feature: Export Preparation
+@EnvOS @EnvOnPremise @EnvCloud
+Feature: Export Preparation from CSV
 
   Scenario: Create a preparation with one step
     Given I upload the dataset "/data/6L3C.csv" with name "6L3C_dataset"
