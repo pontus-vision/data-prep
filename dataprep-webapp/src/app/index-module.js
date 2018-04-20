@@ -97,7 +97,7 @@ window.bootstrapAngular = function bootstrapAngular(appSettings) {
 	// Debug config
 		.config(($compileProvider) => {
 			'ngInject';
-			$compileProvider.debugInfoEnabled(config.enableDebug);
+			$compileProvider.debugInfoEnabled(false);
 		})
 		.config(($httpProvider, $translateProvider) => {
 			'ngInject';
