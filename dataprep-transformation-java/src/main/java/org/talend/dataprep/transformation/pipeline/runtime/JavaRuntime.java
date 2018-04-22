@@ -28,7 +28,24 @@ import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.pipeline.Node;
 import org.talend.dataprep.transformation.pipeline.link.CloneLink;
-import org.talend.dataprep.transformation.pipeline.node.*;
+import org.talend.dataprep.transformation.pipeline.node.ActionNode;
+import org.talend.dataprep.transformation.pipeline.node.CacheMetadataNode;
+import org.talend.dataprep.transformation.pipeline.node.CleanUpNode;
+import org.talend.dataprep.transformation.pipeline.node.CollectorNode;
+import org.talend.dataprep.transformation.pipeline.node.CompileNode;
+import org.talend.dataprep.transformation.pipeline.node.ConsumerNode;
+import org.talend.dataprep.transformation.pipeline.node.DomainAndTypeEnforcerNode;
+import org.talend.dataprep.transformation.pipeline.node.FilterNode;
+import org.talend.dataprep.transformation.pipeline.node.InvalidDetectionNode;
+import org.talend.dataprep.transformation.pipeline.node.LimitNode;
+import org.talend.dataprep.transformation.pipeline.node.LocalSourceNode;
+import org.talend.dataprep.transformation.pipeline.node.MetadataEnforcerNode;
+import org.talend.dataprep.transformation.pipeline.node.NToOneNode;
+import org.talend.dataprep.transformation.pipeline.node.SourceNode;
+import org.talend.dataprep.transformation.pipeline.node.StatisticsNode;
+import org.talend.dataprep.transformation.pipeline.node.StepNode;
+import org.talend.dataprep.transformation.pipeline.node.TypeDetectionNode;
+import org.talend.dataprep.transformation.pipeline.node.WriterNode;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -233,7 +250,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitTypeDetection(TypeDetectionNode typeDetectionNode) {
         Node node = super.visitTypeDetection(typeDetectionNode);
 
-        lastNode = new TypeDetectionRuntime(typeDetectionNode, lastNode);
+        lastNode = new ReactiveTypeDetectionRuntime(typeDetectionNode, lastNode);
 
         return node;
     }
