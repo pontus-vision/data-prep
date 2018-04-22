@@ -29,6 +29,7 @@ import org.talend.dataquality.common.inference.Analyzers;
 
 import reactor.core.publisher.BlockingSink;
 import reactor.core.publisher.ReplayProcessor;
+import reactor.core.publisher.UnicastProcessor;
 
 public class ReactiveTypeDetectionRuntime implements RuntimeNode {
 
@@ -48,6 +49,10 @@ public class ReactiveTypeDetectionRuntime implements RuntimeNode {
 
     private Analyzer<Analyzers.Result> resultAnalyzer;
 
+    private UnicastProcessor<DataSetRow> analyzerProcessor;
+
+    private BlockingSink<DataSetRow> analyzerSink;
+
     ReactiveTypeDetectionRuntime(TypeDetectionNode typeDetectionNode, RuntimeNode nextNode) {
         this.typeDetectionNode = typeDetectionNode;
 
@@ -59,6 +64,20 @@ public class ReactiveTypeDetectionRuntime implements RuntimeNode {
             analyze(row);
         });
 
+        analyzerProcessor = UnicastProcessor.create();
+        analyzerProcessor.subscribe(r -> {
+            final String[] values = r
+                    .filter(filteredColumns) //
+                    .order(filteredColumns) //
+                    .toArray(DataSetRow.SKIP_TDP_ID);
+            try {
+                resultAnalyzer.analyze(values);
+            } catch (Exception e) {
+                LOGGER.debug("Unable to analyze row '{}'.", Arrays.toString(values), e);
+            }
+        });
+        analyzerSink = analyzerProcessor.connectSink();
+
         this.nextNode = nextNode;
     }
 
@@ -69,19 +88,7 @@ public class ReactiveTypeDetectionRuntime implements RuntimeNode {
 
     private void analyze(DataSetRow row) {
         if (!row.isDeleted()) {
-            // Lazy initialization of the result analyzer
-            if (resultAnalyzer == null) {
-                resultAnalyzer = typeDetectionNode.getAnalyzer().apply(filteredColumns);
-            }
-            final String[] values = row
-                    .filter(filteredColumns) //
-                    .order(metadata.getColumns()) //
-                    .toArray(DataSetRow.SKIP_TDP_ID);
-            try {
-                resultAnalyzer.analyze(values);
-            } catch (Exception e) {
-                LOGGER.debug("Unable to analyze row '{}'.", Arrays.toString(values), e);
-            }
+            analyzerSink.submit(row);
         }
     }
 
@@ -93,13 +100,25 @@ public class ReactiveTypeDetectionRuntime implements RuntimeNode {
                 filteredColumns = columns.stream().filter(typeDetectionNode.getFilter()).collect(Collectors.toList());
             }
             metadata = rowMetadata;
+            resultAnalyzer = typeDetectionNode.getAnalyzer().apply(filteredColumns);
         }
     }
 
     @Override
     public void signal(Signal signal) {
+        analyzerSink.finish();
         sink.finish();
+
         if (nextNode != null) {
+            LOGGER.debug("Inject new type detection results in {}", filteredColumns);
+            try {
+                resultAnalyzer.end();
+                resultAnalyzer.close();
+            } catch (Exception e) {
+                LOGGER.error("Unable to properly close result analyzer.", e);
+            }
+            typeDetectionNode.getAdapter().adapt(filteredColumns, resultAnalyzer.getResult());
+
             processor.subscribe(row -> {
                 LOGGER.trace("forward row = " + row);
                 nextNode.receive(row.setRowMetadata(metadata));
