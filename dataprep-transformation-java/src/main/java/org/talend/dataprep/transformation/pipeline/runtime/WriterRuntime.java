@@ -79,6 +79,11 @@ class WriterRuntime implements RuntimeNode {
         }
     }
 
+    @Override
+    public RuntimeNode getNext() {
+        return nextNode;
+    }
+
     /**
      * Deal with the cancel signal.
      */

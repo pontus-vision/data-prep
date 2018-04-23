@@ -12,17 +12,20 @@
 
 package org.talend.dataprep.transformation.pipeline.runtime;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.*;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -47,8 +50,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class TypeDetectionRuntime implements RuntimeNode {
 
@@ -190,5 +191,10 @@ public class TypeDetectionRuntime implements RuntimeNode {
         if (nextNode != null) {
             nextNode.signal(signal);
         }
+    }
+
+    @Override
+    public RuntimeNode getNext() {
+        return nextNode;
     }
 }

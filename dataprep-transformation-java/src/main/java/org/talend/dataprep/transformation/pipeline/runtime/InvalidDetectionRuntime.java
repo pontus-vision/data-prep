@@ -38,7 +38,7 @@ class InvalidDetectionRuntime implements RuntimeNode {
     }
 
     private void performColumnFilter(DataSetRow row, RowMetadata metadata) {
-        final boolean needRefresh = rowMetadata == null || !metadata.equals(rowMetadata);
+        final boolean needRefresh = !metadata.equals(rowMetadata);
         List<ColumnMetadata> columns = metadata.getColumns();
         if (!columns.isEmpty()) {
             if (filteredColumns == null || needRefresh) {
@@ -83,5 +83,10 @@ class InvalidDetectionRuntime implements RuntimeNode {
             return;
         }
         nextNode.signal(signal);
+    }
+
+    @Override
+    public RuntimeNode getNext() {
+        return nextNode;
     }
 }

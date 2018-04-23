@@ -70,7 +70,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
                     return lastNode;
                 }) //
                 .collect(Collectors.toList());
-        lastNode = new CloneLinkRuntime(nodes, nextNode);
+        lastNode = Monitor.monitor(new CloneLinkRuntime(nodes, nextNode));
         return node;
     }
 
@@ -83,7 +83,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
             final RuntimeNode nToOneNodeRuntime = new NToOneRuntime(nToOneNode, nextNode);
             reducers.put(nToOneNode, nToOneNodeRuntime);
         }
-        lastNode = reducers.get(nToOneNode);
+        lastNode = Monitor.monitor(reducers.get(nToOneNode));
 
         return node;
     }
@@ -91,7 +91,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     @Override
     public Node visitLimit(LimitNode limitNode) {
         Node node = super.visitLimit(limitNode);
-        lastNode = new LimitRuntime(limitNode, lastNode);
+        lastNode = Monitor.monitor(new LimitRuntime(limitNode, lastNode));
         return node;
     }
 
@@ -100,7 +100,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
         final Node node = super.visitAction(actionNode);
 
         final Function<DataSetRow, Collection<DataSetRow>> function = toFunction(actionNode);
-        lastNode = new ActionRuntime(function, lastNode);
+        lastNode = Monitor.monitor(new ActionRuntime(function, lastNode));
         return node;
     }
 
@@ -109,7 +109,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
         Node node = super.visitCompile(compileNode);
 
         final Function<DataSetRow, DataSetRow> consumer = toConsumer(compileNode);
-        lastNode = new CompileRuntime(consumer, lastNode);
+        lastNode = Monitor.monitor(new CompileRuntime(consumer, lastNode));
 
         return node;
     }
@@ -118,7 +118,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitStep(StepNode stepNode) {
         Node node = super.visitStep(stepNode);
 
-        lastNode = new StepNodeRuntime(stepNode, stepMetadataRepository, lastNode);
+        lastNode = Monitor.monitor(new StepNodeRuntime(stepNode, stepMetadataRepository, lastNode));
 
         return node;
     }
@@ -137,7 +137,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitConsumerNode(ConsumerNode consumerNode) {
         Node node = super.visitConsumerNode(consumerNode);
 
-        lastNode = new ConsumerRuntime(consumerNode, lastNode);
+        lastNode = Monitor.monitor(new ConsumerRuntime(consumerNode, lastNode));
         return node;
     }
 
@@ -153,7 +153,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
             final URL url = new URL(sourceNode.getSourceUrl());
             final ObjectMapper mapper = new ObjectMapper();
             final JsonParser parser = mapper.getFactory().createParser(url.openStream());
-            final DataSet dataSet = mapper.reader(DataSet.class).readValue(parser);
+            final DataSet dataSet = mapper.readerFor(DataSet.class).readValue(parser);
 
             stream = dataSet.getRecords();
             return super.visitSource(sourceNode);
@@ -166,7 +166,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitCleanUp(CleanUpNode cleanUpNode) {
         Node node = super.visitCleanUp(cleanUpNode);
 
-        lastNode = new CleanUpRuntime(context, lastNode);
+        lastNode = Monitor.monitor(new CleanUpRuntime(context, lastNode));
         return node;
     }
 
@@ -174,7 +174,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitFilterNode(FilterNode filterNode) {
         Node node = super.visitFilterNode(filterNode);
 
-        lastNode = new FilterRuntime(filterNode, lastNode);
+        lastNode = Monitor.monitor(new FilterRuntime(filterNode, lastNode));
         return node;
     }
 
@@ -189,7 +189,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitCollector(CollectorNode collectorNode) {
         super.visitCollector(collectorNode);
 
-        lastNode = new CollectorRuntime(collectorNode, lastNode);
+        lastNode = Monitor.monitor(new CollectorRuntime(collectorNode, lastNode));
         return collectorNode;
     }
 
@@ -197,7 +197,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitInvalidDetection(InvalidDetectionNode invalidDetectionNode) {
         Node node = super.visitInvalidDetection(invalidDetectionNode);
 
-        lastNode = new InvalidDetectionRuntime(invalidDetectionNode, lastNode);
+        lastNode = Monitor.monitor(new InvalidDetectionRuntime(invalidDetectionNode, lastNode));
         return node;
     }
 
@@ -205,7 +205,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitWriterNode(WriterNode writerNode) {
         Node node = super.visitWriterNode(writerNode);
 
-        lastNode = new WriterRuntime(writerNode.getWriter(), outputStream, lastNode);
+        lastNode = Monitor.monitor(new WriterRuntime(writerNode.getWriter(), outputStream, lastNode));
 
         return node;
     }
@@ -214,7 +214,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitCacheMetadata(CacheMetadataNode cacheMetadataNode) {
         Node node = super.visitCacheMetadata(cacheMetadataNode);
 
-        lastNode = new CacheMetadataRuntime(cacheMetadataNode, lastNode);
+        lastNode = Monitor.monitor(new CacheMetadataRuntime(cacheMetadataNode, lastNode));
 
         return node;
     }
@@ -223,7 +223,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitMetadataEnforcer(MetadataEnforcerNode metadataEnforcerNode) {
         Node node = super.visitMetadataEnforcer(metadataEnforcerNode);
 
-        lastNode = new MetadataEnforcerRuntime(metadataEnforcerNode, lastNode);
+        lastNode = Monitor.monitor(new MetadataEnforcerRuntime(metadataEnforcerNode, lastNode));
 
         return node;
     }
@@ -232,7 +232,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitDomainAndTypeEnforcer(DomainAndTypeEnforcerNode domainAndTypeEnforcerNode) {
         Node node = super.visitDomainAndTypeEnforcer(domainAndTypeEnforcerNode);
 
-        lastNode = new DomainTypeEnforcerRuntime(lastNode);
+        lastNode = Monitor.monitor(new DomainTypeEnforcerRuntime(lastNode));
 
         return node;
     }
@@ -241,7 +241,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitStatistics(StatisticsNode statisticsNode) {
         Node node = super.visitStatistics(statisticsNode);
 
-        lastNode = new StatisticsRuntime(statisticsNode, lastNode);
+        lastNode = Monitor.monitor(new StatisticsRuntime(statisticsNode, lastNode));
 
         return node;
     }
@@ -250,7 +250,7 @@ public class JavaRuntime extends ExecutorVisitor<RuntimeNode> {
     public Node visitTypeDetection(TypeDetectionNode typeDetectionNode) {
         Node node = super.visitTypeDetection(typeDetectionNode);
 
-        lastNode = new ReactiveTypeDetectionRuntime(typeDetectionNode, lastNode);
+        lastNode = Monitor.monitor(new ReactiveTypeDetectionRuntime(typeDetectionNode, lastNode));
 
         return node;
     }

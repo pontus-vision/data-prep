@@ -14,7 +14,6 @@ package org.talend.dataprep.transformation.pipeline.runtime;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -29,7 +28,7 @@ import org.talend.dataquality.common.inference.Analyzers;
 
 import reactor.core.publisher.BlockingSink;
 import reactor.core.publisher.ReplayProcessor;
-import reactor.core.publisher.UnicastProcessor;
+import reactor.core.publisher.TopicProcessor;
 
 public class ReactiveTypeDetectionRuntime implements RuntimeNode {
 
@@ -49,27 +48,27 @@ public class ReactiveTypeDetectionRuntime implements RuntimeNode {
 
     private Analyzer<Analyzers.Result> resultAnalyzer;
 
-    private UnicastProcessor<DataSetRow> analyzerProcessor;
-
     private BlockingSink<DataSetRow> analyzerSink;
+
+    private List<String> filteredColumnIds;
 
     ReactiveTypeDetectionRuntime(TypeDetectionNode typeDetectionNode, RuntimeNode nextNode) {
         this.typeDetectionNode = typeDetectionNode;
 
         this.processor = ReplayProcessor.create(10000, true);
         this.sink = processor.connectSink();
+
         processor.subscribe(row -> {
-            LOGGER.trace("analyze row: " + row);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("analyze row: " + row);
+            }
             performColumnFilter(row);
             analyze(row);
         });
 
-        analyzerProcessor = UnicastProcessor.create();
+        TopicProcessor<DataSetRow> analyzerProcessor = TopicProcessor.create();
         analyzerProcessor.subscribe(r -> {
-            final String[] values = r
-                    .filter(filteredColumns) //
-                    .order(filteredColumns) //
-                    .toArray(DataSetRow.SKIP_TDP_ID);
+            final String[] values = r.toArray(DataSetRow.SKIP_TDP_ID, e -> filteredColumnIds.contains(e.getKey()));
             try {
                 resultAnalyzer.analyze(values);
             } catch (Exception e) {
@@ -88,16 +87,17 @@ public class ReactiveTypeDetectionRuntime implements RuntimeNode {
 
     private void analyze(DataSetRow row) {
         if (!row.isDeleted()) {
-            analyzerSink.submit(row);
+            analyzerSink.next(row);
         }
     }
 
     private void performColumnFilter(DataSetRow row) {
         final RowMetadata rowMetadata = row.getRowMetadata();
-        if (metadata == null || !Objects.equals(metadata, rowMetadata)) {
+        if (metadata == null) {
             List<ColumnMetadata> columns = rowMetadata.getColumns();
             if (filteredColumns == null) {
                 filteredColumns = columns.stream().filter(typeDetectionNode.getFilter()).collect(Collectors.toList());
+                filteredColumnIds = filteredColumns.stream().map(ColumnMetadata::getId).collect(Collectors.toList());
             }
             metadata = rowMetadata;
             resultAnalyzer = typeDetectionNode.getAnalyzer().apply(filteredColumns);
@@ -106,24 +106,30 @@ public class ReactiveTypeDetectionRuntime implements RuntimeNode {
 
     @Override
     public void signal(Signal signal) {
-        analyzerSink.finish();
-        sink.finish();
-
         if (nextNode != null) {
-            LOGGER.debug("Inject new type detection results in {}", filteredColumns);
+            analyzerSink.finish();
+            LOGGER.info("Inject new type detection results in {}", filteredColumns);
             try {
                 resultAnalyzer.end();
                 resultAnalyzer.close();
+                typeDetectionNode.getAdapter().adapt(filteredColumns, resultAnalyzer.getResult());
             } catch (Exception e) {
                 LOGGER.error("Unable to properly close result analyzer.", e);
             }
-            typeDetectionNode.getAdapter().adapt(filteredColumns, resultAnalyzer.getResult());
 
+            sink.finish();
             processor.subscribe(row -> {
-                LOGGER.trace("forward row = " + row);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("forward row = " + row);
+                }
                 nextNode.receive(row.setRowMetadata(metadata));
             });
             nextNode.signal(signal);
         }
+    }
+
+    @Override
+    public RuntimeNode getNext() {
+        return nextNode;
     }
 }

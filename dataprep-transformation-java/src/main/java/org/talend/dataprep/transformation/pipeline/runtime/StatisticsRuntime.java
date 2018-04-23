@@ -39,7 +39,6 @@ class StatisticsRuntime implements RuntimeNode {
             }
             configuredAnalyzer.analyze(row //
                     .filter(filteredColumns) //
-                    .order(filteredColumns) //
                     .toArray(DataSetRow.SKIP_TDP_ID) //
             );
             final StatisticsAdapter adapter = statisticsNode.getAdapter();
@@ -56,5 +55,10 @@ class StatisticsRuntime implements RuntimeNode {
             return;
         }
         nextNode.signal(signal);
+    }
+
+    @Override
+    public RuntimeNode getNext() {
+        return nextNode;
     }
 }

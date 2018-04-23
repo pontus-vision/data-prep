@@ -35,7 +35,7 @@ public class InvalidMarker implements Function<DataSetRow, DataSetRow> {
     @Override
     public DataSetRow apply(DataSetRow dataSetRow) {
         // get the analyze from beginning
-        final String[] values = dataSetRow.filter(columns).order(columns).toArray(DataSetRow.SKIP_TDP_ID);
+        final String[] values = dataSetRow.filter(columns).toArray(DataSetRow.SKIP_TDP_ID);
         analyzer.analyze(values);
         final List<Analyzers.Result> columnsAnalysis = analyzer.getResult();
 

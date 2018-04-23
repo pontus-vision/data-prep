@@ -34,4 +34,5 @@ public interface RuntimeNode {
      */
     void signal(Signal signal);
 
+    RuntimeNode getNext();
 }

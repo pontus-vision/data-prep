@@ -37,4 +37,9 @@ class CleanUpRuntime implements RuntimeNode {
             nextNode.signal(signal);
         }
     }
+
+    @Override
+    public RuntimeNode getNext() {
+        return nextNode;
+    }
 }

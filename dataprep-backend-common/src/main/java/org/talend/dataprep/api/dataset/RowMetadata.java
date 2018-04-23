@@ -54,6 +54,8 @@ public class RowMetadata implements Serializable {
     @JsonProperty("nextId")
     private int nextId = 0;
 
+    private static final DecimalFormat COLUMN_ID_FORMAT = new DecimalFormat(COLUMN_ID_PATTERN);
+
     /**
      * Default empty constructor.
      */
@@ -130,24 +132,25 @@ public class RowMetadata implements Serializable {
     }
 
     private ColumnMetadata addColumn(ColumnMetadata columnMetadata, int index) {
-        String columnIdFromMetadata = columnMetadata.getId();
-        DecimalFormat columnIdFormat = new DecimalFormat(COLUMN_ID_PATTERN);
-        if (StringUtils.isBlank(columnIdFromMetadata)) {
-            columnMetadata.setId(columnIdFormat.format(nextId));
-            nextId++;
-        } else {
-            try {
-                int columnId = columnIdFormat.parse(columnIdFromMetadata).intValue();
-                int possibleNextId = columnId + 1;
-                if (possibleNextId > nextId) {
-                    nextId = possibleNextId;
+        synchronized (COLUMN_ID_FORMAT) {
+            String columnIdFromMetadata = columnMetadata.getId();
+            if (StringUtils.isBlank(columnIdFromMetadata)) {
+                columnMetadata.setId(COLUMN_ID_FORMAT.format(nextId));
+                nextId++;
+            } else {
+                try {
+                    int columnId = COLUMN_ID_FORMAT.parse(columnIdFromMetadata).intValue();
+                    int possibleNextId = columnId + 1;
+                    if (possibleNextId > nextId) {
+                        nextId = possibleNextId;
+                    }
+                } catch (ParseException e) {
+                    LOGGER.error("Unable to parse column id from metadata '" + columnIdFromMetadata + "'", e);
                 }
-            } catch (ParseException e) {
-                LOGGER.error("Unable to parse column id from metadata '" + columnIdFromMetadata + "'", e);
             }
+            columns.add(index, columnMetadata);
+            return columnMetadata;
         }
-        columns.add(index, columnMetadata);
-        return columnMetadata;
     }
 
     /**
