@@ -36,6 +36,7 @@ import SETTINGS_MODULE from './settings/settings-module';
 import { routeConfig, routeInterceptor } from './index-route';
 import getAppConfiguration from './index-config';
 
+import translations from '../i18n';
 import d3LocaleFr from '../lib/d3.locale.fr';
 
 const MODULE_NAME = 'data-prep';
@@ -82,10 +83,8 @@ const app = angular
 	// Translate config
 	.config(($translateProvider) => {
 		'ngInject';
-		$translateProvider.useStaticFilesLoader({
-			prefix: 'i18n/',
-			suffix: '.json',
-		});
+		Object.keys(translations)
+			.forEach(translationKey => $translateProvider.translations(translationKey, translations[translationKey]));
 		$translateProvider.useSanitizeValueStrategy(null);
 	})
 	// Router config
@@ -110,8 +109,6 @@ window.bootstrapAngular = function bootstrapAngular(appSettings) {
 			if (preferredLocale) {
 				$httpProvider.defaults.headers.common['Accept-Language'] = preferredLocale;
 			}
-
-			$translateProvider.preferredLanguage(preferredLanguage);
 
 			moment.locale(preferredLanguage);
 
@@ -152,15 +149,24 @@ window.bootstrapAngular = function bootstrapAngular(appSettings) {
 		.run(($translate) => {
 			'ngInject';
 
-			$translate.onReady(() => {
-				i18n.addResourceBundle(
-					preferredLanguage,
-					I18N_DOMAIN_COMPONENTS,
-					$translate.getTranslationTable(),
-					false,
-					false,
-				);
-			});
+            $translate.fallbackLanguage(fallbackLng);
+            $translate.preferredLanguage(preferredLanguage);
+
+            $translate.onReady(() => {
+                const translationsWithFallback = Object.assign(
+                    {},
+                    $translate.getTranslationTable(fallbackLng),
+                    $translate.getTranslationTable(preferredLanguage),
+                );
+
+                i18n.addResourceBundle(
+                    preferredLanguage,
+                    I18N_DOMAIN_COMPONENTS,
+                    translationsWithFallback,
+                    false,
+                    false,
+                );
+            });
 		});
 };
 

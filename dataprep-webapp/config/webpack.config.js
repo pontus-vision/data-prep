@@ -147,7 +147,6 @@ if (!isTestMode) {
 		CopyWebpackPlugin([
 			{ from: 'src/assets/images', to: 'assets/images' },
 			{ from: 'src/assets/config/config.json', to: 'assets/config' },
-			{ from: 'src/i18n', to: 'i18n' },
 		]),
 		new HtmlWebpackPlugin({
 			filename: './index.html',
