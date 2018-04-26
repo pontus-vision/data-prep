@@ -64,6 +64,7 @@ export default function HorizontalBarchart($timeout, $translate) {
 			onClick: '&',
 			onCtrlClick: '&',
 			onShiftClick: '&',
+			dataFeature: '@',
 			keyField: '@',
 			keyLabel: '@',
 			primaryData: '=',
@@ -260,6 +261,7 @@ export default function HorizontalBarchart($timeout, $translate) {
 					.attr('width', width)
 					.attr('height', yScale.rangeBand() + 4)
 					.attr('class', 'bg-rect')
+					.attr('data-feature', scope.dataFeature)
 					.style('opacity', 0)
 					.on('mouseenter', (d, i) => {
 						d3.select(this).style('opacity', 0.4);

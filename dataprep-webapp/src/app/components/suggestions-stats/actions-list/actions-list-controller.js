@@ -121,7 +121,10 @@ export default function ActionsListCtrl($timeout, state, TransformationService,
 	 */
 	vm.select = function select(transformation) {
 		if (transformation.dynamic) {
-			vm.dynamicTransformation = transformation;
+			vm.dynamicTransformation = {
+				...transformation,
+				feature: vm.getDataFeature(transformation),
+			};
 			vm.dynamicFetchInProgress = true;
 			vm.showDynamicModal = true;
 
@@ -166,7 +169,7 @@ export default function ActionsListCtrl($timeout, state, TransformationService,
 			const categoryName = action.alternateCategory || action.category;
 			const actionName = action.name;
 			if (categoryName && actionName) {
-				return `preparation.${categoryName.replace(/\s/g, '_')}.${actionName}`;
+				return `preparation.${vm.scope === 'dataset' ? 'table.' : ''}${categoryName.replace(/\s/g, '_')}.${actionName}`;
 			}
 		}
 		return '';

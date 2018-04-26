@@ -173,7 +173,7 @@ describe('Actions list controller', () => {
             ctrl.select(transformation);
 
             //then
-            expect(ctrl.dynamicTransformation).toBe(transformation);
+            expect(ctrl.dynamicTransformation).toEqual({ ...transformation, feature: '' });
         });
 
         it('should init dynamic params on dynamic transformation selection for current dataset', inject((TransformationService) => {
@@ -335,6 +335,26 @@ describe('Actions list controller', () => {
 
 			//then
 			expect(datatFeatureValue).toBe('preparation.alternate_data_cleansing_category.cluster');
+		});
+
+		it('should use table scope as prefix', () => {
+			//given
+			stateMock.playground.dataset = { id: '41fa397a8239cd051b35' };
+
+			const action = {
+				name: 'cluster',
+				dynamic: true,
+				category: 'data cleansing category',
+				alternateCategory: 'alternate data cleansing category',
+			};
+			const ctrl = createController();
+
+			//when
+			ctrl.scope = 'dataset';
+			const datatFeatureValue = ctrl.getDataFeature(action);
+
+			//then
+			expect(datatFeatureValue).toBe('preparation.table.alternate_data_cleansing_category.cluster');
 		});
 	});
 });
