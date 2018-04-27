@@ -14,23 +14,23 @@
 describe('verticalBarchart directive', function () {
     'use strict';
 
-    var createElement;
-    var element;
-    var scope;
-    var statsData;
-    var secondaryStatsData;
-    var isolateScope;
-    var flushAllD3Transitions = function () {
-        var now = Date.now;
-        Date.now = function () {
-            return Infinity;
-        };
+	let createElement;
+	let element;
+	let scope;
+	let statsData;
+	let secondaryStatsData;
+	let isolateScope;
+	const flushAllD3Transitions = function () {
+		const now = Date.now;
+		Date.now = function () {
+			return Infinity;
+		};
 
-        d3.timer.flush();
-        Date.now = now;
-    };
+		d3.timer.flush();
+		Date.now = now;
+	};
 
-    beforeEach(angular.mock.module('talend.widget'));
+	beforeEach(angular.mock.module('talend.widget'));
 
     beforeEach(inject(function ($rootScope, $compile) {
         statsData = [
@@ -55,6 +55,7 @@ describe('verticalBarchart directive', function () {
                 'on-click="onClick(interval)"' +
                 'key-field="data"' +
                 'key-label="Occurrences"' +
+                'feature="{{feature}}"' +
                 'primary-data="primaryData"' +
                 'primary-value-field="occurrences"' +
                 'secondary-data="secondaryData"' +
@@ -82,6 +83,21 @@ describe('verticalBarchart directive', function () {
     });
 
     describe('render', function () {
+		it('should set custom data-feature on bars', inject(function ($timeout) {
+			//given
+			createElement();
+
+			//when
+			scope.primaryData = statsData;
+			scope.feature = 'my.feature';
+
+			scope.$digest();
+			$timeout.flush(100);
+
+			//then
+			expect(element.find('[data-feature="my.feature"]').length).toBe(statsData.length);
+		}));
+
         it('should render svg container with adapted bottom margin: with X-axis', inject(function ($timeout) {
             //given
             createElement();
@@ -303,8 +319,10 @@ describe('verticalBarchart directive', function () {
 
             //then
             _.each(isolateScope.buckets[0], function (bucket) {
-                var opacity = Number(d3.select(bucket).style('opacity')).toFixed(1);
-                expect(opacity).toBe('0.4');
+				const opacity = Number(d3.select(bucket)
+					.style('opacity'))
+					.toFixed(1);
+				expect(opacity).toBe('0.4');
             });
         }));
 
@@ -324,11 +342,13 @@ describe('verticalBarchart directive', function () {
             flushAllD3Transitions();
 
             //then
-            var expectedOpacities = ['0.4', '0.4', '0.4', '1.0'];
+			const expectedOpacities = ['0.4', '0.4', '0.4', '1.0'];
 
-            _.each(isolateScope.buckets[0], function (bucket, index) {
-                var opacity = Number(d3.select(bucket).style('opacity')).toFixed(1);
-                expect(opacity).toBe(expectedOpacities[index]);
+			_.each(isolateScope.buckets[0], function (bucket, index) {
+				const opacity = Number(d3.select(bucket)
+					.style('opacity'))
+					.toFixed(1);
+				expect(opacity).toBe(expectedOpacities[index]);
             });
         }));
 
@@ -349,11 +369,13 @@ describe('verticalBarchart directive', function () {
             flushAllD3Transitions();
 
             //then
-            var expectedOpacities = ['0.4', '0.4', '1.0', '1.0'];
+			const expectedOpacities = ['0.4', '0.4', '1.0', '1.0'];
 
-            _.each(isolateScope.buckets[0], function (bucket, index) {
-                var opacity = Number(d3.select(bucket).style('opacity')).toFixed(1);
-                expect(opacity).toBe(expectedOpacities[index]);
+			_.each(isolateScope.buckets[0], function (bucket, index) {
+				const opacity = Number(d3.select(bucket)
+					.style('opacity'))
+					.toFixed(1);
+				expect(opacity).toBe(expectedOpacities[index]);
             });
         }));
     });
