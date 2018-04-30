@@ -12,37 +12,19 @@
 
 package org.talend.dataprep.api.service.info;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.talend.dataprep.info.ManifestInfo;
-import org.talend.dataprep.info.ManifestInfoProvider;
 import org.talend.dataprep.info.Version;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.Assert.assertEquals;
+
 public class VersionServiceTest {
 
-    @InjectMocks
-    private VersionService versionService;
+    private String label = "label";
 
     @Test
     public void shouldAggregateBuildId() throws Exception {
-        // given
-        final ManifestInfoProvider provider1 = mock(ManifestInfoProvider.class);
-        final ManifestInfoProvider provider2 = mock(ManifestInfoProvider.class);
-        when(provider1.getManifestInfo()).thenReturn(new ManifestInfo("v1", "1234"));
-        when(provider2.getManifestInfo()).thenReturn(new ManifestInfo("v1", "5678"));
-        ReflectionTestUtils.setField(versionService, "manifestInfoProviders", asList(provider1, provider2));
-
         // when
-        final Version version = versionService.version();
+        final Version version = VersionService.VERSION;
 
         // then
         assertEquals("v1", version.getVersionId());
@@ -51,49 +33,8 @@ public class VersionServiceTest {
 
     @Test
     public void shouldAggregateSameBuildId() throws Exception {
-        // given
-        final ManifestInfoProvider provider1 = mock(ManifestInfoProvider.class);
-        final ManifestInfoProvider provider2 = mock(ManifestInfoProvider.class);
-        when(provider1.getManifestInfo()).thenReturn(new ManifestInfo("v1", "1234"));
-        when(provider2.getManifestInfo()).thenReturn(new ManifestInfo("v1", "1234"));
-        ReflectionTestUtils.setField(versionService, "manifestInfoProviders", asList(provider1, provider2));
-
         // when
-        final Version version = versionService.version();
-
-        // then
-        assertEquals("v1", version.getVersionId());
-        assertEquals("1234-1234", version.getBuildId());
-    }
-
-    @Test
-    public void shouldAggregateVersionId() throws Exception {
-        // given
-        final ManifestInfoProvider provider1 = mock(ManifestInfoProvider.class);
-        final ManifestInfoProvider provider2 = mock(ManifestInfoProvider.class);
-        when(provider1.getManifestInfo()).thenReturn(new ManifestInfo("v1", "1234"));
-        when(provider2.getManifestInfo()).thenReturn(new ManifestInfo("v2", "1234"));
-        ReflectionTestUtils.setField(versionService, "manifestInfoProviders", asList(provider1, provider2));
-
-        // when
-        final Version version = versionService.version();
-
-        // then
-        assertEquals("v1-v2", version.getVersionId());
-        assertEquals("1234-1234", version.getBuildId());
-    }
-
-    @Test
-    public void shouldShouldSkipMissingVersionId() throws Exception {
-        // given
-        final ManifestInfoProvider provider1 = mock(ManifestInfoProvider.class);
-        final ManifestInfoProvider provider2 = mock(ManifestInfoProvider.class);
-        when(provider1.getManifestInfo()).thenReturn(new ManifestInfo("v1", "1234"));
-        when(provider2.getManifestInfo()).thenReturn(new ManifestInfo("N/A", "1234"));
-        ReflectionTestUtils.setField(versionService, "manifestInfoProviders", asList(provider1, provider2));
-
-        // when
-        final Version version = versionService.version();
+        final Version version = VersionService.VERSION;
 
         // then
         assertEquals("v1", version.getVersionId());

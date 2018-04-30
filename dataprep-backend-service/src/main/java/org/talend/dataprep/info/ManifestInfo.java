@@ -28,9 +28,12 @@ public class ManifestInfo {
      */
     private final String buildId;
 
-    public ManifestInfo(String versionId, String buildId) {
+    private final String label;
+
+    public ManifestInfo(String versionId, String buildId, String label) {
         this.versionId = versionId;
         this.buildId = buildId;
+        this.label = label;
     }
 
     /**
@@ -47,4 +50,7 @@ public class ManifestInfo {
         return buildId;
     }
 
+    public String getLabel() {
+        return label;
+    }
 }
