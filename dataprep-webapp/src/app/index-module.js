@@ -98,7 +98,7 @@ window.bootstrapAngular = function bootstrapAngular(appSettings) {
 			'ngInject';
 			$compileProvider.debugInfoEnabled(false);
 		})
-		.config(($httpProvider, $translateProvider) => {
+		.config(($httpProvider) => {
 			'ngInject';
 
 			preferredLanguage =
@@ -149,24 +149,24 @@ window.bootstrapAngular = function bootstrapAngular(appSettings) {
 		.run(($translate) => {
 			'ngInject';
 
-            $translate.fallbackLanguage(fallbackLng);
-            $translate.preferredLanguage(preferredLanguage);
+			$translate.fallbackLanguage(fallbackLng);
+			$translate.preferredLanguage(preferredLanguage);
 
-            $translate.onReady(() => {
-                const translationsWithFallback = Object.assign(
-                    {},
-                    $translate.getTranslationTable(fallbackLng),
-                    $translate.getTranslationTable(preferredLanguage),
-                );
+			$translate.onReady(() => {
+				const translationsWithFallback = Object.assign(
+					{},
+					$translate.getTranslationTable(fallbackLng),
+					$translate.getTranslationTable(preferredLanguage),
+				);
 
-                i18n.addResourceBundle(
-                    preferredLanguage,
-                    I18N_DOMAIN_COMPONENTS,
-                    translationsWithFallback,
-                    false,
-                    false,
-                );
-            });
+				i18n.addResourceBundle(
+					preferredLanguage,
+					I18N_DOMAIN_COMPONENTS,
+					translationsWithFallback,
+					false,
+					false,
+				);
+			});
 		});
 };
 
@@ -176,11 +176,9 @@ getAppConfiguration()
 		const { provider = 'legacy' } = appSettings.context;
 
 		if (provider.includes('catalog') && !(/#\/(playground|export|version)/.test(window.location.href))) {
-			console.info('Bootstrap React CMF');
 			bootstrapReact();
 		}
 		else {
-			console.info('Bootstrap Angular');
 			window.bootstrapAngular(appSettings);
 			angular
 				.element(document)
