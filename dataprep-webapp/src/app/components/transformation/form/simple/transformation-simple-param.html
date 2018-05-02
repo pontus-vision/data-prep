@@ -36,8 +36,7 @@
                                    name="{{::(simpleParamCtrl.parameter.name)}}"
                                    type="{{::simpleParamCtrl.parameter.inputType}}"
                                    ng-model="simpleParamCtrl.parameter.value"
-                                   ng-disabled="!!simpleParamCtrl.isReadonly"
-                                   data-feature="preparation.function.{{::(simpleParamCtrl.parameter.name)}}.{{simpleParamCtrl.parameter.value ? 'check' : 'uncheck'}}" />
+                                   ng-disabled="!!simpleParamCtrl.isReadonly"/>
                             <span>{{simpleParamCtrl.parameter.label || simpleParamCtrl.parameter.name}}</span>
                         </label>
                     </div>
