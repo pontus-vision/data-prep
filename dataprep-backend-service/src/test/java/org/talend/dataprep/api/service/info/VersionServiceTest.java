@@ -13,18 +13,25 @@
 package org.talend.dataprep.api.service.info;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.talend.dataprep.info.Version;
 
 import static org.junit.Assert.assertEquals;
 
+@RunWith(MockitoJUnitRunner.class)
 public class VersionServiceTest {
+
+    @InjectMocks
+    private VersionService versionService;
 
     private String label = "label";
 
     @Test
     public void shouldAggregateBuildId() throws Exception {
         // when
-        final Version version = VersionService.VERSION;
+        final Version version = versionService.version();
 
         // then
         assertEquals("v1", version.getVersionId());
@@ -34,7 +41,7 @@ public class VersionServiceTest {
     @Test
     public void shouldAggregateSameBuildId() throws Exception {
         // when
-        final Version version = VersionService.VERSION;
+        final Version version = versionService.version();
 
         // then
         assertEquals("v1", version.getVersionId());
