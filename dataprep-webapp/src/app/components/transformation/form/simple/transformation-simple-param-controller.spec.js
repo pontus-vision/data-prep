@@ -186,6 +186,17 @@ describe('Transform simple param controller', () => {
         expect(ctrl.isBooleanType()).toBe(true);
     });
 
+	it('should set data-feature to empty if it is not boolean type', () => {
+		//given
+		parameter = { name: 'param1', type: 'text' };
+
+		//when
+		const ctrl = createController();
+
+		//then
+		expect(ctrl.getDataFeature()).toBe('');
+	});
+
 	it('should set data-feature to uncheck if it is boolean type and it is checked', () => {
 		//given
 		parameter = { name: 'param1', type: 'boolean', default: 'false' };

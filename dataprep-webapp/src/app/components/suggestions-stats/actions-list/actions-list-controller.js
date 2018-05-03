@@ -121,10 +121,7 @@ export default function ActionsListCtrl($timeout, state, TransformationService,
 	 */
 	vm.select = function select(transformation) {
 		if (transformation.dynamic) {
-			vm.dynamicTransformation = {
-				...transformation,
-				feature: vm.getDataFeature(transformation),
-			};
+			vm.dynamicTransformation = transformation;
 			vm.dynamicFetchInProgress = true;
 			vm.showDynamicModal = true;
 
