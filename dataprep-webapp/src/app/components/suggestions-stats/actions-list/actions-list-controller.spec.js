@@ -161,6 +161,21 @@ describe('Actions list controller', () => {
             stateMock.playground.grid.selectedColumns = [{ id: '0001' }];
         });
 
+        it('should set current dynamic transformation on dynamic transformation selection', () => {
+			//given
+			stateMock.playground.dataset = { id: '41fa397a8239cd051b35' };
+
+			const transformation = { name: 'cluster', dynamic: true };
+			const ctrl = createController();
+			ctrl.dynamicTransformation = null;
+
+			//when
+			ctrl.select(transformation);
+
+			//then
+			expect(ctrl.dynamicTransformation).toBe(transformation);
+		});
+
         it('should init dynamic params on dynamic transformation selection for current dataset', inject((TransformationService) => {
             //given
             stateMock.playground.dataset = { id: '41fa397a8239cd051b35' };
