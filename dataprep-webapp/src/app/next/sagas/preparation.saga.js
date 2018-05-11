@@ -64,11 +64,11 @@ function* fetchPreparations() {
 					const adaptedPreparations = preparations.map(prep => ({
 						author: prep.author,
 						className: 'list-item-preparation',
-						datasetName: prep.dataset.dataSetName,
+						datasetName: prep.dataset && prep.dataset.dataSetName,
 						icon: 'talend-dataprep',
 						id: prep.id,
 						name: prep.name,
-						nbSteps: prep.steps.length - 1,
+						nbSteps: prep.steps && prep.steps.length - 1,
 						type: 'preparation',
 					}));
 
