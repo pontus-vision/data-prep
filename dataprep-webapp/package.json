@@ -122,6 +122,6 @@
     "node": ">=5.0.0"
   },
   "publishConfig": {
-    "registry": "http://newbuild.talend.com:8081/nexus/content/repositories/talend-npm/"
+    "registry": "http://artifacts-zl.talend.com/nexus/content/repositories/talend-npm/"
   }
 }
