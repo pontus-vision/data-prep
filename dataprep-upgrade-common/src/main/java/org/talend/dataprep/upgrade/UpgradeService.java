@@ -13,12 +13,19 @@
 
 package org.talend.dataprep.upgrade;
 
+import static java.util.Collections.emptyList;
+import static org.slf4j.LoggerFactory.getLogger;
+import static org.talend.dataprep.upgrade.model.UpgradeTask.target.POST_STARTUP;
+import static org.talend.dataprep.upgrade.model.UpgradeTask.target.USER;
+import static org.talend.dataprep.upgrade.model.UpgradeTask.target.VERSION;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -29,12 +36,6 @@ import org.springframework.stereotype.Service;
 import org.talend.dataprep.upgrade.model.UpgradeTask;
 import org.talend.dataprep.upgrade.model.UpgradeTaskId;
 import org.talend.dataprep.upgrade.repository.UpgradeTaskRepository;
-
-import static java.util.Collections.emptyList;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.talend.dataprep.upgrade.model.UpgradeTask.target.POST_STARTUP;
-import static org.talend.dataprep.upgrade.model.UpgradeTask.target.USER;
-import static org.talend.dataprep.upgrade.model.UpgradeTask.target.VERSION;
 
 /**
  * Service in charge of upgrading data from data prep previous versions.
@@ -125,7 +126,7 @@ public class UpgradeService implements ApplicationListener<ApplicationReadyEvent
                 try {
                     task.run();
                 } catch (Exception exception) {
-                    LOG.error("Failed to apply upgrade {}", taskId);
+                    LOG.error("Failed to apply upgrade {}", taskId, exception);
                     break;
                 }
                 repository.applied(targetId, taskId);
@@ -189,7 +190,7 @@ public class UpgradeService implements ApplicationListener<ApplicationReadyEvent
             try {
                 task.run();
             } catch (Exception exception) {
-                LOG.error("Failed to apply upgrade {}", taskId);
+                LOG.error("Failed to apply upgrade {}", taskId, exception);
                 break;
             }
             repository.applied(targetId, taskId);
