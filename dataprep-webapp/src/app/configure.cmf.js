@@ -27,6 +27,7 @@ const registerComponents = api.component.registerMany;
 const registerExpressions = api.expression.registerMany;
 const registerRouteFunction = api.route.registerFunction;
 
+
 /**
  * Initialize CMF configuration
  * - Register your components in the CMF dictionary
@@ -35,9 +36,15 @@ const registerRouteFunction = api.route.registerFunction;
 export default function initialize(additionalConfiguration = {}) {
 	const rootSagas = [
 		fork(sagaRouter, browserHistory, {}),
+
+		// FIXME: do not use this syntax. Switch to new syntax (see line 47)
+		fork(api.sagas.component.handle),
 		...sagas.help.map(call),
 		...sagas.preparation.map(call),
 	];
+
+	// register all saga api
+	api.saga.registerMany(sagas.headerBar);
 
 	const additionalSagas = additionalConfiguration.sagas;
 	if (additionalSagas) {

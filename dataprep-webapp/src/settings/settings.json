@@ -81,6 +81,7 @@
       "path": "/preparations"
     },
     "HeaderBar#default": {
+      "saga": "HeaderBar#handle",
       "app": "Data Preparation",
       "logo": {
         "id": "talend-logo",
@@ -100,6 +101,14 @@
           "cmf": {
             "routerReplace": "/preparations"
           }
+        }
+      },
+      "products": {
+        "id": "talend-products",
+        "displayMode": "dropdown",
+        "itemsExpression": {
+          "id": "cmf.collections.get",
+          "args": ["products", []]
         }
       },
       "search": {

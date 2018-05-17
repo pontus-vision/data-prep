@@ -1,0 +1,22 @@
+{
+  "APP_DATA_PREPARATION": "[fr]Data Preparation",
+  "BRAND_NAME": "[fr]Data Catalog",
+  "DATASET_GRID_EMPTY": "[fr]The dataset does not contain any data",
+  "ERROR_403_MESSAGE": "[fr]You are not allowed to access this page",
+  "ERROR_403_TITLE_MESSAGE": "[fr]Access denied",
+  "ERROR_404_MESSAGE": "[fr]We didn't find the requested page",
+  "ERROR_404_TITLE_MESSAGE": "[fr]Oops",
+  "HELP_MENU": "[fr]Help",
+  "LINK_SIDE_PANEL_DATASET_LINEAGE": "[fr]Lineage",
+  "LINK_SIDE_PANEL_DATASET_OVERVIEW": "[fr]Overview",
+  "LINK_SIDE_PANEL_DATASET_QUALITY_METRIC": "[fr]Quality metric",
+  "LINK_SIDE_PANEL_DATASET_SAMPLE": "[fr]Sample",
+  "LINK_SIDE_PANEL_DATASET_TECHNICAL": "[fr]Technical Parameters",
+  "LOGOUT": "[fr]Logout",
+  "TITLE_DATASET_LINEAGE": "[fr]View Dataset | Talend",
+  "TITLE_DATASET_OVERVIEW": "[fr]View Dataset | Talend",
+  "TITLE_DATASET_QUALITY": "[fr]View Dataset | Talend",
+  "TITLE_DATASET_SAMPLE": "[fr]View Dataset | Talend",
+  "TITLE_DATASET_TECHNICAL": "[fr]View Dataset | Talend",
+  "TITLE_DATA_CATALOG": "[fr]Data Catalog | Talend"
+}
