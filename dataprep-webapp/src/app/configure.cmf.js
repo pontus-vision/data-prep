@@ -129,7 +129,6 @@ export default function initialize(additionalConfiguration = {}) {
 		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
-		console.log(actions);
 		registerActionCreator('preparation:fetchAll', actions.preparation.fetchAll);
 		registerActionCreator('preparation:duplicate', actions.preparation.duplicate);
 		registerActionCreator('preparation:edit:submit', actions.preparation.rename);
@@ -137,7 +136,6 @@ export default function initialize(additionalConfiguration = {}) {
 		registerActionCreator('preparation:open', actions.preparation.openPreparation);
 		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
 		registerActionCreator('preparation:add:open', actions.preparation.openCreator);
-		registerActionCreator('help:about:open', actions.help.openAbout);
 		registerActionCreator('help:tour', () => ({ type: ALERT, payload: 'help:tour' }));
 		registerActionCreator('help:feedback:open', () => ({ type: ALERT, payload: 'help:feedback:open' }));
 		registerActionCreator('redirect', actions.redirect);

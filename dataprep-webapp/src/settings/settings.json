@@ -176,9 +176,7 @@
     "AboutModal#default": {
       "components": {
         "content": [
-          {
-            "component": "Version"
-          }
+
         ]
       }
     },
