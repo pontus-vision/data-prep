@@ -35,7 +35,9 @@
     "help:about:open": {
       "id": "help:about:open",
       "label": "About Data Preparation",
-      "actionCreator": "help:about:open"
+      "onClickDispatch": {
+        "type": "OPEN_ABOUT"
+      }
     },
     "help:feedback:open": {
       "id": "help:feedback:open",
@@ -172,7 +174,6 @@
       }
     },
     "AboutModal#default": {
-      "didMountActionCreator": "version:fetch",
       "components": {
         "content": [
           {
