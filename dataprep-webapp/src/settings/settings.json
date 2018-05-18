@@ -123,8 +123,11 @@
         "onToggle": "headerbar:search:toggle"
       },
       "help": {
-        "id": "talend-documentation",
-        "label": "Help"
+        "id": "header-help",
+        "icon": "talend-question-circle",
+        "label": "Help",
+        "target": "_blank",
+        "href": "https://help.talend.com/search/all?filters=EnrichPlatform~%2522Talend+Data+Preparation%2522*EnrichVersion~%25222.1%2522&utm_medium=dpdesktop&utm_source=header"
       },
       "information": {
         "id": "headerbar:information",
