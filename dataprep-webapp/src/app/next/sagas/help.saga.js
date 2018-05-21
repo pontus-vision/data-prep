@@ -5,7 +5,6 @@ import { OPEN_ABOUT } from '../constants';
 function* openAbout() {
 	while (true) {
 		yield take(OPEN_ABOUT);
-		console.log('ici');
 		yield put(actions.components.mergeState('AboutModal', 'default', { show: true }));
 	}
 }

@@ -27,7 +27,6 @@ const registerComponents = api.component.registerMany;
 const registerExpressions = api.expression.registerMany;
 const registerRouteFunction = api.route.registerFunction;
 
-
 /**
  * Initialize CMF configuration
  * - Register your components in the CMF dictionary
@@ -43,13 +42,17 @@ export default function initialize(additionalConfiguration = {}) {
 		...sagas.preparation.map(call),
 	];
 
-	// register all saga api
-	api.saga.registerMany(sagas.headerBar);
-
 	const additionalSagas = additionalConfiguration.sagas;
 	if (additionalSagas) {
 		additionalSagas.forEach((additionalSaga) => {
 			rootSagas.push(...additionalSaga.map(call));
+		});
+	}
+
+	const additionalManySagas = additionalConfiguration.manySagas;
+	if (additionalManySagas) {
+		additionalManySagas.forEach((additionalManySaga) => {
+			api.saga.registerMany(additionalManySaga);
 		});
 	}
 
@@ -153,6 +156,11 @@ export default function initialize(additionalConfiguration = {}) {
 		store.dispatch(cmfActions.settingsActions.fetchSettings('/settings.json'));
 
 		reduxLocalStorage.saveOnReload({ engine, store });
+
+		const additionalCallback = additionalConfiguration.callback;
+		if (additionalCallback) {
+			additionalCallback();
+		}
 
 		return {
 			store,

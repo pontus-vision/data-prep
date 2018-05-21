@@ -2977,7 +2977,6 @@ exports[`App container should render 1`] = `
     >
       <span />
     </div>
-    Ò
   </div>
 </div>
 `;

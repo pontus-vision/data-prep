@@ -22,7 +22,7 @@ export default function App(props) {
 			<Notification />
 			<AboutModal />
 			<PreparationCreatorModal />
-			{props.children}Ò
+			{props.children}
 		</div>
 		// </I18nextProvider>
 	);
