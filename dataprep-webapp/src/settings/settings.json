@@ -83,7 +83,7 @@
       "path": "/preparations"
     },
     "HeaderBar#default": {
-      "saga": "HeaderBar#handle",
+      "didMountActionCreator": "user:fetch",
       "app": "Data Preparation",
       "logo": {
         "id": "talend-logo",
