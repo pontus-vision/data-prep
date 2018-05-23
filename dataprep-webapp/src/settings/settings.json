@@ -106,6 +106,7 @@
         }
       },
       "search": {
+        "id": "headerbar:search",
         "icon": {
           "name": "talend-search",
           "title": "Toggle search input",
@@ -113,8 +114,9 @@
           "tooltipPlacement": "bottom"
         },
         "id": "headerbar:search",
-        "docked": true,
-        "onToggle": "headerbar:search:toggle"
+        "onToggleDispatch": {
+          "type": "TOGGLE_SEARCH"
+        }
       },
       "help": {
         "id": "header-help",
@@ -167,8 +169,7 @@
     },
     "AboutModal#default": {
       "components": {
-        "content": [
-        ]
+        "content": []
       }
     },
     "datastores": {
