@@ -83,7 +83,6 @@
       "path": "/preparations"
     },
     "HeaderBar#default": {
-      "didMountActionCreator": "user:fetch",
       "app": "Data Preparation",
       "logo": {
         "id": "talend-logo",
