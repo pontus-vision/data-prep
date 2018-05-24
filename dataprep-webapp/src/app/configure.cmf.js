@@ -143,6 +143,7 @@ export default function initialize(additionalConfiguration = {}) {
 		registerActionCreator('help:feedback:open', () => ({ type: ALERT, payload: 'help:feedback:open' }));
 		registerActionCreator('redirect', actions.redirect);
 		registerActionCreator('version:fetch', actions.version.fetch);
+
 		const additionalActionCreators = additionalConfiguration.actionCreators;
 		if (additionalActionCreators) {
 			Object
