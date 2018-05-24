@@ -116,10 +116,7 @@
           "bsStyle": "link",
           "tooltipPlacement": "bottom"
         },
-        "id": "headerbar:search",
-        "onToggleDispatch": {
-          "type": "TOGGLE_SEARCH"
-        }
+        "onChangeActionCreator": "search:for"
       },
       "help": {
         "id": "header-help",
