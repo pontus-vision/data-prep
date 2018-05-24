@@ -116,7 +116,7 @@
           "bsStyle": "link",
           "tooltipPlacement": "bottom"
         },
-        "onChangeActionCreator": "search:for"
+        "onChangeActionCreator": "headerbar:search"
       },
       "help": {
         "id": "header-help",

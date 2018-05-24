@@ -1,6 +1,7 @@
-import { all, takeLatest, call, delay } from 'redux-saga/effects';
+import { delay } from 'redux-saga';
+import { call, cancel, fork, take, all } from 'redux-saga/effects';
 import http from '@talend/react-cmf/lib/sagas/http';
-import { SEARCH_FOR } from '../constants';
+import { SEARCH, DEBOUNCE_TIMEOUT } from '../constants';
 
 function getDocumentationSearchParameters(term) {
 	return [
@@ -22,35 +23,28 @@ function getDataprepSearchParameters(term) {
 	return [http.get, `http://localhost:3000/api/search?path=/&name=${term}`];
 }
 
-function* search({ payload }) {
-	yield delay(500);
+function* process(payload) {
+	yield delay(DEBOUNCE_TIMEOUT);
 	const [doc, tdp] = yield all([
-		yield call(...getDocumentationSearchParameters(payload)),
-		yield call(...getDataprepSearchParameters(payload)),
+		call(...getDocumentationSearchParameters(payload)),
+		call(...getDataprepSearchParameters(payload)),
 	]);
 
 	console.log('[NC] aaa: ', doc.data);
-	console.log('[NC] bbb: ', tdp.data);
+	console.log('[NC] bbb: ', JSON.parse(tdp.data));
 }
 
-/*
-let task
-while (true) {
-  const { input } = yield take('INPUT_CHANGED')
-  if (task) {
-	yield cancel(task)
-  }
-  task = yield fork(handleInput, input)
-}
-*/
-
-function* searchFor() {
+function* search() {
+	let task;
 	while (true) {
-		yield takeLatest(SEARCH_FOR, search);
-		console.log('[NC] take !');
+		const { payload } = yield take(SEARCH);
+		if (task) {
+			yield cancel(task);
+		}
+		task = yield fork(process, payload);
 	}
 }
 
 export default {
-	searchFor,
+	search,
 };
