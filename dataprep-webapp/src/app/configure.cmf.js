@@ -43,7 +43,6 @@ export default function initialize(additionalConfiguration = {}) {
 	];
 
 	// register all saga api
-	console.log(sagas);
 	api.saga.registerMany(sagas.appLoader);
 
 	// Use for EE additional configuration

@@ -7,7 +7,7 @@ function* fetchSettings() {
 	yield put(actions.collections.addOrReplace('settings', data));
 }
 
-function* fetchAll() {
+export function* fetchAll() {
 	yield call(fetchSettings);
 }
 
