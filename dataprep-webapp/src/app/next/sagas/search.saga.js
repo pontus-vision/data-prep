@@ -1,37 +1,37 @@
 import { delay } from 'redux-saga';
-import { call, cancel, fork, take, all } from 'redux-saga/effects';
+import { call, cancel, fork, take, all, put } from 'redux-saga/effects';
 import http from '@talend/react-cmf/lib/sagas/http';
-import { SEARCH, DEBOUNCE_TIMEOUT } from '../constants';
+import { actions } from '@talend/react-cmf';
+import {
+	SEARCH,
+	DEFAULT_SEARCH_PAYLOAD,
+	DEBOUNCE_TIMEOUT,
+	DOCUMENTATION_SEARCH_URL,
+	TDP_SEARCH_URL,
+} from '../constants';
 
-function getDocumentationSearchParameters(term) {
-	return [
-		http.post,
-		'https://www.talendforge.org/find/api/THC.php',
-		{
-			contentLocale: 'en',
-			filters: [
-				{ key: 'version', values: ['2.1'] },
-				{ key: 'EnrichPlatform', values: ['Talend Data Preparation'] },
-			],
-			paging: { page: 1, perPage: 5 },
-			query: term,
-		},
-	];
+function* documentation(query) {
+	const { data } = yield call(http.post, DOCUMENTATION_SEARCH_URL, {
+		...DEFAULT_SEARCH_PAYLOAD,
+		query,
+	});
+
+	return { documentation: data.results };
 }
 
-function getDataprepSearchParameters(term) {
-	return [http.get, `http://localhost:3000/api/search?path=/&name=${term}`];
+function* dataprep(query) {
+	const { data } = yield call(http.get, `${TDP_SEARCH_URL}${query}`);
+	const { datasets, folders, preparations } = JSON.parse(data);
+	return { datasets, folders, preparations };
 }
 
 function* process(payload) {
 	yield delay(DEBOUNCE_TIMEOUT);
 	const [doc, tdp] = yield all([
-		call(...getDocumentationSearchParameters(payload)),
-		call(...getDataprepSearchParameters(payload)),
+		call(documentation, payload),
+		call(dataprep, payload),
 	]);
-
-	console.log('[NC] aaa: ', doc.data);
-	console.log('[NC] bbb: ', JSON.parse(tdp.data));
+	yield put(actions.collections.addOrReplace('search', { ...doc, ...tdp }));
 }
 
 function* search() {
