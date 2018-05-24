@@ -50,10 +50,7 @@ let preferredLanguage;
 const fallbackLng = 'en';
 export const i18n = init({
 	fallbackLng, // Fallback language
-	ns: [
-		I18N_DOMAIN_COMPONENTS,
-		I18N_DOMAIN_FORMS,
-	],
+	ns: [I18N_DOMAIN_COMPONENTS, I18N_DOMAIN_FORMS],
 	defaultNS: I18N_DOMAIN_COMPONENTS,
 	fallbackNS: I18N_DOMAIN_COMPONENTS,
 	debug: false,
@@ -83,8 +80,12 @@ const app = angular
 	// Translate config
 	.config(($translateProvider) => {
 		'ngInject';
-		Object.keys(translations)
-			.forEach(translationKey => $translateProvider.translations(translationKey, translations[translationKey]));
+		Object.keys(translations).forEach(translationKey =>
+			$translateProvider.translations(
+				translationKey,
+				translations[translationKey]
+			)
+		);
 		$translateProvider.useSanitizeValueStrategy(null);
 	})
 	// Router config
@@ -93,7 +94,7 @@ const app = angular
 
 window.bootstrapAngular = function bootstrapAngular(appSettings) {
 	app
-	// Debug config
+		// Debug config
 		.config(($compileProvider) => {
 			'ngInject';
 			$compileProvider.debugInfoEnabled(false);
@@ -105,9 +106,12 @@ window.bootstrapAngular = function bootstrapAngular(appSettings) {
 				(appSettings.context && appSettings.context.language) ||
 				fallbackLng;
 
-			const preferredLocale = appSettings.context && appSettings.context.locale;
+			const preferredLocale =
+				appSettings.context && appSettings.context.locale;
 			if (preferredLocale) {
-				$httpProvider.defaults.headers.common['Accept-Language'] = preferredLocale;
+				$httpProvider.defaults.headers.common[
+					'Accept-Language'
+				] = preferredLocale;
 			}
 
 			moment.locale(preferredLanguage);
@@ -156,7 +160,7 @@ window.bootstrapAngular = function bootstrapAngular(appSettings) {
 				const translationsWithFallback = Object.assign(
 					{},
 					$translate.getTranslationTable(fallbackLng),
-					$translate.getTranslationTable(preferredLanguage),
+					$translate.getTranslationTable(preferredLanguage)
 				);
 
 				i18n.addResourceBundle(
@@ -164,27 +168,29 @@ window.bootstrapAngular = function bootstrapAngular(appSettings) {
 					I18N_DOMAIN_COMPONENTS,
 					translationsWithFallback,
 					false,
-					false,
+					false
 				);
 			});
 		});
 };
 
-getAppConfiguration()
-	.then((appSettings) => {
-		appSettings.context.provider = 'catalog';
-		const { provider = 'legacy' } = appSettings.context;
+getAppConfiguration().then((appSettings) => {
+	// appSettings.context.provider = 'catalog';
+	const { provider = 'legacy' } = appSettings.context;
 
-		if (provider.includes('catalog') && !(/#\/(playground|export|version)/.test(window.location.href))) {
-			bootstrapReact();
-		}
-		else {
-			window.bootstrapAngular(appSettings);
-			angular
-				.element(document)
-				.ready(() => angular.bootstrap(document, [window.MODULE_NAME]));
-		}
-	});
+	if (
+		provider.includes('catalog') &&
+		!/#\/(playground|export|version)/.test(window.location.href)
+	) {
+		bootstrapReact();
+	}
+	else {
+		window.bootstrapAngular(appSettings);
+		angular
+			.element(document)
+			.ready(() => angular.bootstrap(document, [window.MODULE_NAME]));
+	}
+});
 
 /* eslint-enable angular/window-service */
 
