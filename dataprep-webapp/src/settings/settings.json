@@ -79,6 +79,10 @@
     }
   },
   "props": {
+    "AppLoader#default":{
+      "saga": "AppLoader#handle",
+      "hasCollections": ["settings"]
+    },
     "indexRouteRedirect": {
       "path": "/preparations"
     },

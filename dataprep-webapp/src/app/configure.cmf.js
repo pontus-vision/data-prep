@@ -42,6 +42,11 @@ export default function initialize(additionalConfiguration = {}) {
 		...sagas.preparation.map(call),
 	];
 
+	// register all saga api
+	console.log(sagas);
+	api.saga.registerMany(sagas.appLoader);
+
+	// Use for EE additional configuration
 	const additionalSagas = additionalConfiguration.sagas;
 	if (additionalSagas) {
 		additionalSagas.forEach((additionalSaga) => {
@@ -49,12 +54,14 @@ export default function initialize(additionalConfiguration = {}) {
 		});
 	}
 
+	// Use for EE additional configuration
 	const additionalManySagas = additionalConfiguration.manySagas;
 	if (additionalManySagas) {
 		additionalManySagas.forEach((additionalManySaga) => {
 			api.saga.registerMany(additionalManySaga);
 		});
 	}
+
 
 	function* rootSaga() {
 		yield all(rootSagas);
