@@ -13,20 +13,23 @@
 
 package org.talend.dataprep.transformation.actions.date;
 
-import static org.talend.dataprep.parameters.Parameter.parameter;
-import static org.talend.dataprep.parameters.ParameterType.BOOLEAN;
-
 import java.time.DateTimeException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
-import java.util.*;
-
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
+import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
@@ -35,6 +38,10 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
+
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.ParameterType.BOOLEAN;
+import static org.talend.dataprep.transformation.actions.common.ActionsUtils.TARGET_COLUMN_CONTEXT_KEY;
 
 /**
  * Change the date pattern on a 'date' column.
@@ -136,19 +143,34 @@ public class ExtractDateTokens extends AbstractDate implements ColumnAction {
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
-            final List<ActionsUtils.AdditionalColumn> additionalColumns = new ArrayList<>();
-            for (DateFieldMappingBean date_field : DATE_FIELDS) {
-                if (Boolean.valueOf(context.getParameters().get(date_field.key))) {
-                    additionalColumns.add(ActionsUtils.additionalColumn()
-                            .withKey(date_field.key)
-                            .withName(context.getColumnName() + SEPARATOR + date_field.key)
-                            .withType(Type.INTEGER));
+        if (!ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            return;
+        }
+
+        final RowMetadata rowMetadata = context.getRowMetadata();
+        final String columnId = context.getColumnId();
+        final ColumnMetadata column = rowMetadata.getById(columnId);
+
+        // like ActionsUtils#createNewColumn but using always context column id for RowMetadata#insertAfter
+        context.evict(TARGET_COLUMN_CONTEXT_KEY);
+        context.get(TARGET_COLUMN_CONTEXT_KEY, r -> {
+            Map<String, String> targetColumnIds = new HashMap<>();
+            for (DateFieldMappingBean dateField : DATE_FIELDS) {
+                if (Boolean.valueOf(context.getParameters().get(dateField.key))) {
+                    ColumnMetadata metadata = ColumnMetadata.Builder.column() //
+                            .name(column.getName() + SEPARATOR + dateField.key) //
+                            .type(Type.INTEGER) //
+                            .empty(column.getQuality().getEmpty()) //
+                            .invalid(column.getQuality().getInvalid()) //
+                            .valid(column.getQuality().getValid()) //
+                            .headerSize(column.getHeaderSize()) //
+                            .build();
+
+                    targetColumnIds.put(dateField.key, rowMetadata.insertAfter(columnId, metadata));
                 }
             }
-            Collections.reverse(additionalColumns);
-            ActionsUtils.createNewColumn(context, additionalColumns);
-        }
+            return targetColumnIds;
+        });
     }
 
     @Override
