@@ -128,7 +128,8 @@ export default function initialize(additionalConfiguration = {}) {
 		registerActionCreator('preparation:duplicate', actions.preparation.duplicate);
 		registerActionCreator('preparation:edit:submit', actions.preparation.rename);
 		registerActionCreator('preparation:edit:cancel', actions.preparation.cancelRename);
-		registerActionCreator('preparation:open', actions.preparation.openPreparation);
+		registerActionCreator('preparation:open', actions.preparation.open);
+		registerActionCreator('folder:open', actions.folder.open);
 		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
 		registerActionCreator('preparation:add:open', actions.preparation.openCreator);
 		registerActionCreator('help:tour', () => ({

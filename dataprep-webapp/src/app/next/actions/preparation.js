@@ -1,6 +1,6 @@
+import { folder } from '.';
 import {
 	CANCEL_RENAME_PREPARATION,
-	OPEN_FOLDER,
 	PREPARATION_DUPLICATE,
 	RENAME_PREPARATION,
 	SET_TITLE_EDITION_MODE,
@@ -8,16 +8,14 @@ import {
 	OPEN_PREPARATION_CREATOR,
 } from '../constants/actions';
 
-function openPreparation(event, { id, type }) {
+
+// FIXME [NC]: folder management has nothing to do here
+// we're in the `preparation` action creators file,
+// so I think that the `type` argument should not exists
+function open(event, { type, id }) {
 	switch (type) {
 	case 'folder':
-		return {
-			type: OPEN_FOLDER,
-			id,
-			cmf: {
-				routerPush: `/preparations/${id}`,
-			},
-		};
+		return folder.open(event, { id });
 	case 'preparation':
 		/* TODO
 		- get current url
@@ -74,7 +72,7 @@ function openCreator() {
 }
 
 export default {
-	openPreparation,
+	open,
 	fetchAll,
 	duplicate,
 	rename,
