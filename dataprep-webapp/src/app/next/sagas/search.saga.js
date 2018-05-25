@@ -3,10 +3,7 @@ import { call, cancel, fork, take, all, put, select } from 'redux-saga/effects';
 import http from '@talend/react-cmf/lib/sagas/http';
 import { actions } from '@talend/react-cmf';
 import { SEARCH, SEARCH_SELECT } from '../constants/actions';
-import {
-	preparation,
-	folder,
-} from '../actions';
+import { preparation, folder } from '../actions';
 import {
 	DEFAULT_SEARCH_PAYLOAD,
 	DEBOUNCE_TIMEOUT,
@@ -26,7 +23,7 @@ function* goTo() {
 
 		switch (item.inventoryType) {
 		case 'preparation':
-			yield put(preparation.open(null, { id: item.id }));
+			yield put(preparation.open(null, { type: 'preparation', id: item.id }));
 			break;
 		case 'dataset':
 			// yield put();
