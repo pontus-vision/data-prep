@@ -2,8 +2,9 @@ import { delay } from 'redux-saga';
 import { call, cancel, fork, take, all, put, select } from 'redux-saga/effects';
 import http from '@talend/react-cmf/lib/sagas/http';
 import { actions } from '@talend/react-cmf';
-import { SEARCH, SEARCH_SELECT } from '../constants/actions';
-import { preparation, folder } from '../actions';
+import { SEARCH, SEARCH_SELECT, OPEN_WINDOW } from '../constants/actions';
+import { default as creators } from '../actions';
+
 import {
 	DEFAULT_SEARCH_PAYLOAD,
 	DEBOUNCE_TIMEOUT,
@@ -12,6 +13,8 @@ import {
 } from '../constants/search';
 
 function* goTo() {
+	console.log('[NC] { preparation, folder }: ', creators);
+
 	while (true) {
 		const { payload } = yield take(SEARCH_SELECT);
 		const results = yield select(state => state.cmf.collections.get('search'));
@@ -23,16 +26,19 @@ function* goTo() {
 
 		switch (item.inventoryType) {
 		case 'preparation':
-			yield put(preparation.open(null, { type: 'preparation', id: item.id }));
+			yield put(creators.preparation.open(null, { type: 'preparation', id: item.id }));
 			break;
 		case 'dataset':
 			// yield put();
 			break;
 		case 'folder':
-			yield put(folder.open(null, { id: item.id }));
+			yield put(creators.folder.open(null, { id: item.id }));
 			break;
 		case 'documentation':
-			yield put();
+			yield put({
+				type: OPEN_WINDOW,
+				payload: { url: item.url },
+			});
 		}
 
 		// console.log('[NC] item: ', item);

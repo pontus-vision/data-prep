@@ -3,7 +3,6 @@ import { REDIRECT_WINDOW, OPEN_WINDOW } from '../constants/actions';
 
 function* redirect() {
 	yield takeEvery(REDIRECT_WINDOW, (action) => {
-		debugger;
 		window.location.assign(action.payload.url);
 	});
 }
