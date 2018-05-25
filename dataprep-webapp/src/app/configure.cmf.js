@@ -142,7 +142,8 @@ export default function initialize(additionalConfiguration = {}) {
 		}));
 		registerActionCreator('redirect', actions.redirect);
 		registerActionCreator('version:fetch', actions.version.fetch);
-		registerActionCreator('headerbar:search', actions.search.search);
+		registerActionCreator('headerbar:search:start', actions.search.start);
+		registerActionCreator('headerbar:search:select', actions.search.select);
 
 		const additionalActionCreators = additionalConfiguration.actionCreators;
 		if (additionalActionCreators) {

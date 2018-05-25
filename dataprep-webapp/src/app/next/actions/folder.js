@@ -10,7 +10,6 @@ function open(event, { id }) {
 	};
 }
 
-
 export default {
 	open,
 };

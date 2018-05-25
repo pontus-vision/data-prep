@@ -1,14 +1,46 @@
 import { delay } from 'redux-saga';
-import { call, cancel, fork, take, all, put } from 'redux-saga/effects';
+import { call, cancel, fork, take, all, put, select } from 'redux-saga/effects';
 import http from '@talend/react-cmf/lib/sagas/http';
 import { actions } from '@talend/react-cmf';
-import { SEARCH } from '../constants/actions';
+import { SEARCH, SEARCH_SELECT } from '../constants/actions';
+import {
+	preparation,
+	folder,
+} from '../actions';
 import {
 	DEFAULT_SEARCH_PAYLOAD,
 	DEBOUNCE_TIMEOUT,
 	DOCUMENTATION_SEARCH_URL,
 	TDP_SEARCH_URL,
 } from '../constants/search';
+
+function* goTo() {
+	while (true) {
+		const { payload } = yield take(SEARCH_SELECT);
+		const results = yield select(state => state.cmf.collections.get('search'));
+		const item = results
+			.get(payload.sectionIndex)
+			.get('suggestions')
+			.get(payload.itemIndex)
+			.toJS();
+
+		switch (item.inventoryType) {
+		case 'preparation':
+			yield put(preparation.open(null, { id: item.id }));
+			break;
+		case 'dataset':
+			// yield put();
+			break;
+		case 'folder':
+			yield put(folder.open(null, { id: item.id }));
+			break;
+		case 'documentation':
+			yield put();
+		}
+
+		// console.log('[NC] item: ', item);
+	}
+}
 
 function* documentation(query) {
 	const { data } = yield call(http.post, DOCUMENTATION_SEARCH_URL, {
@@ -26,10 +58,7 @@ function* dataprep(query) {
 
 function* process(payload) {
 	yield delay(DEBOUNCE_TIMEOUT);
-	const [tdp, doc] = yield all([
-		call(dataprep, payload),
-		call(documentation, payload),
-	]);
+	const [tdp, doc] = yield all([call(dataprep, payload), call(documentation, payload)]);
 	const categories = tdp.categories;
 
 	const results = [...adaptTDPResults(tdp), ...adaptSearchResult(doc)];
@@ -65,10 +94,6 @@ function* search() {
 		task = yield fork(process, payload);
 	}
 }
-
-export default {
-	search,
-};
 
 function adaptTDPResults(data) {
 	let items = [];
@@ -116,3 +141,8 @@ function adaptSearchResult(data) {
 		url: topic.occurrences[0].readerUrl,
 	}));
 }
+
+export default {
+	search,
+	goTo,
+};
