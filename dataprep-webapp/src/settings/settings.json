@@ -81,6 +81,9 @@
   "props": {
     "AppLoader#default":{
       "saga": "AppLoader#handle",
+      "step": [
+        { "waitFor": ["settings"] }
+      ],
       "hasCollections": ["settings"]
     },
     "indexRouteRedirect": {

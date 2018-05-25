@@ -25,6 +25,9 @@ const registerRouteFunction = api.route.registerFunction;
  * - Register action creators in CMF actions dictionary
  */
 export default function initialize(additionalConfiguration = {}) {
+	// register all saga api
+	api.saga.registerMany(sagas.appLoader);
+
 	const rootSagas = [
 		fork(sagaRouter, browserHistory, {}),
 
@@ -33,10 +36,9 @@ export default function initialize(additionalConfiguration = {}) {
 		...sagas.help.map(call),
 		...sagas.preparation.map(call),
 		...sagas.search.map(call),
+		fork(sagas.httpHandler),
+		fork(sagas.redirectHandler),
 	];
-
-	// register all saga api
-	api.saga.registerMany(sagas.appLoader);
 
 	// Use for EE additional configuration
 	const additionalSagas = additionalConfiguration.sagas;
