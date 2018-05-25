@@ -1,15 +1,14 @@
 import { takeEvery } from 'redux-saga/effects';
-import { REDIRECT_WINDOW, OPEN_WINDOW } from '../constants/actions';
+import { OPEN_WINDOW, REDIRECT_WINDOW } from '../constants/actions';
 
 function* redirect() {
-	yield takeEvery(REDIRECT_WINDOW, (action) => {
-		debugger;
+	yield takeEvery(REDIRECT_WINDOW, action => {
 		window.location.assign(action.payload.url);
 	});
 }
 
 function* open() {
-	yield takeEvery(OPEN_WINDOW, (action) => {
+	yield takeEvery(OPEN_WINDOW, action => {
 		window.open(action.payload.url, '_blank');
 	});
 }
