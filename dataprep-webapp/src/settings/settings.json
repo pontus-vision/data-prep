@@ -116,7 +116,14 @@
           "bsStyle": "link",
           "tooltipPlacement": "bottom"
         },
-        "onChangeActionCreator": "headerbar:search"
+        "onChangeActionCreator": "headerbar:search",
+        "itemsExpression": {
+          "id": "cmf.collections.get",
+          "args": [
+            "search",
+            []
+          ]
+        }
       },
       "help": {
         "id": "header-help",

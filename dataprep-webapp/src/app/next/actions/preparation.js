@@ -6,7 +6,7 @@ import {
 	SET_TITLE_EDITION_MODE,
 	FETCH_PREPARATIONS,
 	OPEN_PREPARATION_CREATOR,
-} from '../constants';
+} from '../constants/actions';
 
 function openPreparation(event, { id, type }) {
 	switch (type) {

@@ -1,9 +1,9 @@
-import { SEARCH } from '../constants';
+import { SEARCH } from '../constants/actions';
 
-function searchFor({ target }) {
+function search({ target }) {
 	return { type: SEARCH, payload: target.value };
 }
 
 export default {
-	searchFor,
+	search,
 };

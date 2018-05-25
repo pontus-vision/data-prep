@@ -1,6 +1,6 @@
 import { actions } from '@talend/react-cmf';
 import { put, take } from 'redux-saga/effects';
-import { OPEN_ABOUT } from '../constants';
+import { OPEN_ABOUT } from '../constants/actions';
 
 function* openAbout() {
 	while (true) {

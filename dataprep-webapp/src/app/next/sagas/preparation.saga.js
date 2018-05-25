@@ -8,7 +8,7 @@ import {
 	PREPARATION_DUPLICATE,
 	RENAME_PREPARATION,
 	SET_TITLE_EDITION_MODE,
-} from '../constants';
+} from '../constants/actions';
 
 const defaultHttpConfiguration = {
 	headers: {

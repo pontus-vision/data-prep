@@ -2,13 +2,13 @@ import { delay } from 'redux-saga';
 import { call, cancel, fork, take, all, put } from 'redux-saga/effects';
 import http from '@talend/react-cmf/lib/sagas/http';
 import { actions } from '@talend/react-cmf';
+import { SEARCH } from '../constants/actions';
 import {
-	SEARCH,
 	DEFAULT_SEARCH_PAYLOAD,
 	DEBOUNCE_TIMEOUT,
 	DOCUMENTATION_SEARCH_URL,
 	TDP_SEARCH_URL,
-} from '../constants';
+} from '../constants/search';
 
 function* documentation(query) {
 	const { data } = yield call(http.post, DOCUMENTATION_SEARCH_URL, {
@@ -16,22 +16,43 @@ function* documentation(query) {
 		query,
 	});
 
-	return { documentation: data.results };
+	return data;
 }
 
 function* dataprep(query) {
 	const { data } = yield call(http.get, `${TDP_SEARCH_URL}${query}`);
-	const { datasets, folders, preparations } = JSON.parse(data);
-	return { datasets, folders, preparations };
+	return JSON.parse(data);
 }
 
 function* process(payload) {
 	yield delay(DEBOUNCE_TIMEOUT);
-	const [doc, tdp] = yield all([
-		call(documentation, payload),
+	const [tdp, doc] = yield all([
 		call(dataprep, payload),
+		call(documentation, payload),
 	]);
-	yield put(actions.collections.addOrReplace('search', { ...doc, ...tdp }));
+	const categories = tdp.categories;
+
+	const results = [...adaptTDPResults(tdp), ...adaptSearchResult(doc)];
+	const items = categories
+		.filter(({ type }) => results.some(result => result.inventoryType === type))
+		.map((inventory) => {
+			const suggestions = results.filter(result => result.inventoryType === inventory.type);
+			let label = inventory.type;
+			if (categories) {
+				label = categories.find(category => category.type === inventory.type).label;
+			}
+
+			return {
+				title: label,
+				icon: {
+					name: 'braaaaaa', // inventory.iconName,
+					title: label,
+				},
+				suggestions,
+			};
+		});
+
+	yield put(actions.collections.addOrReplace('search', items));
 }
 
 function* search() {
@@ -48,3 +69,50 @@ function* search() {
 export default {
 	search,
 };
+
+function adaptTDPResults(data) {
+	let items = [];
+	const mapping = [
+		{
+			key: 'datasets',
+			inventory: 'dataset',
+		},
+		{
+			key: 'preparations',
+			inventory: 'preparation',
+		},
+		{
+			key: 'folders',
+			inventory: 'folder',
+		},
+	];
+
+	mapping.forEach((type) => {
+		data[type.key].forEach((item) => {
+			item.inventoryType = type.inventory;
+			item.tooltipName = item.name;
+			// FIXME [NC]:
+			item.title = item.name;
+			// itemToDisplay.model = item;
+		});
+
+		items = items.concat(data[type.key]);
+	});
+
+	return items;
+}
+
+function adaptSearchResult(data) {
+	const normalize = (str) => {
+		const dom = document.createElement('p');
+		dom.innerHTML = str.replace(/(<[^>]*>)/g, '');
+		return dom.innerText;
+	};
+
+	return data.results.map(topic => ({
+		inventoryType: 'documentation',
+		description: normalize(topic.htmlExcerpt),
+		title: normalize(topic.htmlTitle),
+		url: topic.occurrences[0].readerUrl,
+	}));
+}

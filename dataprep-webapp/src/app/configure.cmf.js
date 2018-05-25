@@ -1,9 +1,4 @@
-import {
-	api,
-	store as cmfstore,
-	sagaRouter,
-	actions as cmfActions,
-} from '@talend/react-cmf';
+import { api, store as cmfstore, sagaRouter, actions as cmfActions } from '@talend/react-cmf';
 import reduxLocalStorage from '@talend/react-cmf/lib/reduxstorage/reduxLocalStorage';
 import { registerAllContainers } from '@talend/react-containers/lib/register';
 import dataset from '@talend/dataset';
@@ -15,7 +10,7 @@ import { all, call, fork } from 'redux-saga/effects';
 import actions from './next/actions';
 import components from './next/components/index';
 import App from './next/components/App.container';
-import { ALERT, FETCH_PREPARATIONS } from './next/constants';
+import { ALERT, FETCH_PREPARATIONS } from './next/constants/actions';
 import sagas from './next/sagas';
 
 const registerActionCreator = api.actionCreator.register;
@@ -66,10 +61,7 @@ export default function initialize(additionalConfiguration = {}) {
 	function appFactory(storage = {}) {
 		const { initialState, engine } = storage;
 
-		const preReducers = [
-			dataset.preReducers.notificationReducer,
-			...dataset.hors,
-		];
+		const preReducers = [dataset.preReducers.notificationReducer, ...dataset.hors];
 		const additionalPreReducers = additionalConfiguration.preReducers;
 		if (additionalPreReducers) {
 			preReducers.push(...additionalPreReducers);
@@ -85,9 +77,7 @@ export default function initialize(additionalConfiguration = {}) {
 		 * Register your app reducers
 		 */
 		const sagaMiddleware = createSagaMiddleware();
-		const store = cmfstore.initialize(undefined, initialState, undefined, [
-			sagaMiddleware,
-		]);
+		const store = cmfstore.initialize(undefined, initialState, undefined, [sagaMiddleware]);
 		sagaMiddleware.run(rootSaga);
 
 		api.registerInternals();
@@ -99,12 +89,12 @@ export default function initialize(additionalConfiguration = {}) {
 			dispatch({
 				type: FETCH_PREPARATIONS,
 				folderId: router.nextState.params.folderId,
-			})
+			}),
 		);
 		const additionalRouteFunctions = additionalConfiguration.routeFunctions;
 		if (additionalRouteFunctions) {
 			Object.keys(additionalRouteFunctions).map(k =>
-				registerRouteFunction(k, additionalRouteFunctions[k])
+				registerRouteFunction(k, additionalRouteFunctions[k]),
 			);
 		}
 
@@ -134,34 +124,13 @@ export default function initialize(additionalConfiguration = {}) {
 		/**
 		 * Register action creators in CMF Actions dictionary
 		 */
-		registerActionCreator(
-			'preparation:fetchAll',
-			actions.preparation.fetchAll
-		);
-		registerActionCreator(
-			'preparation:duplicate',
-			actions.preparation.duplicate
-		);
-		registerActionCreator(
-			'preparation:edit:submit',
-			actions.preparation.rename
-		);
-		registerActionCreator(
-			'preparation:edit:cancel',
-			actions.preparation.cancelRename
-		);
-		registerActionCreator(
-			'preparation:open',
-			actions.preparation.openPreparation
-		);
-		registerActionCreator(
-			'preparation:rename',
-			actions.preparation.setTitleEditionMode
-		);
-		registerActionCreator(
-			'preparation:add:open',
-			actions.preparation.openCreator
-		);
+		registerActionCreator('preparation:fetchAll', actions.preparation.fetchAll);
+		registerActionCreator('preparation:duplicate', actions.preparation.duplicate);
+		registerActionCreator('preparation:edit:submit', actions.preparation.rename);
+		registerActionCreator('preparation:edit:cancel', actions.preparation.cancelRename);
+		registerActionCreator('preparation:open', actions.preparation.openPreparation);
+		registerActionCreator('preparation:rename', actions.preparation.setTitleEditionMode);
+		registerActionCreator('preparation:add:open', actions.preparation.openCreator);
 		registerActionCreator('help:tour', () => ({
 			type: ALERT,
 			payload: 'help:tour',
@@ -172,23 +141,24 @@ export default function initialize(additionalConfiguration = {}) {
 		}));
 		registerActionCreator('redirect', actions.redirect);
 		registerActionCreator('version:fetch', actions.version.fetch);
-		registerActionCreator('headerbar:search', actions.search.searchFor);
+		registerActionCreator('headerbar:search', actions.search.search);
 
 		const additionalActionCreators = additionalConfiguration.actionCreators;
 		if (additionalActionCreators) {
 			Object.keys(additionalActionCreators).map(k =>
-				registerActionCreator(k, additionalActionCreators[k])
+				registerActionCreator(k, additionalActionCreators[k]),
 			);
 		}
 
 		/**
 		 * Fetch the CMF settings and configure the CMF app
 		 */
-		store.dispatch(
-			cmfActions.settingsActions.fetchSettings('/settings.json')
-		);
+		store.dispatch(cmfActions.settingsActions.fetchSettings('/settings.json'));
 
-		reduxLocalStorage.saveOnReload({ engine, store });
+		reduxLocalStorage.saveOnReload({
+			engine,
+			store,
+		});
 
 		const additionalCallback = additionalConfiguration.callback;
 		if (additionalCallback) {
@@ -217,6 +187,6 @@ export default function initialize(additionalConfiguration = {}) {
 			(error) => {
 				console.error(error); // eslint-disable-line no-console
 				return appFactory();
-			}
+			},
 		);
 }
