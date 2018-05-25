@@ -1,5 +1,5 @@
 import { takeEvery } from 'redux-saga/effects';
-import { REDIRECT_WINDOW, OPEN_WINDOW } from '../constants/actions';
+import { OPEN_WINDOW, REDIRECT_WINDOW } from '../constants/actions';
 
 function* redirect() {
 	yield takeEvery(REDIRECT_WINDOW, (action) => {
