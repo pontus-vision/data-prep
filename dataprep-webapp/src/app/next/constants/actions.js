@@ -11,3 +11,5 @@ export const OPEN_PREPARATION_CREATOR = 'OPEN_PREPARATION_CREATOR';
 export const HELP = 'HELP';
 export const SEARCH = 'SEARCH';
 export const SEARCH_SELECT = 'SEARCH_SELECT';
+export const OPEN_WINDOW = 'OPEN_WINDOW';
+export const REDIRECT = 'REDIRECT';

@@ -36,8 +36,8 @@ export default function initialize(additionalConfiguration = {}) {
 		...sagas.help.map(call),
 		...sagas.preparation.map(call),
 		...sagas.search.map(call),
+		...sagas.redirect.map(call),
 		fork(sagas.httpHandler),
-		fork(sagas.redirectHandler),
 	];
 
 	// Use for EE additional configuration

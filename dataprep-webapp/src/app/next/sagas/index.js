@@ -9,7 +9,7 @@ export default {
 	help: Object.keys(help).map(k => help[k]),
 	preparation: Object.keys(preparation).map(k => preparation[k]),
 	search: Object.keys(search).map(k => search[k]),
+	redirect: Object.keys(redirect).map(k => redirect[k]),
 	appLoader,
 	httpHandler,
-	redirect,
 };
