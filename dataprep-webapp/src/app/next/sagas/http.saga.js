@@ -20,20 +20,17 @@ function* handleError(event) {
 	}
 	case HTTP_STATUS.FORBIDDEN:
 	case HTTP_STATUS.NOT_FOUND: {
-		console.log('404/403');
-		console.log({ event });
+		yield put({
+			type: '@@router/CALL_HISTORY_METHOD',
+			payload: {
+				method: 'replace',
+				args: [`/${event.error.stack.status}`],
+			},
+		});
 	}
-	// yield put({
-	// 	type: '@@router/CALL_HISTORY_METHOD',
-	// 	payload: {
-	// 		method: 'replace',
-	// 		args: [`/${event.error.stack.status}`],
-	// 	},
-	// });
 	}
 }
 
 export default function* httpHandler() {
-	console.log('httpHandler');
 	yield takeLatest('@@HTTP/ERRORS', handleError);
 }
