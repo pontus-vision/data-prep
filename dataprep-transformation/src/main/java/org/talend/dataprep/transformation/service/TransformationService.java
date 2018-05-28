@@ -200,8 +200,8 @@ public class TransformationService extends BaseTransformationService {
     @ApiOperation(value = "Run the transformation given the provided export parameters",
             notes = "This operation transforms the dataset or preparation using parameters in export parameters.")
     @VolumeMetered
-    public StreamingResponseBody
-            execute(@ApiParam(value = "Preparation id to apply.") @RequestBody @Valid final ExportParameters parameters) {
+    public StreamingResponseBody execute(
+            @ApiParam(value = "Preparation id to apply.") @RequestBody @Valid final ExportParameters parameters) {
         return executeSampleExportStrategy(parameters);
     }
 
@@ -217,7 +217,8 @@ public class TransformationService extends BaseTransformationService {
         final Preparation preparation = getPreparation(preparationId);
         if (preparation.getSteps().size() > 1) {
             String headId = "head".equalsIgnoreCase(stepId) ? preparation.getHeadId() : stepId;
-            final TransformationMetadataCacheKey cacheKey = cacheKeyGenerator.generateMetadataKey(preparationId, headId, HEAD);
+            final TransformationMetadataCacheKey cacheKey =
+                    cacheKeyGenerator.generateMetadataKey(preparationId, headId, HEAD);
 
             // No metadata in cache, recompute it
             if (!contentCache.has(cacheKey)) {
@@ -373,15 +374,6 @@ public class TransformationService extends BaseTransformationService {
             return aggregationService.aggregate(parameters, dataSet);
         } catch (IOException e) {
             throw new TDPException(CommonErrorCodes.UNABLE_TO_PARSE_JSON, e);
-        } finally {
-            // don't forget to release the connection
-            if (contentToAggregate != null) {
-                try {
-                    contentToAggregate.close();
-                } catch (IOException e) {
-                    LOG.warn("Could not close dataset input stream while aggregating", e);
-                }
-            }
         }
     }
 
@@ -640,7 +632,8 @@ public class TransformationService extends BaseTransformationService {
     }
 
     /**
-     * Returns all {@link ActionDefinition actions} data prep may apply to a column. Column is optional and only needed to
+     * Returns all {@link ActionDefinition actions} data prep may apply to a column. Column is optional and only needed
+     * to
      * fill out default parameter values.
      *
      * @return A list of {@link ActionDefinition} that can be applied to this column.
@@ -651,8 +644,10 @@ public class TransformationService extends BaseTransformationService {
             notes = "This operation returns an array of actions.")
     @ResponseBody
     public Stream<ActionForm> columnActions(@RequestBody(required = false) ColumnMetadata column) {
-        return actionRegistry.findAll() //
-                .filter(action -> !"TEST".equals(action.getCategory(LocaleContextHolder.getLocale())) && action.acceptScope(COLUMN)) //
+        return actionRegistry
+                .findAll() //
+                .filter(action -> !"TEST".equals(action.getCategory(LocaleContextHolder.getLocale()))
+                        && action.acceptScope(COLUMN)) //
                 .map(am -> column != null ? am.adapt(column) : am)
                 .map(ad -> ad.getActionForm(getLocale()));
     }
@@ -670,16 +665,18 @@ public class TransformationService extends BaseTransformationService {
             notes = "This operation returns an array of suggested actions in decreasing order of importance.")
     @ResponseBody
     public Stream<ActionForm> suggest(@RequestBody(required = false) ColumnMetadata column, //
-                                      @ApiParam(value = "How many actions should be suggested at most", defaultValue = "5") @RequestParam(value = "limit", defaultValue = "5", required = false) int limit) {
+            @ApiParam(value = "How many actions should be suggested at most", defaultValue = "5") @RequestParam(
+                    value = "limit", defaultValue = "5", required = false) int limit) {
         if (column == null) {
             return Stream.empty();
         }
 
         // look for all actions applicable to the column type
-        final Stream<Suggestion> suggestions =
-                suggestionEngine.score(actionRegistry.findAll().parallel().filter(am -> am.acceptField(column)), column);
+        final Stream<Suggestion> suggestions = suggestionEngine
+                .score(actionRegistry.findAll().parallel().filter(am -> am.acceptField(column)), column);
         return suggestions //
-                .filter(s -> s.getScore() > 0) // Keep only strictly positive score (negative and 0 indicates not applicable)
+                .filter(s -> s.getScore() > 0) // Keep only strictly positive score (negative and 0 indicates not
+                                               // applicable)
                 .limit(limit) //
                 .map(Suggestion::getAction) // Get the action for positive suggestions
                 .map(am -> am.adapt(column)) // Adapt default values (e.g. column name)
@@ -695,7 +692,8 @@ public class TransformationService extends BaseTransformationService {
     @ApiOperation(value = "Return all actions on lines", notes = "This operation returns an array of actions.")
     @ResponseBody
     public Stream<ActionForm> lineActions() {
-        return actionRegistry.findAll() //
+        return actionRegistry
+                .findAll() //
                 .filter(action -> action.acceptScope(LINE)) //
                 .map(action -> action.adapt(LINE))
                 .map(ad -> ad.getActionForm(getLocale()));
@@ -707,7 +705,8 @@ public class TransformationService extends BaseTransformationService {
      * @return A list of {@link ActionDefinition} that can be applied to the whole dataset.
      */
     @RequestMapping(value = "/actions/dataset", method = GET)
-    @ApiOperation(value = "Return all actions on the whole dataset.", notes = "This operation returns an array of actions.")
+    @ApiOperation(value = "Return all actions on the whole dataset.",
+            notes = "This operation returns an array of actions.")
     @ResponseBody
     public Stream<ActionForm> datasetActions() {
         return actionRegistry
@@ -771,7 +770,8 @@ public class TransformationService extends BaseTransformationService {
     @Timed
     public Stream<ExportFormatMessage> getPreparationExportTypesForPreparation(@PathVariable String preparationId) {
         final Preparation preparation = getPreparation(preparationId);
-        final DataSetMetadata metadata = context.getBean(DataSetGetMetadata.class, preparation.getDataSetId()).execute();
+        final DataSetMetadata metadata =
+                context.getBean(DataSetGetMetadata.class, preparation.getDataSetId()).execute();
         return getPreparationExportTypesForDataSet(metadata.getId());
     }
 
@@ -824,7 +824,8 @@ public class TransformationService extends BaseTransformationService {
             @ApiParam(value = "The column id") @PathVariable String columnId,
             @ApiParam(value = "The preparation version") @RequestParam(defaultValue = "head") String stepId) {
 
-        LOG.debug("listing preparation semantic categories for preparation #{} column #{}@{}", preparationId, columnId, stepId);
+        LOG.debug("listing preparation semantic categories for preparation #{} column #{}@{}", preparationId, columnId,
+                stepId);
 
         // get the preparation
         final Preparation preparation = getPreparation(preparationId);
@@ -888,7 +889,8 @@ public class TransformationService extends BaseTransformationService {
     private Preparation getPreparation(@ApiParam(value = "The preparation id") @PathVariable String preparationId) {
         final Preparation preparation;
         try {
-            final PreparationDetailsGet details = applicationContext.getBean(PreparationDetailsGet.class, preparationId);
+            final PreparationDetailsGet details =
+                    applicationContext.getBean(PreparationDetailsGet.class, preparationId);
             preparation = mapper.readerFor(Preparation.class).readValue(details.execute());
         } catch (IOException e) {
             throw new TDPException(PREPARATION_DOES_NOT_EXIST, e, build().put("id", preparationId));
@@ -908,7 +910,8 @@ public class TransformationService extends BaseTransformationService {
     private List<SemanticDomain> getSemanticDomains(DataSetMetadata metadata, String columnId, InputStream records)
             throws IOException {
 
-        // copy the column metadata and set the semantic domain forced flag to false to make sure the statistics adapter set all
+        // copy the column metadata and set the semantic domain forced flag to false to make sure the statistics adapter
+        // set all
         // available domains
         final ColumnMetadata columnMetadata = column() //
                 .copy(metadata.getRowMetadata().getById(columnId)) //
