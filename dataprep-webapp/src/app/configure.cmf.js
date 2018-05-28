@@ -1,4 +1,4 @@
-import { api, store as cmfstore, sagaRouter, actions as cmfActions } from '@talend/react-cmf';
+import api, { store as cmfstore, sagaRouter, actions as cmfActions } from '@talend/react-cmf';
 import reduxLocalStorage from '@talend/react-cmf/lib/reduxstorage/reduxLocalStorage';
 import { registerAllContainers } from '@talend/react-containers/lib/register';
 import dataset from '@talend/dataset';
