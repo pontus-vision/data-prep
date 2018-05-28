@@ -53,7 +53,7 @@ public class SearchAPITest extends ApiServiceTestBase {
         // then
         assertEquals(200, response.getStatusCode());
         JsonNode rootNode = mapper.readTree(response.asInputStream());
-        JsonNode preparations = rootNode.get("preparations");
+        JsonNode preparations = rootNode.get("preparation");
         List<Preparation> preparationList =
                 mapper.readValue(preparations.toString(), new TypeReference<List<Preparation>>() {
 
@@ -81,7 +81,7 @@ public class SearchAPITest extends ApiServiceTestBase {
         // then
         assertEquals(200, response.getStatusCode());
         JsonNode rootNode = mapper.readTree(response.asInputStream());
-        JsonNode preparations = rootNode.get("preparations");
+        JsonNode preparations = rootNode.get("preparation");
         List<Preparation> preparationList =
                 mapper.readValue(preparations.toString(), new TypeReference<List<Preparation>>() {
 
@@ -109,7 +109,7 @@ public class SearchAPITest extends ApiServiceTestBase {
         // then
         assertEquals(200, response.getStatusCode());
         JsonNode rootNode = mapper.readTree(response.asInputStream());
-        JsonNode preparations = rootNode.get("preparations");
+        JsonNode preparations = rootNode.get("preparation");
         List<Preparation> preparationList =
                 mapper.readValue(preparations.toString(), new TypeReference<List<Preparation>>() {
 
@@ -168,7 +168,7 @@ public class SearchAPITest extends ApiServiceTestBase {
         // when
         Response response = given() //
                 .queryParam("name", "Inventory") //
-                .queryParam("categories", "preparations") //
+                .queryParam("categories", "preparation") //
                 .expect()
                 .statusCode(200)
                 .log()
@@ -178,7 +178,7 @@ public class SearchAPITest extends ApiServiceTestBase {
         // then
         assertEquals(200, response.getStatusCode());
         JsonNode rootNode = mapper.readTree(response.asInputStream());
-        JsonNode preparations = rootNode.get("preparations");
+        JsonNode preparations = rootNode.get("preparation");
         List<SearchResult> preparationList =
                 mapper.readValue(preparations.toString(), new TypeReference<List<SearchResult>>() {
 
@@ -190,7 +190,7 @@ public class SearchAPITest extends ApiServiceTestBase {
         // when
         response = given() //
                 .queryParam("name", "Inventory") //
-                .queryParam("categories", "folders") //
+                .queryParam("categories", "folder") //
                 .expect()
                 .statusCode(200)
                 .log()
@@ -200,7 +200,7 @@ public class SearchAPITest extends ApiServiceTestBase {
         // then
         assertEquals(200, response.getStatusCode());
         rootNode = mapper.readTree(response.asInputStream());
-        JsonNode folders = rootNode.get("folders");
+        JsonNode folders = rootNode.get("folder");
         List<SearchResult> foldersList = mapper.readValue(folders.toString(), new TypeReference<List<SearchResult>>() {
 
         });
@@ -225,11 +225,11 @@ public class SearchAPITest extends ApiServiceTestBase {
 
         final JsonNode rootNode = mapper.readTree(response.asInputStream());
 
-        assertSearchItems(rootNode, "folders", "path", expectedFoldersPath);
-        assertSearchItems(rootNode, "datasets", "id", expectedDatasetsId);
-        assertSearchItems(rootNode, "preparations", "id", expectedPreparationsId);
+        assertSearchItems(rootNode, "folder", "path", expectedFoldersPath);
+        assertSearchItems(rootNode, "dataset", "id", expectedDatasetsId);
+        assertSearchItems(rootNode, "preparation", "id", expectedPreparationsId);
 
-        final JsonNode preparations = rootNode.get("preparations");
+        final JsonNode preparations = rootNode.get("preparation");
         for (int i = 0; i < preparations.size(); ++i) {
             assertTrue(preparations.get(i).has("folder"));
         }
