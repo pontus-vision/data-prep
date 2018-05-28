@@ -1,8 +1,8 @@
 import { delay } from 'redux-saga';
-import { call, cancel, fork, take, all, put, select } from 'redux-saga/effects';
+import { call, cancel, fork, take, takeLatest, all, put, select } from 'redux-saga/effects';
 import http from '@talend/react-cmf/lib/sagas/http';
 import { actions } from '@talend/react-cmf';
-import { SEARCH, SEARCH_SELECT, OPEN_WINDOW } from '../constants/actions';
+import { SEARCH, SEARCH_SELECT, SEARCH_RESET, OPEN_WINDOW } from '../constants/actions';
 import { default as creators } from '../actions';
 
 import {
@@ -13,8 +13,6 @@ import {
 } from '../constants/search';
 
 function* goTo() {
-	console.log('[NC] { preparation, folder }: ', creators);
-
 	while (true) {
 		const { payload } = yield take(SEARCH_SELECT);
 		const results = yield select(state => state.cmf.collections.get('search'));
@@ -40,8 +38,6 @@ function* goTo() {
 				payload: { url: item.url },
 			});
 		}
-
-		// console.log('[NC] item: ', item);
 	}
 }
 
@@ -57,6 +53,12 @@ function* documentation(query) {
 function* dataprep(query) {
 	const { data } = yield call(http.get, `${TDP_SEARCH_URL}${query}`);
 	return JSON.parse(data);
+}
+
+function* reset() {
+	yield takeLatest(SEARCH_RESET, function* () {
+		yield put(actions.collections.addOrReplace('search', []));
+	});
 }
 
 function* process(payload) {
@@ -77,7 +79,7 @@ function* process(payload) {
 			return {
 				title: label,
 				icon: {
-					name: 'braaaaaa', // inventory.iconName,
+					name: 'fixme', // inventory.iconName,
 					title: label,
 				},
 				suggestions,
@@ -147,5 +149,6 @@ function adaptSearchResult(data) {
 
 export default {
 	search,
+	reset,
 	goTo,
 };
