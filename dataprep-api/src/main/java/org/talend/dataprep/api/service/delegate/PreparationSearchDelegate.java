@@ -53,5 +53,4 @@ public class PreparationSearchDelegate extends AbstractSearchDelegate<EnrichedPr
         return toStream(UserPreparation.class, mapper, command) //
                 .map(userPreparation -> beanConversionService.convert(userPreparation, EnrichedPreparation.class));
     }
-
 }
