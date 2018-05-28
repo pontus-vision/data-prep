@@ -56,7 +56,7 @@ public class SearchAPI extends APIService {
      * Search dataprep folders, preparations and datasets.
      *
      * @param name the name searched.
-     * @param categories the types of items to search. It can be (dataset, preparation, folder).
+     * @param categories the types of items to search. It can be (datasets, preparations, folders).
      * @param strict strict mode means that the name should be the full name (still case insensitive).
      * @deprecated replace by {@link this.search(String, List<String>, boolean, List<String>)}
      */
