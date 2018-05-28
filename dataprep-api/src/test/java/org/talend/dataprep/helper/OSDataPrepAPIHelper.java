@@ -40,6 +40,7 @@ import org.talend.dataprep.async.AsyncExecution;
 import org.talend.dataprep.async.AsyncExecutionMessage;
 import org.talend.dataprep.helper.api.Action;
 import org.talend.dataprep.helper.api.ActionRequest;
+import org.talend.dataprep.helper.api.Aggregate;
 import org.talend.dataprep.helper.api.PreparationRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -238,29 +239,7 @@ public class OSDataPrepAPIHelper {
     public Response listDatasetDetails() {
         return given() //
                 .when() //
-                .get("api/datasets/summary");
-    }
-
-    /**
-     * List all dataset in TDP instance.
-     *
-     * @return the response.
-     */
-    public Response listDataset() {
-        return given() //
-                .get("/api/datasets");
-    }
-
-    /**
-     * Get a preparation as a list of step id.
-     *
-     * @param preparationId the preparation id.
-     * @return the response.
-     */
-    public Response getPreparation(String preparationId) {
-        return given() //
-                .when() //
-                .get("/api/preparations/{preparationId}/details", preparationId);
+                .get("/api/datasets/summary");
     }
 
     /**
@@ -533,7 +512,7 @@ public class OSDataPrepAPIHelper {
 
     /**
      * Return the list of datasets
-     * 
+     *
      * @param queryParameters Map containing the parameter names and their values to send with the request.
      * @return The response of the request.
      */
@@ -591,5 +570,13 @@ public class OSDataPrepAPIHelper {
     public OSDataPrepAPIHelper setEnableRestAssuredDebug(boolean enableRestAssuredDebug) {
         this.enableRestAssuredDebug = enableRestAssuredDebug;
         return this;
+    }
+
+    public Response applyAggragate(Aggregate aggregate) throws Exception {
+        return given()
+                .header(new Header("Content-Type", "application/json")) //
+                .when() //
+                .body(mapper.writeValueAsString(aggregate)) //
+                .post("/api/aggregate");
     }
 }
