@@ -34,12 +34,12 @@ public class PreparationSearchDelegate extends AbstractSearchDelegate<EnrichedPr
 
     @Override
     public String getSearchCategory() {
-        return "preparations";
+        return "preparation";
     }
 
     @Override
     public String getSearchLabel() {
-        return "preparations";
+        return "preparation";
     }
 
     @Override
