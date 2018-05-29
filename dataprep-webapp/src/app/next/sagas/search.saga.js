@@ -57,7 +57,7 @@ function* dataprep(query) {
 
 function* reset() {
 	yield takeLatest(SEARCH_RESET, function* () {
-		yield put(actions.collections.addOrReplace('search', []));
+		yield put(actions.collections.addOrReplace('search', null));
 	});
 }
 
@@ -94,7 +94,6 @@ function* search() {
 	let task;
 	while (true) {
 		const { payload } = yield take(SEARCH);
-		console.log('headerbar:search');
 
 		if (task) {
 			yield cancel(task);
