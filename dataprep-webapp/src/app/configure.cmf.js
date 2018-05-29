@@ -26,7 +26,7 @@ const registerRouteFunction = api.route.registerFunction;
  */
 export default function initialize(additionalConfiguration = {}) {
 	// register all saga api
-	api.saga.registerMany(sagas.appLoader);
+	api.saga.registerMany(sagas.bootstrap);
 
 	const rootSagas = [
 		fork(sagaRouter, browserHistory, {}),

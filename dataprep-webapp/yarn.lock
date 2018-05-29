@@ -54,15 +54,15 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
-"@talend/bootstrap-theme@0.187.0":
-  version "0.187.0"
-  resolved "https://registry.yarnpkg.com/@talend/bootstrap-theme/-/bootstrap-theme-0.187.0.tgz#7358f86a52c21c5c91707ca6c244859af454bb12"
+"@talend/bootstrap-theme@0.187.1":
+  version "0.187.1"
+  resolved "https://registry.yarnpkg.com/@talend/bootstrap-theme/-/bootstrap-theme-0.187.1.tgz#0761bb1e62df5c007c4c675679042874389ca214"
   dependencies:
     bootstrap-sass "3.3.7"
 
-"@talend/dataset@0.33.0":
-  version "0.33.0"
-  resolved "https://registry.yarnpkg.com/@talend/dataset/-/dataset-0.33.0.tgz#abd9a54876b9493e2c70ba83de99806815c43e96"
+"@talend/dataset@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@talend/dataset/-/dataset-2.0.0.tgz#9c6be38807722b3cb0b8f009518f9a94cb62b36b"
   dependencies:
     prop-types "15.5.10"
     react-immutable-proptypes "2.1.0"
@@ -71,9 +71,9 @@
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/@talend/html-webpack-plugin/-/html-webpack-plugin-0.0.3.tgz#461c7d0877e497ca7c8f63ccbf7ef8603edf64f5"
 
-"@talend/icons@0.187.0":
-  version "0.187.0"
-  resolved "https://registry.yarnpkg.com/@talend/icons/-/icons-0.187.0.tgz#c3bc33b67aa93fc020c90015d036a34f426ba605"
+"@talend/icons@0.187.1":
+  version "0.187.1"
+  resolved "https://registry.yarnpkg.com/@talend/icons/-/icons-0.187.1.tgz#85c3efafa62d707f22228438835c884596a1dc22"
 
 "@talend/json-schema-form-core@1.0.0-alpha.4":
   version "1.0.0-alpha.4"
@@ -82,9 +82,9 @@
     objectpath "^1.2.1"
     tv4 "^1.3.0"
 
-"@talend/react-cmf-cqrs@0.187.0":
-  version "0.187.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf-cqrs/-/react-cmf-cqrs-0.187.0.tgz#f3dbe01460bfdc4b3d7f6883c91c952cfaed95c7"
+"@talend/react-cmf-cqrs@0.187.1":
+  version "0.187.1"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf-cqrs/-/react-cmf-cqrs-0.187.1.tgz#cad4205e1c0ca5d707453b26f8e3b653981d1691"
   dependencies:
     babel-polyfill "6.26.0"
     hoist-non-react-statics "^1.2.0"
@@ -99,9 +99,9 @@
     deepmerge "1.5.1"
     mkdirp "^0.5.1"
 
-"@talend/react-cmf@0.187.0":
-  version "0.187.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.187.0.tgz#c1488ac72800eaf7297415d401c20881d50acd58"
+"@talend/react-cmf@0.187.1":
+  version "0.187.1"
+  resolved "https://registry.yarnpkg.com/@talend/react-cmf/-/react-cmf-0.187.1.tgz#51f3385f15bc8ed5a06c1f58260ee9cc29c90603"
   dependencies:
     babel-polyfill "6.26.0"
     deepmerge "1.5.1"
@@ -119,9 +119,9 @@
     hoist-non-react-statics "^1.2.0"
     react-immutable-proptypes "2.1.0"
 
-"@talend/react-components@0.187.0":
-  version "0.187.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-components/-/react-components-0.187.0.tgz#092a114baf24c18c6884f1bc08cc289159fe83f6"
+"@talend/react-components@0.187.1":
+  version "0.187.1"
+  resolved "https://registry.yarnpkg.com/@talend/react-components/-/react-components-0.187.1.tgz#a8af1d8c3237b62152d355fc81799a805dd9ea64"
   dependencies:
     ally.js "^1.4.1"
     date-fns "1.27.2"
@@ -134,15 +134,15 @@
     react-immutable-proptypes "2.1.0"
     react-virtualized "9.10.1"
 
-"@talend/react-containers@0.187.0":
-  version "0.187.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-containers/-/react-containers-0.187.0.tgz#3e481dde438feac36c85cf1aa905da6313b81a4b"
+"@talend/react-containers@0.187.1":
+  version "0.187.1"
+  resolved "https://registry.yarnpkg.com/@talend/react-containers/-/react-containers-0.187.1.tgz#1d3980ea105eec4d86540ecdbe79ae37506c81a5"
   dependencies:
     react-immutable-proptypes "2.1.0"
 
-"@talend/react-forms@0.187.0":
-  version "0.187.0"
-  resolved "https://registry.yarnpkg.com/@talend/react-forms/-/react-forms-0.187.0.tgz#30160e821ad3db764fb066ada82360b0d9e74bf9"
+"@talend/react-forms@0.187.1":
+  version "0.187.1"
+  resolved "https://registry.yarnpkg.com/@talend/react-forms/-/react-forms-0.187.1.tgz#251813da485aa02d9ed40c96b481b6e3b5648e50"
   dependencies:
     "@talend/json-schema-form-core" "1.0.0-alpha.4"
     ajv "^6.2.1"
@@ -8007,6 +8007,10 @@ redux-logger@3.0.6:
   resolved "https://registry.yarnpkg.com/redux-logger/-/redux-logger-3.0.6.tgz#f7555966f3098f3c88604c449cf0baf5778274bf"
   dependencies:
     deep-diff "^0.3.5"
+
+redux-saga-tester@^1.0.379:
+  version "1.0.379"
+  resolved "https://registry.yarnpkg.com/redux-saga-tester/-/redux-saga-tester-1.0.379.tgz#c008a2b10769e9a92c0e6f6948df02ea8cebe067"
 
 redux-saga@0.15.4:
   version "0.15.4"

@@ -57,7 +57,7 @@ function* dataprep(query) {
 
 function* reset() {
 	yield takeLatest(SEARCH_RESET, function* () {
-		yield put(actions.collections.addOrReplace('search', []));
+		yield put(actions.collections.addOrReplace('search', null));
 	});
 }
 
