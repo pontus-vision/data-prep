@@ -1,4 +1,4 @@
-import home from './home';
+import home from '../objects/pages/home';
 
 describe('My First Test', () => {
 	beforeEach(() => {
