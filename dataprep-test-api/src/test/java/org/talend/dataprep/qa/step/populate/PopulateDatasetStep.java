@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
+import com.jayway.restassured.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.dataprep.qa.config.DataPrepStep;
 import org.talend.dataprep.qa.step.ActionStep;
@@ -56,15 +57,18 @@ public class PopulateDatasetStep extends DataPrepStep {
             String datasetName = removeSuffixName(getRandomDatasetName());
             String finalPrepName = i + "_" + preparationName;
             preparationStep.givenICreateAPreparation(finalPrepName, datasetName);
+            preparationStep.loadPreparationMultipleTimes(1, finalPrepName);
             for (int j = 0; j < (nbStep / 2); j++) {
                 iCreateMultipleStepForPrep(finalPrepName, dataTable);
             }
         }
     }
 
-    private void iCreateMultipleStepForPrep(String finalPrepName, DataTable dataTable) {
+    private void iCreateMultipleStepForPrep(String finalPrepName, DataTable dataTable) throws IOException {
         actionStep.whenIAddAStepToAPreparation("uppercase", finalPrepName, dataTable);
+        preparationStep.loadPreparationMultipleTimes(1, finalPrepName);
         actionStep.whenIAddAStepToAPreparation("lowercase", finalPrepName, dataTable);
+        preparationStep.loadPreparationMultipleTimes(1, finalPrepName);
     }
 
     private String getRandomDatasetName() {
