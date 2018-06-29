@@ -224,7 +224,7 @@ public class TransformationService extends BaseTransformationService {
 
         ExportParameters completeParameters = parameters;
 
-        if(StringUtils.isNotEmpty(completeParameters.getPreparationId())) {
+        if (StringUtils.isNotEmpty(completeParameters.getPreparationId())) {
             // we deal with preparation transformation (not dataset)
             completeParameters = exportParametersUtil.populateFromPreparationExportParameter(parameters);
 
@@ -551,7 +551,7 @@ public class TransformationService extends BaseTransformationService {
     @ApiOperation(value = "Evict content entries related to the preparation", notes = "This operation remove content entries related to the preparation.")
     @VolumeMetered
     public void evictCache(@ApiParam(value = "Preparation Id.") @PathVariable(value = "preparationId") final String preparationId) {
-        for(final ExportParameters.SourceType sourceType : ExportParameters.SourceType.values()) {
+        for (final ExportParameters.SourceType sourceType : ExportParameters.SourceType.values()) {
             evictCache(preparationId, sourceType);
         }
     }
@@ -700,15 +700,16 @@ public class TransformationService extends BaseTransformationService {
         }
 
         // look for all actions applicable to the column type
-        final Stream<Suggestion> suggestions =
-                suggestionEngine.score(actionRegistry.findAll().parallel().filter(am -> am.acceptField(column)), column);
-        return suggestions //
+        return actionRegistry.findAll() //
+                .filter(am -> am.acceptScope(COLUMN) && am.acceptField(column)) //
+                .map(am -> suggestionEngine.score(am, column)) //
                 .filter(s -> s.getScore() > 0) // Keep only strictly positive score (negative and 0 indicates not applicable)
+                .sorted((s1, s2) -> Integer.compare(s2.getScore(), s1.getScore()))
                 .limit(limit) //
                 .map(Suggestion::getAction) // Get the action for positive suggestions
                 .map(am -> am.adapt(column)) // Adapt default values (e.g. column name)
                 .map(ad -> ad.getActionForm(getLocale()));
-    }
+        }
 
     /**
      * Returns all {@link ActionDefinition actions} data prep may apply to a line.
