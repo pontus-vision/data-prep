@@ -13,8 +13,13 @@
 
 package org.talend.dataprep.qa.config;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.http.HttpStatus.OK;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import javax.annotation.PostConstruct;
@@ -34,6 +39,8 @@ import org.talend.dataprep.qa.util.OSIntegrationTestUtil;
 import org.talend.dataprep.qa.util.folder.FolderUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.parsing.Parser;
 import com.jayway.restassured.response.Response;
 
 /**
@@ -81,6 +88,11 @@ public abstract class DataPrepStep {
     @PostConstruct
     public void init() {
         api.setEnableRestAssuredDebug(enableRestAssuredDebug);
+        enableJsonParsingWhenResponseHasNoContentType();
+    }
+
+    private void enableJsonParsingWhenResponseHasNoContentType() {
+        RestAssured.defaultParser = Parser.JSON;
     }
 
     /**
@@ -135,5 +147,20 @@ public abstract class DataPrepStep {
         CleanAfterException(String s) {
             super(s);
         }
+    }
+
+    protected void checkColumnNames(String datasetOrPreparationName, List<String> expectedColumnNames, List<String> actual) {
+        assertNotNull(new StringBuilder("No columns in \"").append(datasetOrPreparationName).append("\".").toString(),
+                actual);
+        assertFalse(new StringBuilder("No columns in \"").append(datasetOrPreparationName).append("\".").toString(),
+                actual.isEmpty());
+        assertEquals(new StringBuilder("Not the expected number of columns in \"")
+                .append(datasetOrPreparationName)
+                .append("\".")
+                .toString(), expectedColumnNames.size(), actual.size());
+        assertTrue(new StringBuilder("\"")
+                .append(datasetOrPreparationName)
+                .append("\" doesn't contain all expected columns.")
+                .toString(), actual.containsAll(expectedColumnNames));
     }
 }
