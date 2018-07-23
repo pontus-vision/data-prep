@@ -4,4 +4,4 @@ function getFooterButtons() {
 
 export default {
 	getFooterButtons,
-}
+};
