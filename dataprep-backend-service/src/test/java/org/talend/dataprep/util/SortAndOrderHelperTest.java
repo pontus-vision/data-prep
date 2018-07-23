@@ -12,15 +12,20 @@
 
 package org.talend.dataprep.util;
 
-import org.junit.Test;
-import org.talend.dataprep.api.dataset.DataSetMetadata;
-import org.talend.dataprep.api.dataset.RowMetadata;
-import org.talend.dataprep.api.preparation.Preparation;
-import org.talend.dataprep.api.preparation.Step;
-import org.talend.dataprep.api.share.Owner;
-import org.talend.dataprep.dataset.service.UserDataSetMetadata;
-import org.talend.dataprep.exception.TDPException;
-import org.talend.dataprep.preparation.service.UserPreparation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.talend.dataprep.util.SortAndOrderHelper.Order;
+import static org.talend.dataprep.util.SortAndOrderHelper.Sort;
+import static org.talend.dataprep.util.SortAndOrderHelper.Order.ASC;
+import static org.talend.dataprep.util.SortAndOrderHelper.Order.DESC;
+import static org.talend.dataprep.util.SortAndOrderHelper.Sort.AUTHOR;
+import static org.talend.dataprep.util.SortAndOrderHelper.Sort.CREATION_DATE;
+import static org.talend.dataprep.util.SortAndOrderHelper.Sort.DATASET_NAME;
+import static org.talend.dataprep.util.SortAndOrderHelper.Sort.LAST_MODIFICATION_DATE;
+import static org.talend.dataprep.util.SortAndOrderHelper.Sort.NAME;
+import static org.talend.dataprep.util.SortAndOrderHelper.Sort.NB_RECORDS;
+import static org.talend.dataprep.util.SortAndOrderHelper.Sort.NB_STEPS;
 
 import java.beans.PropertyEditor;
 import java.util.ArrayList;
@@ -28,12 +33,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-import static org.junit.Assert.*;
-import static org.talend.dataprep.util.SortAndOrderHelper.Order;
-import static org.talend.dataprep.util.SortAndOrderHelper.Order.ASC;
-import static org.talend.dataprep.util.SortAndOrderHelper.Order.DESC;
-import static org.talend.dataprep.util.SortAndOrderHelper.Sort;
-import static org.talend.dataprep.util.SortAndOrderHelper.Sort.*;
+import org.junit.Test;
+import org.talend.dataprep.api.dataset.DataSetMetadata;
+import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.preparation.PreparationDTO;
+import org.talend.dataprep.api.share.Owner;
+import org.talend.dataprep.dataset.service.UserDataSetMetadata;
+import org.talend.dataprep.exception.TDPException;
 
 public class SortAndOrderHelperTest {
 
@@ -69,6 +75,8 @@ public class SortAndOrderHelperTest {
     public void getPreparationComparator_byName() throws Exception {
         assertTrue(getPreparationComparisonByName("aaa", "bbb", ASC) < 0);
         assertTrue(getPreparationComparisonByName("aaa", "bbb", DESC) > 0);
+        assertEquals(0, getPreparationComparisonByName("aaa", "aaa", DESC));
+        getPreparationComparisonByName("aaa", null, ASC); // does not throw exception
     }
 
     @Test
@@ -83,6 +91,8 @@ public class SortAndOrderHelperTest {
     public void getPreparationComparator_byDatasetName() throws Exception {
         assertTrue(getPreparationComparisonByDatasetName("aaa", "bbb", ASC) < 0);
         assertTrue(getPreparationComparisonByDatasetName("aaa", "bbb", DESC) > 0);
+        assertEquals(0, getPreparationComparisonByDatasetName("aaa", "aaa", DESC));
+        getPreparationComparisonByDatasetName("aaa", null, DESC);
     }
 
     @Test
@@ -101,6 +111,8 @@ public class SortAndOrderHelperTest {
     public void getPreparationComparator_byAuthor() throws Exception {
         assertTrue(getPreparationComparisonByAuthor("aaa", "bbb", ASC) < 0);
         assertTrue(getPreparationComparisonByAuthor("aaa", "bbb", DESC) > 0);
+        assertEquals(0, getPreparationComparisonByAuthor("aaa", "aaa", DESC));
+        getPreparationComparisonByAuthor("aaa", null, DESC); // No exception
     }
 
     @Test
@@ -173,22 +185,22 @@ public class SortAndOrderHelperTest {
             String firstDsName, String secondDsName, //
             Sort sort, Order order) {
         String firstDsId = "firstDsId";
-        Preparation firstUserPrep = createUserPreparation(firstName, firstAuthor, firstCreation, firstModification, firstSize,
+        PreparationDTO firstUserPrep = createUserPreparation(firstName, firstAuthor, firstCreation, firstModification, firstSize,
                 firstDsId);
         DataSetMetadata firstDs = new DataSetMetadata(firstDsId, firstDsName, null, 0, 0, null, null);
 
         String secondDsId = "secondDsId";
-        Preparation secondUserPrep = createUserPreparation(secondName, secondAuthor, secondCreation, secondModification,
+        PreparationDTO secondUserPrep = createUserPreparation(secondName, secondAuthor, secondCreation, secondModification,
                 secondSize, secondDsId);
         DataSetMetadata secondDs = new DataSetMetadata(secondDsId, secondDsName, null, 0, 0, null, null);
 
-        Preparation firstPrep = createPreparation(firstName, firstAuthor, firstCreation, firstModification, firstSize, firstDsId);
+        PreparationDTO firstPrep = createUserPreparation(firstName, firstAuthor, firstCreation, firstModification, firstSize, firstDsId);
 
-        Preparation secondPrep = createPreparation(secondName, secondAuthor, secondCreation, secondModification, secondSize,
+        PreparationDTO secondPrep = createUserPreparation(secondName, secondAuthor, secondCreation, secondModification, secondSize,
                 secondDsId);
 
         // when
-        Comparator<Preparation> preparationComparator = SortAndOrderHelper.getPreparationComparator(sort, order,
+        Comparator<PreparationDTO> preparationComparator = SortAndOrderHelper.getPreparationComparator(sort, order,
                 p -> Objects.equals(p.getDataSetId(), firstDsId) ? firstDs
                         : (Objects.equals(p.getDataSetId(), secondDsId) ? secondDs : null));
 
@@ -254,7 +266,9 @@ public class SortAndOrderHelperTest {
         final int userDatasetMetadataOrder = preparationComparator.compare(firstUserDatasetMetadata, secondUserDatasetMetadata);
         final int datasetMetadataOrder = preparationComparator.compare(firstDatasetMetadata, secondDatasetMetadata);
         // Make sure that when using DatasetMetadata instead of UserDatasetMetada the behaviour of the comparison remains the same
-        assertEquals(userDatasetMetadataOrder, datasetMetadataOrder);
+        if (sort != AUTHOR) { // because only user dataset metadata have author
+            assertEquals(userDatasetMetadataOrder, datasetMetadataOrder);
+        }
         return userDatasetMetadataOrder;
     }
 
@@ -285,31 +299,16 @@ public class SortAndOrderHelperTest {
         return metadata;
     }
 
-    private Preparation createUserPreparation(String name, String author, long creation, long modification, long size,
-            String dsId) {
-        UserPreparation firstPrep = new UserPreparation();
+    private PreparationDTO createUserPreparation(String name, String author, long creation, long modification, long size,
+                                                 String dsId) {
+        PreparationDTO firstPrep = new PreparationDTO();
         firstPrep.setDataSetId(dsId);
         firstPrep.setName(name);
         firstPrep.setAuthor("1234");
         firstPrep.setOwner(new Owner("1234", author, ""));
         firstPrep.setCreationDate(creation);
         firstPrep.setLastModificationDate(modification);
-        List<Step> steps = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            steps.add(null);
-        }
-        firstPrep.setSteps(steps);
-        return firstPrep;
-    }
-
-    private Preparation createPreparation(String name, String author, long creation, long modification, long size, String dsId) {
-        Preparation firstPrep = new Preparation();
-        firstPrep.setDataSetId(dsId);
-        firstPrep.setName(name);
-        firstPrep.setAuthor(new Owner("1234", author, "").getDisplayName());
-        firstPrep.setCreationDate(creation);
-        firstPrep.setLastModificationDate(modification);
-        List<Step> steps = new ArrayList<>();
+        List<String> steps = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             steps.add(null);
         }

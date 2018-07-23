@@ -13,10 +13,14 @@
 
 package org.talend.dataprep.api.service.test;
 
-import static com.jayway.restassured.RestAssured.*;
+import static com.jayway.restassured.RestAssured.expect;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.when;
+import static com.jayway.restassured.RestAssured.with;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static com.jayway.restassured.http.ContentType.TEXT;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static junit.framework.TestCase.assertEquals;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.is;
@@ -29,10 +33,13 @@ import static org.springframework.http.HttpStatus.OK;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
@@ -52,6 +59,7 @@ import org.talend.dataprep.dataset.service.UserDataSetMetadata;
 import org.talend.dataprep.format.export.ExportFormat;
 import org.talend.dataprep.transformation.format.CSVFormat;
 
+import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -77,7 +85,7 @@ public class APIClientTest {
         } else {
             result = when().get("/api/datasets?name={name}", name).asInputStream();
         }
-        CollectionType resultType =
+        CollectionType resultType = //
                 TypeFactory.defaultInstance().constructCollectionType(ArrayList.class, UserDataSetMetadata.class);
         return mapper.readValue(result, resultType);
     }
@@ -100,6 +108,18 @@ public class APIClientTest {
      */
     public String createDataset(final String file, final String name) throws IOException {
         final InputStream resourceAsStream = PreparationAPITest.class.getResourceAsStream(file);
+        return createDataset(resourceAsStream, name);
+    }
+
+    /**
+     * Create a dataset.
+     *
+     * @param resourceAsStream the stream to upload.
+     * @param name the dataset name.
+     * @return the dataset id.
+     * @throws IOException sh*t happens.
+     */
+    public String createDataset(final InputStream resourceAsStream, final String name) throws IOException {
         assertNotNull(resourceAsStream);
         final String datasetContent = IOUtils.toString(resourceAsStream, UTF_8);
         final Response post = given() //
@@ -157,9 +177,9 @@ public class APIClientTest {
 
         final Response response = request //
                 .when() //
-                .expect()
-                .statusCode(200)
-                .log()
+                .expect() //
+                .statusCode(200) //
+                .log() //
                 .ifError() //
                 .post("/api/preparations");
 
@@ -192,8 +212,8 @@ public class APIClientTest {
      * @throws IOException sh*t happens.
      */
     public void applyAction(final String preparationId, final String action) throws IOException {
-        given().contentType(JSON).body(action).when().post("/api/preparations/{id}/actions", preparationId).then().statusCode(
-                is(200));
+        given().contentType(JSON).body(action).when().post("/api/preparations/{id}/actions", preparationId).then()
+                .statusCode(is(200));
     }
 
     /**
@@ -211,12 +231,12 @@ public class APIClientTest {
         action.setName(actionName);
         action.setParameters(MixedContentMap.convert(parameters));
         actions.setActions(Collections.singletonList(action));
-        given()
-                .contentType(JSON.withCharset(UTF_8))
+        given() //
+                .contentType(JSON.withCharset(UTF_8)) //
                 .content(actions) //
-                .when()
+                .when() //
                 .post("/api/preparations/{id}/actions", preparationId) //
-                .then()
+                .then() //
                 .statusCode(is(200));
     }
 
@@ -236,6 +256,19 @@ public class APIClientTest {
         return mapper.readerFor(Preparation.class).readValue(json);
     }
 
+    /**
+     * Fetch the preparation details with a specific version.
+     *
+     * @param preparationId id of the preparation to fetch
+     * @param versionId id of the preparation version
+     * @return the preparation details
+     */
+    public Response getPreparationDetails(String preparationId, String versionId) {
+        return expect() //
+                .when() //
+                .get("/api/preparations/{id}/versions/{versionId}/details", preparationId, versionId);
+    }
+
     public Response getPreparation(String preparationId) throws IOException {
         return getPreparation(preparationId, "head", "HEAD");
     }
@@ -253,7 +286,7 @@ public class APIClientTest {
      */
     public Response getPreparation(String preparationId, String version, String stepId) throws IOException {
         // when
-        Response transformedResponse = given()
+        Response transformedResponse = given() //
                 .when() //
                 .get("/api/preparations/{prepId}/content?version={version}&from={stepId}", preparationId, version, stepId);
 
@@ -263,11 +296,11 @@ public class APIClientTest {
 
             waitForAsyncMethodTofinish(asyncMethodStatusUrl);
 
-            transformedResponse = given()
+            transformedResponse = given() //
                     .when() //
-                    .expect()
-                    .statusCode(200)
-                    .log()
+                    .expect() //
+                    .statusCode(200) //
+                    .log() //
                     .ifError() //
                     .get("/api/preparations/{prepId}/content?version={version}&from={stepId}", preparationId, version, stepId);
         }
@@ -284,24 +317,24 @@ public class APIClientTest {
     public void waitForAsyncMethodTofinish(String asyncMethodStatusUrl) throws IOException {
         boolean isAsyncMethodRunning = true;
         int nbLoop = 0;
-
+        AsyncExecution.Status asyncStatus = null;
         while (isAsyncMethodRunning && nbLoop < 100) {
 
-            String statusAsyncMethod = given()
+            String statusAsyncMethod = given() //
                     .when() //
-                    .expect()
-                    .statusCode(200)
-                    .log()
+                    .expect() //
+                    .statusCode(200) //
+                    .log() //
                     .ifError() //
-                    .get(asyncMethodStatusUrl)
+                    .get(asyncMethodStatusUrl) //
                     .asString();
 
-            AsyncExecutionMessage asyncExecutionMessage =
-                    mapper.readerFor(AsyncExecutionMessage.class).readValue(statusAsyncMethod);
+            AsyncExecutionMessage asyncExecutionMessage = mapper.readerFor(AsyncExecutionMessage.class)
+                    .readValue(statusAsyncMethod);
 
-            AsyncExecution.Status asyncStatus = asyncExecutionMessage.getStatus();
-            isAsyncMethodRunning =
-                    asyncStatus.equals(AsyncExecution.Status.RUNNING) || asyncStatus.equals(AsyncExecution.Status.NEW);
+            asyncStatus = asyncExecutionMessage.getStatus();
+            isAsyncMethodRunning = asyncStatus.equals(AsyncExecution.Status.RUNNING)
+                    || asyncStatus.equals(AsyncExecution.Status.NEW);
 
             try {
                 TimeUnit.MILLISECONDS.sleep(50);
@@ -311,11 +344,12 @@ public class APIClientTest {
             }
             nbLoop++;
         }
+        assertEquals(AsyncExecution.Status.DONE, asyncStatus);
     }
 
     public Response exportPreparation(String preparationId, String stepId, String csvDelimiter, String fileName)
             throws IOException, InterruptedException {
-        return export(preparationId, "", stepId, csvDelimiter, fileName);
+        return export(preparationId, null, stepId, csvDelimiter, fileName);
     }
 
     public Response exportPreparation(String preparationId, String stepId, String csvDelimiter)
@@ -352,11 +386,14 @@ public class APIClientTest {
             String fileName, Integer expectedStatus) {
         RequestSpecification exportRequest = given() //
                 .formParam("exportType", "CSV") //
-                .formParam(ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCLOSURE_MODE,
+                .formParam(ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCLOSURE_MODE, //
                         CSVFormat.ParametersCSV.ENCLOSURE_ALL_FIELDS) //
                 .formParam("preparationId", preparationId) //
-                .formParam("stepId", stepId) //
-                .formParam("datasetId", datasetId); //
+                .formParam("stepId", stepId);
+
+        if (datasetId != null) {
+            exportRequest.formParam("datasetId", datasetId);
+        }
 
         if (StringUtils.isNotEmpty(csvDelimiter)) {
             exportRequest.formParam(ExportFormat.PREFIX + CSVFormat.ParametersCSV.FIELDS_DELIMITER, csvDelimiter);
@@ -367,7 +404,7 @@ public class APIClientTest {
         }
 
         if (expectedStatus != null) {
-            exportRequest
+            exportRequest //
                     .when() //
                     .expect() //
                     .statusCode(expectedStatus) //
@@ -391,9 +428,14 @@ public class APIClientTest {
 
             waitForAsyncMethodTofinish(asyncMethodStatusUrl);
 
-            Response response = given().when().expect().statusCode(200).log().ifError() //
+            Response response = given() //
+                    .when() //
+                    .expect() //
+                    .statusCode(200) //
+                    .log() //
+                    .ifError() //
                     .get("/api/preparations/{id}/metadata", preparationId);
-            metadata =  mapper.readValue(response.asInputStream(), DataSetMetadata.class);
+            metadata = mapper.readValue(response.asInputStream(), DataSetMetadata.class);
         } else if (OK.equals(responseStatus)) {
             metadata = mapper.readValue(transformedResponse.asInputStream(), DataSetMetadata.class);
         } else {
