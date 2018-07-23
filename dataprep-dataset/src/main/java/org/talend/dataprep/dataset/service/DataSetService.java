@@ -713,11 +713,6 @@ public class DataSetService extends BaseDataSetService {
                 // Content was changed, so queue events (format analysis, content indexing for search...)
                 analyzeDataSet(currentDataSetMetadata.getId(), emptyList());
 
-                // publishing update event
-                //FIXME: this sould be a DatasetUpdateEvent and not DatasetImportedEvent
-                //FIXME: but if we use it cache is clean and we have strange behavior
-                publisher.publishEvent(new DatasetImportedEvent(currentDataSetMetadata.getId()));
-
             } catch (StrictlyBoundedInputStream.InputStreamTooLargeException e) {
                 LOG.warn("Dataset update {} cannot be done, new content is too big", currentDataSetMetadata.getId());
                 throw new TDPException(MAX_STORAGE_MAY_BE_EXCEEDED, e, build().put("limit", e.getMaxSize()));
