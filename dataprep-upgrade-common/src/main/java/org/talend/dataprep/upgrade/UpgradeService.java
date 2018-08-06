@@ -18,7 +18,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.dataprep.upgrade.model.UpgradeTask.target.USER;
 import static org.talend.dataprep.upgrade.model.UpgradeTask.target.VERSION;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 
@@ -120,14 +125,14 @@ public class UpgradeService {
                 try {
                     task.run();
                 } catch (Exception exception) {
-                    LOG.error("Failed to apply upgrade {}", taskId);
+                    LOG.error("Failed to apply upgrade {}", taskId, exception);
                     break;
                 }
                 repository.applied(targetId, taskId);
                 numberOfTasksApplied++;
             }
         }
-        LOG.info("Global upgrade process finished, {} upgrade(s) performed", numberOfTasksApplied);
+        LOG.info("Global upgrade process finished, {}/{} upgrade(s) performed", numberOfTasksApplied, tasks.size());
     }
 
     public void upgradeUser(String userId) {
@@ -155,7 +160,7 @@ public class UpgradeService {
             }
 
         }
-        LOG.info("Upgrade process finished for user {}, {} upgrade(s) performed", userId, numberOfTasksApplied);
+        LOG.info("Upgrade process finished for user {}, {}/{} upgrade(s) performed", userId, numberOfTasksApplied, tasks.size());
     }
 
     void setTasks(List<UpgradeTask> tasks) {
