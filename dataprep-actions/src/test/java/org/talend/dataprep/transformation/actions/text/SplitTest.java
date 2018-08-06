@@ -1,19 +1,23 @@
-//  ============================================================================
+// ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 package org.talend.dataprep.transformation.actions.text;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValueBuilder.value;
 import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValuesBuilder.builder;
@@ -21,7 +25,13 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
@@ -32,7 +42,6 @@ import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.dataset.statistics.PatternFrequency;
 import org.talend.dataprep.api.dataset.statistics.Statistics;
-import org.talend.dataprep.api.preparation.Action;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
@@ -45,12 +54,16 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Split
  */
-public class SplitTest extends AbstractMetadataBaseTest {
+public class SplitTest extends AbstractMetadataBaseTest<Split> {
 
     /**
      * The action to test.
      */
-    private Split action = new Split();
+    private final Split action = new Split();
+
+    public SplitTest() {
+        super(new Split());
+    }
 
     /** The action parameters. */
     private Map<String, String> parameters;
@@ -67,10 +80,11 @@ public class SplitTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testParameters() throws Exception {
-        final List<Parameter> parameters = action.getParameters();
+        final List<Parameter> parameters = action.getParameters(Locale.US);
         assertEquals(6, parameters.size());
         assertEquals(1L, parameters.stream().filter(p -> StringUtils.equals(Split.LIMIT, p.getName())).count());
-        final Optional<Parameter> separatorParameter = parameters.stream() //
+        final Optional<Parameter> separatorParameter = parameters
+                .stream() //
                 .filter(p -> StringUtils.equals(Split.SEPARATOR_PARAMETER, p.getName())) //
                 .findFirst();
         assertTrue(separatorParameter.isPresent());
@@ -85,11 +99,11 @@ public class SplitTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.SPLIT.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.SPLIT.getDisplayName(Locale.US)));
     }
 
     @Test
-    public void should_split_row() {
+    public void test_apply_in_newcolumn() {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon ipsum dolor amet swine leberkas pork belly", "01/01/2015");
 
@@ -133,7 +147,7 @@ public class SplitTest extends AbstractMetadataBaseTest {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon_ipsum", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (string)");
+        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "_");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -155,7 +169,7 @@ public class SplitTest extends AbstractMetadataBaseTest {
         // given
         final DataSetRow row = getRow("lorem bacon", "Bacon\tipsum", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (string)");
+        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "\t");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -181,7 +195,7 @@ public class SplitTest extends AbstractMetadataBaseTest {
         values.put("0002", "01/01/2015");
         final DataSetRow row = new DataSetRow(values);
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (string)");
+        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "");
 
         // when
@@ -200,7 +214,7 @@ public class SplitTest extends AbstractMetadataBaseTest {
         values.put("0002", "01/01/2015");
         final DataSetRow row = new DataSetRow(values);
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (regex)");
+        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_REGEX);
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "(");
 
         // when
@@ -215,7 +229,7 @@ public class SplitTest extends AbstractMetadataBaseTest {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (string)");
+        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_STRING);
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_STRING, "(");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -237,7 +251,7 @@ public class SplitTest extends AbstractMetadataBaseTest {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (regex)");
+        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_REGEX);
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -259,7 +273,7 @@ public class SplitTest extends AbstractMetadataBaseTest {
         // given
         final DataSetRow row = getRow("lorem bacon", "Je vais bien (tout va bien)", "01/01/2015");
 
-        parameters.put(Split.SEPARATOR_PARAMETER, "other (regex)");
+        parameters.put(Split.SEPARATOR_PARAMETER, Split.OTHER_REGEX);
         parameters.put(Split.MANUAL_SEPARATOR_PARAMETER_REGEX, "bien|fff");
 
         final Map<String, String> expectedValues = new HashMap<>();
@@ -277,9 +291,6 @@ public class SplitTest extends AbstractMetadataBaseTest {
     }
 
     @Test
-    /**
-     * @see SplitTest#should_split_row()
-     */
     public void test_TDP_876() {
         // given
         final DataSetRow row = builder() //
@@ -291,8 +302,7 @@ public class SplitTest extends AbstractMetadataBaseTest {
         // when
         ActionTestWorkbench.test(Collections.singletonList(row), //
                 analyzerService, // Test requires some analysis in asserts
-                actionRegistry,
-                factory.create(action, parameters));
+                actionRegistry, factory.create(action, parameters));
 
         // then
         final RowMetadata actual = row.getRowMetadata();
@@ -324,9 +334,6 @@ public class SplitTest extends AbstractMetadataBaseTest {
         assertEquals(expectedValues, row.values());
     }
 
-    /**
-     * @see Action#getRowAction()
-     */
     @Test
     public void should_split_row_with_separator_at_the_end() {
         // given
@@ -346,9 +353,6 @@ public class SplitTest extends AbstractMetadataBaseTest {
         assertEquals(expectedValues, row.values());
     }
 
-    /**
-     * @see Action#getRowAction()
-     */
     @Test
     public void should_split_row_no_separator() {
         // given
@@ -368,9 +372,6 @@ public class SplitTest extends AbstractMetadataBaseTest {
         assertEquals(expectedValues, row.values());
     }
 
-    /**
-     * @see Action#getRowAction()
-     */
     @Test
     public void should_update_metadata() {
         // given
@@ -394,9 +395,6 @@ public class SplitTest extends AbstractMetadataBaseTest {
         assertEquals(expected, rowMetadata.getColumns());
     }
 
-    /**
-     * @see Action#getRowAction()
-     */
     @Test
     public void should_update_metadata_twice() {
         // given
@@ -416,7 +414,8 @@ public class SplitTest extends AbstractMetadataBaseTest {
         expected.add(createMetadata("0002", "last update"));
 
         // when
-        ActionTestWorkbench.test(rowMetadata, actionRegistry, factory.create(action, parameters), factory.create(action, parameters));
+        ActionTestWorkbench.test(rowMetadata, actionRegistry, factory.create(action, parameters),
+                factory.create(action, parameters));
 
         assertEquals(expected, rowMetadata.getColumns());
     }
@@ -496,8 +495,11 @@ public class SplitTest extends AbstractMetadataBaseTest {
 
     @Test
     public void should_have_separator_that_could_be_blank() {
-        Optional<Parameter> parameter = new Split().getParameters().stream()
-                .filter(p -> StringUtils.equals(p.getName(), Split.SEPARATOR_PARAMETER)).findFirst();
+        Optional<Parameter> parameter = new Split()
+                .getParameters(Locale.US)
+                .stream()
+                .filter(p -> StringUtils.equals(p.getName(), Split.SEPARATOR_PARAMETER))
+                .findFirst();
         if (parameter.isPresent()) {
             assertTrue(parameter.get().isCanBeBlank());
         } else {
@@ -516,8 +518,26 @@ public class SplitTest extends AbstractMetadataBaseTest {
      * @return a new column metadata
      */
     protected ColumnMetadata createMetadata(String id, String name) {
-        return ColumnMetadata.Builder.column().computedId(id).name(name).type(Type.STRING).headerSize(12).empty(0).invalid(2)
-                .valid(5).build();
+        return ColumnMetadata.Builder
+                .column()
+                .computedId(id)
+                .name(name)
+                .type(Type.STRING)
+                .headerSize(12)
+                .empty(0)
+                .invalid(2)
+                .valid(5)
+                .build();
+    }
+
+    @Test
+    public void test_apply_inplace() {
+        // Nothing to test, this action is never applied in place
+    }
+
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.INVISIBLE_ENABLED;
     }
 
 }

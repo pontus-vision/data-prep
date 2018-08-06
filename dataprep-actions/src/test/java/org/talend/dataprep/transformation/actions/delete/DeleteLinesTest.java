@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -20,6 +20,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -33,16 +34,23 @@ import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
-public class DeleteLinesTest extends AbstractMetadataBaseTest {
-
-    private DeleteLines action = new DeleteLines();
+public class DeleteLinesTest extends AbstractMetadataBaseTest<DeleteLines> {
 
     private Map<String, String> parameters;
+
+    public DeleteLinesTest() {
+        super(new DeleteLines());
+    }
 
     @Before
     public void setUp() throws Exception {
         parameters = ActionMetadataTestUtils.parseParameters( //
                 DeleteLinesTest.class.getResourceAsStream("deleteLines.json"));
+    }
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.NA;
     }
 
     @Test
@@ -62,7 +70,7 @@ public class DeleteLinesTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.FILTERED.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.FILTERED.getDisplayName(Locale.US)));
     }
 
     @Test

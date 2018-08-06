@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -19,6 +19,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.command.preparation.GetStepRowMetadata;
+import org.talend.dataprep.command.preparation.InvalidStepRowMetadata;
 import org.talend.dataprep.command.preparation.UpdateStepRowMetadata;
 
 /**
@@ -55,5 +56,9 @@ public class StepMetadataRepository {
     public void update(String stepId, RowMetadata rowMetadata) {
         LOGGER.debug("updating step {} metadata", stepId);
         context.getBean(UpdateStepRowMetadata.class, stepId, rowMetadata).execute();
+    }
+
+    public void invalidate(String stepId) {
+        context.getBean(InvalidStepRowMetadata.class, stepId).execute();
     }
 }

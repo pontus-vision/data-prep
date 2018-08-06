@@ -1,15 +1,15 @@
-//  ============================================================================
+// ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.column;
 
@@ -23,6 +23,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
@@ -38,6 +39,7 @@ import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 /**
@@ -45,14 +47,14 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Concat
  */
-public class ConcatTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private Concat action = new Concat();
+public class ConcatTest extends AbstractMetadataBaseTest<Concat> {
 
     /** The action parameters. */
     private Map<String, String> parameters;
 
+    public ConcatTest() {
+        super(new Concat());
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -69,22 +71,41 @@ public class ConcatTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.COLUMNS.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.COLUMNS.getDisplayName(Locale.US)));
     }
 
     @Test
     public void testParameters() throws Exception {
-        final List<Parameter> parameters = action.getParameters();
-        assertThat(parameters.size(), is(7));
+        final List<Parameter> parameters = action.getParameters(Locale.US);
+        assertThat(parameters.size(), is(8));
 
         // Test on items label for TDP-2943:
-        final SelectParameter selectParameter = (SelectParameter) parameters.get(5);
+        final SelectParameter selectParameter = (SelectParameter) parameters.get(6);
         assertEquals("Other column", selectParameter.getItems().get(0).getLabel());
         assertEquals("Value", selectParameter.getItems().get(1).getLabel());
     }
 
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
+    }
+
     @Test
-    public void should_apply_on_column_with_full_parameter() {
+    public void test_apply_in_newcolumn() {
+        // given
+        DataSetRow row = getRow("first", "second", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        DataSetRow expected = getRow("first", "second", "Done !", "<first-second>");
+        assertEquals(expected, row);
+    }
+
+    @Test
+    public void test_apply_inplace() {
         // given
         DataSetRow row = getRow("first", "second", "Done !");
 
@@ -92,7 +113,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
         // then
-        DataSetRow expected = getRow("first", "second", "Done !", "<first-second>");
+        DataSetRow expected = getRow("<first-second>", "second", "Done !");
         assertEquals(expected, row);
     }
 
@@ -104,6 +125,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
                 .with(value("second").type(Type.STRING).name("selected")) //
                 .with(value("Done !").type(Type.STRING)) //
                 .build();
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -122,6 +144,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
                 .with(value("second").type(Type.STRING).name("selected")) //
                 .with(value("Done !").type(Type.STRING)) //
                 .build();
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         parameters.put(Concat.MODE_PARAMETER, Concat.CONSTANT_MODE);
         parameters.remove(Concat.SELECTED_COLUMN_PARAMETER);
@@ -140,6 +163,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow("first", "second", "Done !");
         parameters.remove(Concat.SEPARATOR_PARAMETER);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -149,11 +173,11 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         assertEquals(expected, row);
     }
 
-
     @Test
     public void should_not_apply_without_first_value() {
         // given
         DataSetRow row = getRow("", "second", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -170,6 +194,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow("", "second", "Done !");
         parameters.put(Concat.SEPARATOR_CONDITION, Concat.ALWAYS);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -185,6 +210,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
     public void should_not_apply_with_first_value_blank() {
         // given
         DataSetRow row = getRow(" ", "second", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -201,6 +227,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow(" ", "second", "Done !");
         parameters.put(Concat.SEPARATOR_CONDITION, Concat.ALWAYS);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -216,6 +243,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
     public void should_apply_without_first_value_blank_and_both_not_empty() {
         // given
         DataSetRow row = getRow(" ", "second", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -232,6 +260,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow("first", "", "Done !");
         parameters.put(Concat.SEPARATOR_CONDITION, Concat.ALWAYS);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -247,6 +276,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
     public void should_apply_without_second_value() {
         // given
         DataSetRow row = getRow("first", "", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -262,6 +292,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
     public void should_apply_without_second_value_and_both_not_empty() {
         // given
         DataSetRow row = getRow("first", "", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -277,15 +308,16 @@ public class ConcatTest extends AbstractMetadataBaseTest {
     public void should_not_apply_with_blank_second_value() {
         // given
         DataSetRow row = getRow("first", "  ", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
         // then
         Assertions.assertThat(row.values()).contains(MapEntry.entry("0000", "first"), //
-                                                     MapEntry.entry("0001", "  "), //
-                                                     MapEntry.entry("0002", "Done !"), //
-                                                     MapEntry.entry("0003", "<first>"));
+                MapEntry.entry("0001", "  "), //
+                MapEntry.entry("0002", "Done !"), //
+                MapEntry.entry("0003", "<first>"));
     }
 
     @Test
@@ -293,6 +325,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow("first", "  ", "Done !");
         parameters.put(Concat.SEPARATOR_CONDITION, Concat.ALWAYS);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -309,6 +342,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow(" ", " ", "Done !");
         parameters.put(Concat.SEPARATOR_CONDITION, Concat.ALWAYS);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -325,6 +359,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow("", "", "Done !");
         parameters.put(Concat.SEPARATOR_CONDITION, Concat.ALWAYS);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -340,6 +375,8 @@ public class ConcatTest extends AbstractMetadataBaseTest {
     public void should_apply_with_blank_second_value_and_both_not_empty() {
         // given
         DataSetRow row = getRow("first", "  ", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -356,6 +393,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow("first", "second", "Done !");
         parameters.remove(Concat.PREFIX_PARAMETER);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -370,6 +408,8 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow("first", "second", "Done !");
         parameters.put(Concat.MODE_PARAMETER, Concat.CONSTANT_MODE);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -384,6 +424,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         // given
         DataSetRow row = getRow("first", "second", "Done !");
         parameters.remove(Concat.SUFFIX_PARAMETER);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -400,6 +441,7 @@ public class ConcatTest extends AbstractMetadataBaseTest {
         parameters.remove(Concat.PREFIX_PARAMETER);
         parameters.remove(Concat.SEPARATOR_PARAMETER);
         parameters.remove(Concat.SUFFIX_PARAMETER);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));

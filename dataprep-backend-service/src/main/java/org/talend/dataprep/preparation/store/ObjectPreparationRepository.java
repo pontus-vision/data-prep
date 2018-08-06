@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,6 +12,7 @@
 
 package org.talend.dataprep.preparation.store;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -48,4 +49,21 @@ public abstract class ObjectPreparationRepository implements PreparationReposito
         return source(clazz).filter(accept);
     }
 
+    @Override
+    public void add(Collection<? extends Identifiable> objects) {
+        for (Identifiable object : objects) {
+            add(object);
+        }
+    }
+
+    @Override
+    public <T extends Identifiable> void remove(Class<T> clazz, Expression filter) {
+        final Predicate<T> predicate = filter.accept(new BeanPredicateVisitor<>(clazz));
+        source(clazz).filter(predicate).forEach(this::remove);
+    }
+
+    @Override
+    public long count(Class<? extends Identifiable> clazz, Expression filter) {
+        return list(clazz, filter).count();
+    }
 }

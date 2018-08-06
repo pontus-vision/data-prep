@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,15 +13,13 @@
 
 package org.talend.dataprep.transformation.actions.bool;
 
-import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.junit.Test;
 import org.talend.dataprep.api.action.ActionDefinition;
@@ -31,6 +29,7 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 /**
@@ -38,10 +37,7 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Negate
  */
-public class NegateTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private Negate action = new Negate();
+public class NegateTest extends AbstractMetadataBaseTest<Negate> {
 
     private Map<String, String> parameters;
 
@@ -49,17 +45,18 @@ public class NegateTest extends AbstractMetadataBaseTest {
      * Default empty constructor
      */
     public NegateTest() throws IOException {
+        super(new Negate());
         parameters = ActionMetadataTestUtils.parseParameters(NegateTest.class.getResourceAsStream("negateAction.json"));
     }
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.BOOLEAN.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.BOOLEAN.getDisplayName(Locale.US)));
     }
 
     @Test
     public void testActionScope() throws Exception {
-        assertThat(action.getActionScope(), is(emptyList()));
+        assertThat(action.getActionScope(), is(new ArrayList<>()));
     }
 
     @Test
@@ -69,8 +66,40 @@ public class NegateTest extends AbstractMetadataBaseTest {
         assertThat(action.adapt(column), is(action));
     }
 
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
+    }
+
     @Test
-    public void should_negate_true() {
+    public void test_apply_in_newcolumn() {
+        // given
+        Map<String, String> values = new LinkedHashMap<>();
+        values.put("0000", "Vincent");
+        values.put("0001", "R&D");
+        values.put("0002", "true");
+        DataSetRow row = new DataSetRow(values);
+
+        Map<String, String> expectedValues = new HashMap<>();
+        expectedValues.put("0000", "Vincent");
+        expectedValues.put("0001", "R&D");
+        expectedValues.put("0002", "true");
+        expectedValues.put("0003", "False");
+
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0002_negate").type(Type.BOOLEAN).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_inplace() {
         // given
         Map<String, String> values = new HashMap<>();
         values.put("0000", "Vincent");

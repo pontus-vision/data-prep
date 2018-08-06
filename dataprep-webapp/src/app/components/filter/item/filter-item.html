@@ -1,7 +1,7 @@
 <!--
   ~ ============================================================================
   ~
-  ~  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  ~  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
   ~
   ~  This source code is available under agreement available at
   ~  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -21,8 +21,9 @@
         {{$ctrl.filter.colName}}
     </span>
     <span ng-if="$ctrl.filter.value">
-        <span ng-if="$ctrl.filter.colName" class="filter-item-label">
-            {{$ctrl.filter.colName}}{{$ctrl.sign}}
+        <span ng-if="$ctrl.filter.colName && $ctrl.filter.colId !== $ctrl.WILDCARD" class="filter-item-label">
+            {{$ctrl.filter.colName}}
+            <span class="filter-item-sign">{{$ctrl.sign}}</span>
         </span>
         <form ng-submit="$ctrl.submit()">
 

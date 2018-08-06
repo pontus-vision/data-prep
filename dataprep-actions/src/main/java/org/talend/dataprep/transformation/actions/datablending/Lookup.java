@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,16 +13,32 @@
 
 package org.talend.dataprep.transformation.actions.datablending;
 
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.parameters.ParameterType.LIST;
 import static org.talend.dataprep.parameters.ParameterType.STRING;
+import static org.talend.dataprep.transformation.actions.Providers.get;
+import static org.talend.dataprep.transformation.actions.category.ActionScope.HIDDEN_IN_ACTION_LIST;
 import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.COLUMN_ID;
-import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.*;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_ID;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_NAME;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_JOIN_ON;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_JOIN_ON_NAME;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_SELECTED_COLS;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
@@ -30,22 +46,22 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.DataSetAction;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 /**
  * Lookup action used to blend a (or a part of a) dataset into another one.
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + Lookup.LOOKUP_ACTION_NAME)
+@Action(Lookup.LOOKUP_ACTION_NAME)
 public class Lookup extends AbstractActionMetadata implements DataSetAction {
 
     /** The action name. */
@@ -60,6 +76,8 @@ public class Lookup extends AbstractActionMetadata implements DataSetAction {
     /** Adapted value of the dataset_id parameter. */
     private String adaptedDatasetIdValue = EMPTY;
 
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
+
     /**
      * @return A unique name used to identify action.
      */
@@ -72,21 +90,46 @@ public class Lookup extends AbstractActionMetadata implements DataSetAction {
      * @return A 'category' for the action used to group similar actions (eg. 'math', 'repair'...).
      */
     @Override
-    public String getCategory() {
-        return ActionCategory.DATA_BLENDING.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.DATA_BLENDING.getDisplayName(locale);
     }
 
     @Override
-    public List<Parameter> getParameters() {
+    public List<String> getActionScope() {
+        return Collections.singletonList(HIDDEN_IN_ACTION_LIST.getDisplayName());
+    }
+
+    @Override
+    public List<Parameter> getParameters(Locale locale) {
         final List<Parameter> parameters = new ArrayList<>();
-        parameters.add(ImplicitParameters.COLUMN_ID.getParameter());
-        parameters.add(ImplicitParameters.FILTER.getParameter());
-        parameters.add(new Parameter(LOOKUP_DS_NAME.getKey(), STRING, adaptedNameValue, false, false, StringUtils.EMPTY));
-        parameters.add(new Parameter(LOOKUP_DS_ID.getKey(), STRING, adaptedDatasetIdValue, false, false, StringUtils.EMPTY));
-        parameters.add(new Parameter(LOOKUP_JOIN_ON.getKey(), STRING, EMPTY, false, false, StringUtils.EMPTY));
-        parameters.add(new Parameter(LOOKUP_JOIN_ON_NAME.getKey(), STRING, EMPTY, false, false, StringUtils.EMPTY));
-        parameters.add(new Parameter(LOOKUP_SELECTED_COLS.getKey(), LIST, EMPTY, false, false, StringUtils.EMPTY));
-        return ActionsBundle.attachToAction(parameters, this);
+        parameters.add(ImplicitParameters.COLUMN_ID.getParameter(locale));
+        parameters.add(ImplicitParameters.FILTER.getParameter(locale));
+        parameters.add(Parameter.parameter(locale).setName(LOOKUP_DS_NAME.getKey())
+                .setType(STRING)
+                .setDefaultValue(adaptedNameValue)
+                .setCanBeBlank(false)
+                .build(this));
+        parameters.add(Parameter.parameter(locale).setName(LOOKUP_DS_ID.getKey())
+                .setType(STRING)
+                .setDefaultValue(adaptedDatasetIdValue)
+                .setCanBeBlank(false)
+                .build(this));
+        parameters.add(Parameter.parameter(locale).setName(LOOKUP_JOIN_ON.getKey())
+                .setType(STRING)
+                .setDefaultValue(EMPTY)
+                .setCanBeBlank(false)
+                .build(this));
+        parameters.add(Parameter.parameter(locale).setName(LOOKUP_JOIN_ON_NAME.getKey())
+                .setType(STRING)
+                .setDefaultValue(EMPTY)
+                .setCanBeBlank(false)
+                .build(this));
+        parameters.add(Parameter.parameter(locale).setName(LOOKUP_SELECTED_COLS.getKey())
+                .setType(LIST)
+                .setDefaultValue(EMPTY)
+                .setCanBeBlank(false)
+                .build(this));
+        return parameters;
     }
 
     @Override
@@ -110,32 +153,37 @@ public class Lookup extends AbstractActionMetadata implements DataSetAction {
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (context.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(context, singletonList(ActionsUtils.additionalColumn()));
+        }
+        if (context.getActionStatus() == OK) {
             List<LookupSelectedColumnParameter> colsToAdd = getColsToAdd(context.getParameters());
             if (colsToAdd.isEmpty()) {
-                context.setActionStatus(ActionContext.ActionStatus.CANCELED);
+                context.setActionStatus(CANCELED);
             }
 
-            LookupRowMatcher rowMatcher = context.get("rowMatcher", p -> Providers.get(LookupRowMatcher.class, p));
+            LookupRowMatcher rowMatcher = context.get("rowMatcher", p -> get(LookupRowMatcher.class, p));
             // Create lookup result columns
             final Map<String, String> parameters = context.getParameters();
             final String columnId = parameters.get(COLUMN_ID.getKey());
             final RowMetadata lookupRowMetadata = rowMatcher.getRowMetadata();
             final RowMetadata rowMetadata = context.getRowMetadata();
-            colsToAdd.forEach(toAdd -> {
+            final List<String> addedColumns = colsToAdd.stream().map(toAdd -> {
                 // create the new column
                 final String toAddColumnId = toAdd.getId();
                 final ColumnMetadata metadata = lookupRowMetadata.getById(toAddColumnId);
-                context.column(toAddColumnId, r -> {
-                    final ColumnMetadata colMetadata = ColumnMetadata.Builder //
-                            .column() //
+                return context.column(toAddColumnId, r -> {
+                    final ColumnMetadata colMetadata = //
+                            column() //
                             .copy(metadata) //
                             .computedId(null) // id should be set by the insertAfter method
                             .build();
                     rowMetadata.insertAfter(columnId, colMetadata);
                     return colMetadata;
                 });
-            });
+            }).collect(Collectors.toList());
+
+            Lists.reverse(addedColumns).forEach(column -> rowMetadata.moveAfter(columnId, column));
         }
     }
 
@@ -175,7 +223,7 @@ public class Lookup extends AbstractActionMetadata implements DataSetAction {
      * @param parameters the action parameters.
      * @return the list of columns to merge.
      */
-    private List<LookupSelectedColumnParameter> getColsToAdd(Map<String, String> parameters) {
+    public static List<LookupSelectedColumnParameter> getColsToAdd(Map<String, String> parameters) {
         List<LookupSelectedColumnParameter> result;
         try {
             final String cols = parameters.get(LOOKUP_SELECTED_COLS.getKey());

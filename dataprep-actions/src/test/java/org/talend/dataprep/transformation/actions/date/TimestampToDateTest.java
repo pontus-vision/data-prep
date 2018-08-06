@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -19,10 +19,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +30,7 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 /**
@@ -40,12 +38,13 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see TimestampToDate
  */
-public class TimestampToDateTest extends BaseDateTest {
-
-    /** The action to test. */
-    private TimestampToDate action = new TimestampToDate();
+public class TimestampToDateTest extends BaseDateTest<TimestampToDate> {
 
     private Map<String, String> parameters;
+
+    public TimestampToDateTest() {
+        super(new TimestampToDate());
+    }
 
     @Before
     public void init() throws IOException {
@@ -62,11 +61,39 @@ public class TimestampToDateTest extends BaseDateTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.DATE.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.DATE.getDisplayName(Locale.US)));
+    }
+
+    @Override
+    protected CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.VISIBLE_ENABLED;
     }
 
     @Test
-    public void should_convert_to_date() {
+    public void test_apply_inplace() {
+        // given
+        final Map<String, String> values = new HashMap<>();
+        values.put("0000", "lorem bacon");
+        values.put("0001", "0");
+        values.put("0002", "01/01/2015");
+        final DataSetRow row = new DataSetRow(values);
+
+        final Map<String, String> expectedValues = new HashMap<>();
+        expectedValues.put("0000", "lorem bacon");
+        expectedValues.put("0001", "01-01-1970");
+        expectedValues.put("0002", "01/01/2015");
+
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "false");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+    }
+
+    @Test
+    public void test_apply_in_newcolumn() {
         // given
         final Map<String, String> values = new HashMap<>();
         values.put("0000", "lorem bacon");

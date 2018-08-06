@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -22,7 +22,7 @@
  * @requires data-prep.services.state.service:StateService
  */
 export default class PreparationCopyMoveCtrl {
-	constructor(state, FolderService, MessageService, PreparationService, StateService) {
+	constructor($translate, state, FolderService, MessageService, PreparationService, StateService) {
 		'ngInject';
 
 		this.state = state;
@@ -30,6 +30,7 @@ export default class PreparationCopyMoveCtrl {
 		this.MessageService = MessageService;
 		this.PreparationService = PreparationService;
 		this.StateService = StateService;
+		this.itemType = $translate.instant('PREPARATION');
 	}
 
 	/**

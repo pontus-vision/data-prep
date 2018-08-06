@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -22,17 +22,14 @@ import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 
 /**
@@ -40,12 +37,13 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
  *
  * @see RemoveRepeatedChars
  */
-public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest {
-
-    /** The action for removing consecutive. */
-    private RemoveRepeatedChars action = new RemoveRepeatedChars();
+public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest<RemoveRepeatedChars> {
 
     private Map<String, String> parameters;
+
+    public RemoveRepeatedCharsTest() {
+        super(new RemoveRepeatedChars());
+    }
 
     /**
      * initialize parameters for Whitespace.
@@ -59,7 +57,6 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest {
 
     /**
      * initialize  parameters for custom repeated char
-     * @param repStr
      */
     private void initParameterCustom(String repStr) {
         parameters = new HashMap<>();
@@ -76,22 +73,83 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.STRINGS.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.STRINGS.getDisplayName(Locale.US)));
     }
 
     @Test
     public void testGetParameters() throws Exception {
-        final List<Parameter> parameters = action.getParameters();
-        assertEquals(5, parameters.size());
+        final List<Parameter> parameters = action.getParameters(Locale.US);
+        assertEquals(6, parameters.size());
 
-        final SelectParameter parameter4 = (SelectParameter) parameters.get(4);
-        assertEquals(2,parameter4.getItems().size());
+        final SelectParameter parameter4 = (SelectParameter) parameters.get(5);
+        assertEquals(2, parameter4.getItems().size());
         assertEquals("Whitespace", parameter4.getItems().get(0).getLabel());
-        assertEquals("other", parameter4.getItems().get(1).getLabel());
+        assertEquals("Other", parameter4.getItems().get(1).getLabel());
+    }
+
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
     }
 
     @Test
-    public void should_remove_repeated_whiteSpace() {
+    public void test_apply_in_newcolumn() {
+        // given
+        final Map<String, String> values = new LinkedHashMap<>();
+        values.put("0000", "ab   c  d");
+        values.put("0001", "tagadaa");
+        values.put("0002", "May 20th 2015");
+        final DataSetRow row = new DataSetRow(values);
+
+        final Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "ab   c  d");
+        expectedValues.put("0003", "ab c d");
+        expectedValues.put("0001", "tagadaa");
+        expectedValues.put("0002", "May 20th 2015");
+
+        initParametersWhitespace();
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0000_without_consecutive").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_in_newcolumn_with_empty_values() {
+        // given
+        final Map<String, String> values = new LinkedHashMap<>();
+        values.put("0000", "");
+        values.put("0001", "tagadaa");
+        values.put("0002", "May 20th 2015");
+        final DataSetRow row = new DataSetRow(values);
+
+        final Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "");
+        expectedValues.put("0003", "");
+        expectedValues.put("0001", "tagadaa");
+        expectedValues.put("0002", "May 20th 2015");
+
+        initParametersWhitespace();
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0000_without_consecutive").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_inplace() {
         // given
         final Map<String, String> values = new HashMap<>();
         values.put("0000", "ab   c  d");
@@ -163,6 +221,45 @@ public class RemoveRepeatedCharsTest extends AbstractMetadataBaseTest {
 
         // then
         assertEquals("haand", row.get("0000"));
+    }
+    @Test
+    public void shouldRemoveCustomSurrogatePairEndCharacters() {
+        // given 4 duplicate 𠀄 in the end of string and user want to remove duplicate 𠀄(for TDQ-15120)
+        final Map<String, String> values = new HashMap<>();
+        values.put("0000", "中崎𠀀𠀁𠀂𠀃𠀄𠀄𠀄𠀄");
+        final DataSetRow row = new DataSetRow(values);
+        initParameterCustom("𠀄");
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals("中崎𠀀𠀁𠀂𠀃𠀄", row.get("0000"));
+    }
+    @Test
+    public void shouldRemoveCustomSurrogatePairStartCharacters() {
+        // given 3 duplicate 𠀄 at start of string and user want to remove duplicate 𠀄(for TDQ-15120)
+        final Map<String, String> values = new HashMap<>();
+        values.put("0000", "𠀄𠀄𠀄中崎𠀀𠀁𠀂𠀃𠀄");
+        final DataSetRow row = new DataSetRow(values);
+        initParameterCustom("𠀄");
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals("𠀄中崎𠀀𠀁𠀂𠀃𠀄", row.get("0000"));
+    }
+    @Test
+    public void shouldRemoveCustomSurrogatePairMiddleCharacters() {
+        // given 3 duplicate 𠀄 at middle of string and user want to remove duplicate 𠀄(for TDQ-15120)
+        final Map<String, String> values = new HashMap<>();
+        values.put("0000", "中崎𠀀𠀄𠀄𠀄𠀁𠀂𠀃𠀄");
+        final DataSetRow row = new DataSetRow(values);
+        initParameterCustom("𠀄");
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals("中崎𠀀𠀄𠀁𠀂𠀃𠀄", row.get("0000"));
     }
 
     @Test

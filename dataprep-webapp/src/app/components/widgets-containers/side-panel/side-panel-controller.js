@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -37,20 +37,24 @@ export default class SidePanelCtrl {
 	}
 
 	adaptActions() {
-		this.actions = this.appSettings
-			.views
-			.sidepanel
-			.actions
+		this.actions = this.appSettings.views.sidepanel.actions
 			.map(actionName => this.appSettings.actions[actionName])
-			.map(action => ({
-				...action,
-				label: action.name,
-				onClick: this.SettingsActionsService.createDispatcher(action),
-			}));
+			.map((action) => {
+				const adaptedAction = {
+					...action,
+					label: action.name,
+					id: action.id.replace(/:/g, '-'),
+					onClick: this.SettingsActionsService.createDispatcher(action),
+				};
+				delete adaptedAction.type;
+				return adaptedAction;
+			});
 	}
 
 	adaptToggle() {
-		const action = this.appSettings.actions[this.appSettings.views.sidepanel.onToggleDock];
+		const action = this.appSettings.actions[
+			this.appSettings.views.sidepanel.onToggleDock
+		];
 		this.toggle = this.SettingsActionsService.createDispatcher(action);
 	}
 }

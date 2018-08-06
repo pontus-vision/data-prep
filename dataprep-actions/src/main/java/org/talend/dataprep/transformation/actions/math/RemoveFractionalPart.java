@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,28 +13,22 @@
 package org.talend.dataprep.transformation.actions.math;
 
 import java.math.RoundingMode;
-import java.util.List;
 
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.i18n.ActionsBundle;
-import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
-import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 
 /**
  * Round towards zero. Never increments the digit prior to a discarded fraction (i.e. truncates)
  *
  * @see RoundingMode#DOWN
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + RemoveFractionalPart.ACTION_NAME)
+@Action(RemoveFractionalPart.ACTION_NAME)
 public class RemoveFractionalPart extends AbstractRound {
 
     /** The action name. */
     public static final String ACTION_NAME = "round_down"; //$NON-NLS-1$
 
-    @Override
-    public List<Parameter> getParameters() {
-        return ActionsBundle.attachToAction(ImplicitParameters.getParameters(), this);
+    protected boolean hasPrecisionField() {
+        return false;
     }
 
     @Override

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -21,6 +21,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
@@ -40,10 +41,7 @@ import org.talend.dataprep.transformation.api.action.context.TransformationConte
  *
  * @see ClearInvalid
  */
-public class ClearInvalidTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private ClearInvalid clearInvalid = new ClearInvalid();
+public class ClearInvalidTest extends AbstractMetadataBaseTest<ClearInvalid> {
 
     private Map<String, String> parameters;
 
@@ -51,27 +49,38 @@ public class ClearInvalidTest extends AbstractMetadataBaseTest {
      * Default constructor.
      */
     public ClearInvalidTest() throws IOException {
+        super(new ClearInvalid());
         parameters = ActionMetadataTestUtils
                 .parseParameters(ClearInvalidTest.class.getResourceAsStream("clearInvalidAction.json"));
     }
 
     @Test
     public void testName() throws Exception {
-        assertThat(clearInvalid.getName(), is("clear_invalid"));
+        assertThat(action.getName(), is("clear_invalid"));
     }
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(clearInvalid.getCategory(), is(ActionCategory.DATA_CLEANSING.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.DATA_CLEANSING.getDisplayName(Locale.US)));
     }
 
     @Test
     public void testActionScope() throws Exception {
-        assertThat(clearInvalid.getActionScope(), hasItem("invalid"));
+        assertThat(action.getActionScope(), hasItem("invalid"));
+    }
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.INVISIBLE_DISABLED;
     }
 
     @Test
-    public void should_clear_because_non_valid() {
+    public void test_apply_in_newcolumn() throws Exception {
+        // Nothing to test, this action is always applied in place
+    }
+
+    @Test
+    public void test_apply_inplace() {
         // given
         final Map<String, String> values = new HashMap<>();
         values.put("0000", "David Bowie");
@@ -90,10 +99,10 @@ public class ClearInvalidTest extends AbstractMetadataBaseTest {
         expectedValues.put("0002", "Something");
 
         // when
-        final RunnableAction action = factory.create(clearInvalid, parameters);
+        final RunnableAction runnableAction = factory.create(action, parameters);
         final ActionContext context = new ActionContext(new TransformationContext(), rowMetadata);
         context.setParameters(parameters);
-        action.getRowAction().apply(row, context);
+        runnableAction.getRowAction().apply(row, context);
 
         // then
         assertEquals(expectedValues, row.values());
@@ -117,10 +126,10 @@ public class ClearInvalidTest extends AbstractMetadataBaseTest {
         expectedValues.put("0002", "Something");
 
         // when
-        final RunnableAction action = factory.create(clearInvalid, parameters);
+        final RunnableAction runnableAction = factory.create(action, parameters);
         final ActionContext context = new ActionContext(new TransformationContext(), rowMetadata);
         context.setParameters(parameters);
-        action.getRowAction().apply(row, context);
+        runnableAction.getRowAction().apply(row, context);
 
         // then
         assertEquals(expectedValues, row.values());
@@ -144,10 +153,10 @@ public class ClearInvalidTest extends AbstractMetadataBaseTest {
         expectedValues.put("0003", "Something");
 
         // when
-        final RunnableAction action = factory.create(clearInvalid, parameters);
+        final RunnableAction runnableAction = factory.create(action, parameters);
         final ActionContext context = new ActionContext(new TransformationContext(), rowMetadata);
         context.setParameters(parameters);
-        action.getRowAction().apply(row, context);
+        runnableAction.getRowAction().apply(row, context);
 
         // then
         assertEquals(expectedValues, row.values());
@@ -157,15 +166,15 @@ public class ClearInvalidTest extends AbstractMetadataBaseTest {
     @Test
     public void should_accept_column() {
         for (Type type : Type.values()) {
-            assertTrue(clearInvalid.acceptField(getColumn(type)));
+            assertTrue(action.acceptField(getColumn(type)));
         }
     }
 
     @Test
     public void should_have_expected_behavior() {
-        assertEquals(2, clearInvalid.getBehavior().size());
-        assertTrue(clearInvalid.getBehavior().contains(ActionDefinition.Behavior.VALUES_COLUMN));
-        assertTrue(clearInvalid.getBehavior().contains(ActionDefinition.Behavior.NEED_STATISTICS_INVALID));
+        assertEquals(2, action.getBehavior().size());
+        assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.VALUES_COLUMN));
+        assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.NEED_STATISTICS_INVALID));
     }
 
 }

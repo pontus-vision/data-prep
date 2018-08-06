@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,12 +12,16 @@
 
 package org.talend.dataprep.preparation.store;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.springframework.data.annotation.Version;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.preparation.BasicUserLock;
+import org.talend.dataprep.api.preparation.PreparationDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -29,14 +33,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class PersistentPreparation extends PersistentIdentifiable {
 
-    /** Serialization UID. */
-    private static final long serialVersionUID = 1L;
-
     @Version
     private Long version;
 
-    /** The dataset id. */
+    /**
+     * The dataset id.
+     * @deprecated Use {@link #dataSetName} instead.
+     */
+    @Deprecated
     private String dataSetId;
+
+    private String dataSetName;
 
     /** Metadata on which the preparation is based. **/
     private RowMetadata rowMetadata;
@@ -48,7 +55,7 @@ public class PersistentPreparation extends PersistentIdentifiable {
     private String name;
 
     /** The creation date. */
-    private long creationDate;
+    private long creationDate = System.currentTimeMillis();
 
     /** The last modification date. */
     private long lastModificationDate;
@@ -65,6 +72,8 @@ public class PersistentPreparation extends PersistentIdentifiable {
 
     /** The user locking the preparation. */
     private BasicUserLock lock;
+
+    private String folderId;
 
     /**
      * Default empty constructor.
@@ -92,10 +101,20 @@ public class PersistentPreparation extends PersistentIdentifiable {
         this.name = name;
     }
 
+    public String getDataSetName() {
+        return dataSetName;
+    }
+
+    public void setDataSetName(String dataSetName) {
+        this.dataSetName = dataSetName;
+    }
+
+    @Deprecated
     public String getDataSetId() {
         return dataSetId;
     }
 
+    @Deprecated
     public void setDataSetId(String dataSetId) {
         this.dataSetId = dataSetId;
     }
@@ -179,10 +198,34 @@ public class PersistentPreparation extends PersistentIdentifiable {
         this.version = version;
     }
 
+    public String getFolderId() {
+        return folderId;
+    }
+
+    public void setFolderId(String folderId) {
+        this.folderId = folderId;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("id", id).append("dataSetId", dataSetId).append("author", author)
                 .append("name", name).append("creationDate", creationDate).append("lastModificationDate", lastModificationDate)
                 .append("headId", headId).toString();
+    }
+
+    public PersistentPreparation merge(PreparationDTO other) {
+        PersistentPreparation merge = new PersistentPreparation();
+        merge.rowMetadata = this.rowMetadata;
+        merge.lock = this.lock;
+        merge.steps = this.steps;
+        merge.creationDate = min(other.getCreationDate(), creationDate);
+        merge.id = other.getId() != null ? other.getId() : this.id;
+        merge.dataSetId = other.getDataSetId() != null ? other.getDataSetId() : dataSetId;
+        merge.dataSetName = other.getDataSetName() != null ? other.getDataSetName() : dataSetName;
+        merge.author = other.getAuthor() != null ? other.getAuthor() : author;
+        merge.name = other.getName() != null ? other.getName() : name;
+        merge.lastModificationDate = max(other.getLastModificationDate(), lastModificationDate);
+        merge.headId = other.getHeadId() != null ? other.getHeadId() : headId;
+        return merge;
     }
 }

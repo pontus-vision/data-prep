@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -80,8 +80,8 @@ export default function TransformMenuCtrl($timeout, state, PlaygroundService, Pa
 			vm.selectedMenu = menu;
 			vm.selectedScope = scope;
 
-            // get new parameters
-			initDynamicParams(menu).finally(function () {
+			// get new parameters
+			initDynamicParams(menu).finally(() => {
 				vm.dynamicFetchInProgress = false;
 			});
 		}
@@ -117,11 +117,11 @@ export default function TransformMenuCtrl($timeout, state, PlaygroundService, Pa
 				params.column_name = vm.column.name;
 
 				transform(menu, params)
-                    .finally(function () {
-	$timeout(() => {
-		vm.transformationInProgress = false;
-	}, 500, false);
-});
+					.finally(() => {
+						$timeout(() => {
+							vm.transformationInProgress = false;
+						}, 500, false);
+					});
 			}
 		};
 	};
@@ -136,8 +136,8 @@ export default function TransformMenuCtrl($timeout, state, PlaygroundService, Pa
      */
 	function transform(menu, params) {
 		return PlaygroundService.appendStep([{ action: menu.name, parameters: params }])
-            .then(function () {
-	vm.showModal = false;
-});
+			.then(() => {
+				vm.showModal = false;
+			});
 	}
 }

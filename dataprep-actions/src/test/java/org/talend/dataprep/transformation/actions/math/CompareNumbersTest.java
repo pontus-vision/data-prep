@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -23,6 +23,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -37,6 +38,7 @@ import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractCompareAction;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -45,13 +47,14 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see CompareNumbers
  */
-public class CompareNumbersTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private CompareNumbers action = new CompareNumbers();
+public class CompareNumbersTest extends AbstractMetadataBaseTest<CompareNumbers> {
 
     /** The action parameters. */
     private Map<String, String> parameters;
+
+    public CompareNumbersTest() {
+        super(new CompareNumbers());
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -66,10 +69,10 @@ public class CompareNumbersTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testActionParameters() throws Exception {
-        final List<Parameter> parameters = action.getParameters();
-        assertEquals(6, parameters.size());
-        assertTrue(parameters.stream().filter(p -> StringUtils.equals(p.getName(), CompareNumbers.COMPARE_MODE)).findFirst().isPresent());
-        assertTrue(parameters.stream().filter(p -> StringUtils.equals(p.getName(), CompareNumbers.MODE_PARAMETER)).findFirst().isPresent());
+        final List<Parameter> parameters = action.getParameters(Locale.US);
+        assertEquals(7, parameters.size());
+        assertTrue(parameters.stream().anyMatch(p -> StringUtils.equals(p.getName(), CompareNumbers.COMPARE_MODE)));
+        assertTrue(parameters.stream().anyMatch(p -> StringUtils.equals(p.getName(), CompareNumbers.MODE_PARAMETER)));
     }
 
     @Test
@@ -81,7 +84,12 @@ public class CompareNumbersTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.NUMBERS.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.NUMBERS.getDisplayName(Locale.US)));
+    }
+
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_ENABLED;
     }
 
     @Test
@@ -105,7 +113,15 @@ public class CompareNumbersTest extends AbstractMetadataBaseTest {
     }
 
     @Test
-    public void should_apply_on_column_not_equals() {
+    public void testComputePercentage() {
+        assertTrue(Boolean.parseBoolean( action.toStringCompareResult(new AbstractCompareAction.ComparisonRequest().setValue1("12%").setValue2("0.12").setMode("eq"))));
+        assertTrue(Boolean.parseBoolean( action.toStringCompareResult(new AbstractCompareAction.ComparisonRequest().setValue1("0.12").setValue2("12%").setMode("eq"))));
+        assertTrue(Boolean.parseBoolean( action.toStringCompareResult(new AbstractCompareAction.ComparisonRequest().setValue1("12%").setValue2("12%").setMode("eq"))));
+        assertTrue(Boolean.parseBoolean( action.toStringCompareResult(new AbstractCompareAction.ComparisonRequest().setValue1("13%").setValue2("0.12").setMode("ne"))));
+    }
+
+    @Test
+    public void test_apply_in_newcolumn() {
         // given
         DataSetRow row = getRow("5", "3", "Done !");
 
@@ -114,6 +130,20 @@ public class CompareNumbersTest extends AbstractMetadataBaseTest {
 
         // then
         DataSetRow expected = getRow("5", "3", "Done !", "false");
+        assertEquals(expected, row);
+    }
+
+    @Test
+    public void test_apply_inplace() {
+        // given
+        DataSetRow row = getRow("5", "3", "Done !");
+
+        // when
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "false");
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        DataSetRow expected = getRow("false", "3", "Done !");
         assertEquals(expected, row);
     }
 

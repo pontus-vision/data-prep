@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,31 +13,35 @@
 
 package org.talend.dataprep.transformation.actions.net;
 
-import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
-import static org.talend.dataprep.api.type.Type.STRING;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.EnumSet;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.talend.dataprep.api.type.Type.STRING;
 
 /**
  * Split a cell value on a separator.
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + ExtractUrlTokens.EXTRACT_URL_TOKENS_ACTION_NAME)
+@Action(ExtractUrlTokens.EXTRACT_URL_TOKENS_ACTION_NAME)
 public class ExtractUrlTokens extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -53,8 +57,8 @@ public class ExtractUrlTokens extends AbstractActionMetadata implements ColumnAc
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.SPLIT.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.SPLIT.getDisplayName(locale);
     }
 
     @Override
@@ -65,22 +69,15 @@ public class ExtractUrlTokens extends AbstractActionMetadata implements ColumnAc
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (context.getActionStatus() == ActionContext.ActionStatus.OK) {
-            final String columnId = context.getColumnId();
-            final RowMetadata rowMetadata = context.getRowMetadata();
-            final ColumnMetadata column = rowMetadata.getById(columnId);
-
-            String lastId = column.getId();
-            for (UrlTokenExtractor urlTokenExtractor : UrlTokenExtractors.urlTokenExtractors) {
-                final String columnName = column.getName() + urlTokenExtractor.getTokenName();
-                String columnToInsertAfter = lastId;
-                lastId = context.column(columnName, r -> {
-                    final ColumnMetadata newColumn = column().name(columnName).type(urlTokenExtractor.getType()).build();
-                    rowMetadata.insertAfter(columnToInsertAfter, newColumn);
-                    return newColumn;
-                });
+        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), true)) {
+            final List<ActionsUtils.AdditionalColumn> additionalColumns = new ArrayList<>();
+            for (UrlTokenExtractor urlTokenExtractor : UrlTokenExtractors.URL_TOKEN_EXTRACTORS) {
+                additionalColumns.add(ActionsUtils.additionalColumn()
+                        .withKey(urlTokenExtractor.getTokenName())
+                        .withName(context.getColumnName() + urlTokenExtractor.getTokenName())
+                        .withType(urlTokenExtractor.getType()));
             }
-
+            ActionsUtils.createNewColumn(context, additionalColumns);
         }
     }
 
@@ -88,23 +85,29 @@ public class ExtractUrlTokens extends AbstractActionMetadata implements ColumnAc
     public void applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String originalValue = row.get(columnId);
-        final RowMetadata rowMetadata = context.getRowMetadata();
-        final ColumnMetadata column = rowMetadata.getById(columnId);
-
-        URI url = null;
+        URI uri = null;
         try {
-            url = new URI(originalValue);
-        } catch (URISyntaxException | NullPointerException e) {
-            // Nothing to do, silently skip this row, leave url null, will be treated just below
+            uri = new URI(originalValue);
+        } catch (URISyntaxException  | NullPointerException e) {
+            // Nothing to do, silently skip this row, leave uri null, will be treated just below
             LOGGER.debug("Unable to parse value {}.", originalValue, e);
         }
-        // if url is null, we still loop on urlTokenExtractors in order to create the column metadata for all rows, even
+        // if uri is null, we still loop on urlTokenExtractors in order to create the column metadata for all rows, even
         // invalid ones.
-        for (UrlTokenExtractor urlTokenExtractor : UrlTokenExtractors.urlTokenExtractors) {
-            final String columnName = column.getName() + urlTokenExtractor.getTokenName();
-            final String id = context.column(columnName);
-            final String tokenValue = url == null ? StringUtils.EMPTY : urlTokenExtractor.extractToken(url);
-            row.set(id, (tokenValue == null ? StringUtils.EMPTY : tokenValue));
+        final Map<String, String> newColumns = ActionsUtils.getTargetColumnIds(context);
+        for (UrlTokenExtractor urlTokenExtractor : UrlTokenExtractors.URL_TOKEN_EXTRACTORS) {
+             String cellValue;
+            if (uri != null) {
+                String token = urlTokenExtractor.extractToken(uri);
+                if (token == null) {
+                    cellValue = EMPTY;
+                } else {
+                    cellValue = token;
+                }
+            } else {
+                cellValue = EMPTY;
+            }
+            row.set(newColumns.get(urlTokenExtractor.getTokenName()), cellValue);
         }
     }
 

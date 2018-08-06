@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -39,10 +39,11 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see FillIfEmpty
  */
-public class FillWithIntegerTest extends AbstractMetadataBaseTest {
+public class FillWithIntegerTest extends AbstractMetadataBaseTest<FillWithValue> {
 
-    /** The action to test. */
-    private FillWithValue action = new FillWithValue();
+    public FillWithIntegerTest() {
+        super(new FillWithValue());
+    }
 
     @PostConstruct
     public void init() {
@@ -56,8 +57,18 @@ public class FillWithIntegerTest extends AbstractMetadataBaseTest {
         assertThat(action.adapt(column), is(action));
     }
 
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.INVISIBLE_DISABLED;
+    }
+
     @Test
-    public void should_fill_empty_integer() throws Exception {
+    public void test_apply_in_newcolumn() throws Exception {
+        // always in place
+    }
+
+    @Test
+    public void test_apply_inplace() throws Exception {
         // given
         final Map<String, String> values = new HashMap<>();
         values.put("0000", "David Bowie");

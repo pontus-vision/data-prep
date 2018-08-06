@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,9 +13,9 @@
 
 package org.talend.dataprep.transformation.actions.net;
 
-import java.net.URI;
-
 import org.talend.dataprep.api.type.Type;
+
+import java.net.URI;
 
 /**
  * Interface for all url token extractor.
@@ -28,10 +28,10 @@ public interface UrlTokenExtractor {
     String getTokenName();
 
     /**
-     * @param url the url to extract the token from.
+     * @param uri the url to extract the token from.
      * @return the extracted token.
      */
-    String extractToken(URI url);
+    String extractToken(URI uri);
 
     /**
      * @return token type (default is String).

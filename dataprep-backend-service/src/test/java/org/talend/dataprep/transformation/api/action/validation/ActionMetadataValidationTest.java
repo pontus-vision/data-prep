@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -18,6 +18,7 @@ import static org.junit.Assert.fail;
 import static org.talend.dataprep.BaseErrorCodes.*;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -118,7 +119,7 @@ public class ActionMetadataValidationTest extends ServiceBaseTest {
         }
 
         @Override
-        public String getCategory() {
+        public String getCategory(Locale locale) {
             return null;
         }
 

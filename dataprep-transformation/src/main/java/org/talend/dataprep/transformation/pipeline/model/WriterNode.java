@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -22,10 +22,12 @@ import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.cache.ContentCacheKey;
+import org.talend.dataprep.cache.TransformationMetadataCacheKey;
 import org.talend.dataprep.transformation.api.transformer.ConfiguredCacheWriter;
 import org.talend.dataprep.transformation.api.transformer.TransformerWriter;
 import org.talend.dataprep.transformation.pipeline.Monitored;
 import org.talend.dataprep.transformation.pipeline.Node;
+import org.talend.dataprep.transformation.pipeline.RowMetadataFallbackProvider;
 import org.talend.dataprep.transformation.pipeline.RuntimeNode;
 import org.talend.dataprep.transformation.pipeline.Signal;
 import org.talend.dataprep.transformation.pipeline.Visitor;
@@ -41,7 +43,9 @@ public class WriterNode extends BasicNode implements Monitored {
 
     private final ContentCacheKey metadataKey;
 
-    /** Fall back raw metadata when no row (hence row metadata) is received. */
+    private RowMetadataFallbackProvider rowMetadataFallbackProvider;
+
+    /** Fall back row metadata when no row (hence no row metadata) is received. */
     private RowMetadata fallBackRowMetadata;
 
     private RowMetadata lastRowMetadata;
@@ -61,8 +65,8 @@ public class WriterNode extends BasicNode implements Monitored {
      * @param writer the transformer writer.
      * @param metadataCacheWriter the metadata cache writer.
      * @param metadataKey the transformation metadata cache key to use.
-     * @param fallBackRowMetadata fallback raw metadata to be able to write an empty content even if no row/rowMetadata id
-     * received.
+     * @param fallBackRowMetadata fallback row metadata to be able to write an empty content even if no row/rowMetadata
+     * was received.
      */
     public WriterNode(final TransformerWriter writer, final ConfiguredCacheWriter metadataCacheWriter,
             final ContentCacheKey metadataKey, RowMetadata fallBackRowMetadata) {
@@ -70,6 +74,14 @@ public class WriterNode extends BasicNode implements Monitored {
         this.metadataCacheWriter = metadataCacheWriter;
         this.metadataKey = metadataKey;
         this.fallBackRowMetadata = fallBackRowMetadata;
+    }
+
+    public WriterNode(TransformerWriter writer, ConfiguredCacheWriter metadataCacheWriter,
+            TransformationMetadataCacheKey metadataKey, RowMetadataFallbackProvider rowMetadataFallbackProvider) {
+        this.writer = writer;
+        this.metadataCacheWriter = metadataCacheWriter;
+        this.metadataKey = metadataKey;
+        this.rowMetadataFallbackProvider = rowMetadataFallbackProvider;
     }
 
     /**
@@ -80,7 +92,6 @@ public class WriterNode extends BasicNode implements Monitored {
      */
     @Override
     public synchronized void receive(DataSetRow row, RowMetadata metadata) {
-
         // do not write this row if the writer is stopped
         if (isStopped.get()) {
             LOGGER.debug("already finished or canceled, let's skip this row");
@@ -90,9 +101,6 @@ public class WriterNode extends BasicNode implements Monitored {
         final long start = System.currentTimeMillis();
         try {
             if (!startRecords) {
-                writer.startObject();
-                writer.fieldName("records");
-                writer.startArray();
                 startRecords = true;
             }
             lastRowMetadata = metadata;
@@ -158,26 +166,24 @@ public class WriterNode extends BasicNode implements Monitored {
         try {
             // no row received, let's switch to the fallback row metadata
             if (!startRecords) {
-                writer.startObject();
-                writer.fieldName("records");
-                writer.startArray();
-                lastRowMetadata = fallBackRowMetadata;
+                if (rowMetadataFallbackProvider != null) {
+                    lastRowMetadata = rowMetadataFallbackProvider.getFallback();
+                } else {
+                    lastRowMetadata = fallBackRowMetadata;
+                }
             }
-
-            writer.endArray(); // <- end records
-            writer.fieldName("metadata"); // <- start metadata
-            writer.startObject();
-
-            writer.fieldName("columns");
             writer.write(lastRowMetadata);
 
-            writer.endObject();
-
-            writer.endObject(); // <- end data set
             writer.flush();
+            writer.close();
         } catch (IOException e) {
             LOGGER.error("Unable to end writer.", e);
         } finally {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                LOGGER.error("unable to close writer", e);
+            }
             totalTime += System.currentTimeMillis() - start;
         }
 
@@ -187,12 +193,6 @@ public class WriterNode extends BasicNode implements Monitored {
         } catch (IOException e) {
             LOGGER.error("Unable to cache metadata for preparation #{} @ step #{}", metadataKey.getKey());
             LOGGER.debug("Unable to cache metadata due to exception.", e);
-        } finally {
-            try {
-                writer.close();
-            } catch (IOException e) {
-                LOGGER.error("unable to close writer", e);
-            }
         }
     }
 

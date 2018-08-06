@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,9 +11,6 @@
 // ============================================================================
 
 package org.talend.dataprep.api.preparation;
-
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -67,6 +64,8 @@ public class Preparation extends Identifiable implements Serializable {
 
     /** The user locking the preparation. */
     private BasicUserLock lock;
+
+    private String dataSetName;
 
     /**
      * Default empty constructor.
@@ -221,19 +220,6 @@ public class Preparation extends Identifiable implements Serializable {
         this.lastModificationDate = System.currentTimeMillis();
     }
 
-    public Preparation merge(Preparation other) {
-        Preparation merge = new Preparation(id, other.getAppVersion());
-        merge.dataSetId = other.dataSetId != null ? other.dataSetId : dataSetId;
-        merge.rowMetadata = other.rowMetadata != null ? other.rowMetadata : rowMetadata;
-        merge.author = other.author != null ? other.author : author;
-        merge.name = other.name != null ? other.name : name;
-        merge.creationDate = min(other.creationDate, creationDate);
-        merge.lastModificationDate = max(other.lastModificationDate, lastModificationDate);
-        merge.headId = other.headId != null ? other.headId : headId;
-        merge.lock = other.lock != null ? other.lock : lock;
-        return merge;
-    }
-
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("id", id).append("dataSetId", dataSetId).append("author", author)
@@ -259,5 +245,13 @@ public class Preparation extends Identifiable implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id, rowMetadata, dataSetId, author, name, creationDate, lastModificationDate, headId);
+    }
+
+    public void setDataSetName(String dataSetName) {
+        this.dataSetName = dataSetName;
+    }
+
+    public String getDataSetName() {
+        return dataSetName;
     }
 }

@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -190,7 +190,7 @@ describe('Quality bar directive', () => {
             element.find('.valid-partition').eq(0).click();
 
             // then
-            expect(scope.onclick).toHaveBeenCalledWith('valid_records');
+            expect(scope.onclick).toHaveBeenCalledWith('quality', { valid: true });
         }));
 
         it('should call onclick callback for empty selection', inject(($timeout) => {
@@ -210,7 +210,7 @@ describe('Quality bar directive', () => {
             element.find('.empty-partition').eq(0).click();
 
             // then
-            expect(scope.onclick).toHaveBeenCalledWith('empty_records');
+            expect(scope.onclick).toHaveBeenCalledWith('quality', { invalid: false, empty: true });
         }));
 
         it('should call onclick callback for invalid selection', inject(($timeout) => {
@@ -230,7 +230,7 @@ describe('Quality bar directive', () => {
             element.find('.invalid-partition').eq(0).click();
 
             // then
-            expect(scope.onclick).toHaveBeenCalledWith('invalid_records');
+            expect(scope.onclick).toHaveBeenCalledWith('quality', { invalid: true, empty: false });
         }));
     });
     describe('with valid menu', () => {

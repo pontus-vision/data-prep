@@ -1,6 +1,6 @@
 /*  ============================================================================
 
-  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
   This source code is available under agreement available at
   https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -103,6 +103,30 @@ describe('Playground state service', function () {
             expect(parametersState.values.separator).toBe(',');
         }));
 
+        it('should update dataset text enclosure character', inject(function (parametersState, ParametersStateService) {
+            //given
+            var dataset = { parameters: { TEXT_ENCLOSURE_CHAR: '#' } };
+            parametersState.values.separator = '\t';
+
+            //when
+            ParametersStateService.update(dataset);
+
+            //then
+            expect(parametersState.values.textEnclosureCharacter).toBe('#');
+        }));
+
+        it('should update dataset escape character', inject(function (parametersState, ParametersStateService) {
+            //given
+            var dataset = { parameters: { ESCAPE_CHAR: '@' } };
+            parametersState.values.separator = '\t';
+
+            //when
+            ParametersStateService.update(dataset);
+
+            //then
+            expect(parametersState.values.escapeCharacter).toBe('@');
+        }));
+
         it('should update dataset encoding', inject(function (parametersState, ParametersStateService) {
             //given
             var dataset = { encoding: 'UTF-8', parameters: {} };
@@ -123,6 +147,8 @@ describe('Playground state service', function () {
             parametersState.isSending = true;
             parametersState.values.separator = ',';
             parametersState.values.encoding = 'UTF-8';
+            parametersState.values.escapeCharacter = '#';
+            parametersState.values.textEnclosureCharacter = '@';
 
             //when
             ParametersStateService.reset();
@@ -132,6 +158,8 @@ describe('Playground state service', function () {
             expect(parametersState.isSending).toBe(false);
             expect(parametersState.values.separator).toBe(null);
             expect(parametersState.values.encoding).toBe(null);
+            expect(parametersState.values.textEnclosureCharacter).toBe(null);
+            expect(parametersState.values.escapeCharacter).toBe(null);
         }));
     });
 });

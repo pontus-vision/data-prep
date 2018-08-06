@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,10 +13,15 @@
 
 /* eslint-disable angular/window-service */
 
+import d3 from 'd3';
 import angular from 'angular';
+import store from 'store';
 import ngSanitize from 'angular-sanitize';
 import ngTranslate from 'angular-translate';
 import uiRouter from 'angular-ui-router';
+import { init } from 'i18next';
+
+import bootstrapReact from './index.cmf';
 
 import APP_MODULE from './components/app/app-module';
 import HOME_MODULE from './components/home/home-module';
@@ -31,12 +36,29 @@ import SETTINGS_MODULE from './settings/settings-module';
 import { routeConfig, routeInterceptor } from './index-route';
 import getAppConfiguration from './index-config';
 
+import translations from '../i18n';
+import d3LocaleFr from '../lib/d3.locale.fr';
+
 const MODULE_NAME = 'data-prep';
 
-let ws;
-let wsPing;
-const app = angular.module(MODULE_NAME,
-	[
+window.MODULE_NAME = MODULE_NAME;
+
+const I18N_DOMAIN_COMPONENTS = 'tui-components';
+const I18N_DOMAIN_FORMS = 'tui-forms';
+
+let preferredLanguage;
+const fallbackLng = 'en';
+export const i18n = init({
+	fallbackLng, // Fallback language
+	ns: [I18N_DOMAIN_COMPONENTS, I18N_DOMAIN_FORMS],
+	defaultNS: I18N_DOMAIN_COMPONENTS,
+	fallbackNS: I18N_DOMAIN_COMPONENTS,
+	debug: false,
+	wait: true, // globally set to wait for loaded translations in translate hoc
+});
+
+const app = angular
+	.module(MODULE_NAME, [
 		ngSanitize,
 		ngTranslate,
 		uiRouter,
@@ -50,7 +72,7 @@ const app = angular.module(MODULE_NAME,
 		SERVICES_UTILS_MODULE, // configuration: register constants (version, ...)
 		SETTINGS_MODULE, // configuration: get app settings
 	])
-// Performance config
+	// Performance config
 	.config(($httpProvider) => {
 		'ngInject';
 		$httpProvider.useApplyAsync(true);
@@ -58,85 +80,120 @@ const app = angular.module(MODULE_NAME,
 	// Translate config
 	.config(($translateProvider) => {
 		'ngInject';
-		$translateProvider.useStaticFilesLoader({
-			prefix: 'i18n/',
-			suffix: '.json',
-		});
-
-		$translateProvider.preferredLanguage('en');
+		Object.keys(translations).forEach(translationKey =>
+			$translateProvider.translations(
+				translationKey,
+				translations[translationKey],
+			)
+		);
 		$translateProvider.useSanitizeValueStrategy(null);
 	})
-
 	// Router config
 	.config(routeConfig)
-	.run(routeInterceptor)
+	.run(routeInterceptor);
 
-	// Language to use at startup (for now only english)
-	.run(($window, $translate) => {
-		'ngInject';
-		$translate.use('en');
-	});
+window.bootstrapAngular = function bootstrapAngular(appSettings) {
+	app
+		// Debug config
+		.config(($compileProvider) => {
+			'ngInject';
+			$compileProvider.debugInfoEnabled(false);
+		})
+		.config(($httpProvider) => {
+			'ngInject';
 
-window.fetchConfiguration = function fetchConfiguration() {
-	return getAppConfiguration()
-		.then(({ config, appSettings }) => {
-			app
-			// Debug config
-				.config(($compileProvider) => {
-					'ngInject';
-					$compileProvider.debugInfoEnabled(config.enableDebug);
-				})
-				// Fetch dynamic configuration
-				.run((SettingsService) => {
-					'ngInject';
-					// base settings
-					SettingsService.setSettings(appSettings);
-				})
-				// Configure server api urls and refresh supported encoding
-				.run((DatasetService, HelpService, RestURLs) => {
-					'ngInject';
+			preferredLanguage =
+				(appSettings.context && appSettings.context.language) ||
+				fallbackLng;
 
-					const { help } = appSettings;
-					if (help) {
-						HelpService.register(help);
-					}
+			const preferredLocale =
+				appSettings.context && appSettings.context.locale;
+			if (preferredLocale) {
+				$httpProvider.defaults.headers.common[
+					'Accept-Language'
+				] = preferredLocale;
+			}
 
-					RestURLs.register(config, appSettings.uris);
+			moment.locale(preferredLanguage);
 
-					// dataset encodings
-					DatasetService.refreshSupportedEncodings();
-				})
-				// Open a keepalive websocket if requested
-				.run(() => {
-					if (!config.serverKeepAliveUrl) return;
-					function setupWebSocket() {
-						clearInterval(wsPing);
+			if (preferredLanguage !== fallbackLng) {
+				i18n.changeLanguage(preferredLanguage);
 
-						ws = new WebSocket(config.serverKeepAliveUrl);
-						ws.onclose = () => {
-							setTimeout(setupWebSocket, 1000);
-						};
+				if (preferredLanguage === 'fr') {
+					const d3locale = d3.locale(d3LocaleFr);
+					d3.format = d3locale.numberFormat;
+					d3.time.format = d3locale.timeFormat;
+				}
+				if ($.datetimepicker) {
+					$.datetimepicker.setLocale(preferredLanguage);
+				}
+			}
+		})
+		// Fetch dynamic configuration
+		.run((SettingsService, InventoryStateService) => {
+			'ngInject';
+			// base settings
+			SettingsService.setSettings(appSettings);
+			InventoryStateService.init();
+		})
+		// Configure server api urls and refresh supported encoding
+		.run((DatasetService, HelpService, RestURLs) => {
+			'ngInject';
 
-						wsPing = setInterval(() => {
-							ws.send('ping');
-						}, 3 * 60 * 1000);
-					}
+			const { help } = appSettings;
+			if (help) {
+				HelpService.register(help);
+			}
 
-					setupWebSocket();
-				});
+			RestURLs.register(appSettings.uris);
 
-			angular.module(SERVICES_UTILS_MODULE)
-				.value('version', config.version)
-				.value('copyRights', config.copyRights)
-				.value('analyticsEnabled', config.analyticsEnabled)
-				.value('analyticsAccount', config.analyticsAccount);
+			// dataset encodings
+			DatasetService.refreshSupportedEncodings();
+		})
+		.run(($translate) => {
+			'ngInject';
+
+			$translate.fallbackLanguage(fallbackLng);
+			$translate.preferredLanguage(preferredLanguage);
+
+			$translate.onReady(() => {
+				const translationsWithFallback = Object.assign(
+					{},
+					$translate.getTranslationTable(fallbackLng),
+					$translate.getTranslationTable(preferredLanguage),
+				);
+
+				i18n.addResourceBundle(
+					preferredLanguage,
+					I18N_DOMAIN_COMPONENTS,
+					translationsWithFallback,
+					false,
+					false,
+				);
+			});
 		});
 };
 
-window.bootstrapDataPrepApplication = function bootstrapDataPrepApplication(modules) {
-	angular.element(document)
-		.ready(() => angular.bootstrap(document, modules));
-};
+getAppConfiguration().then((appSettings) => {
+	// appSettings.context.provider = 'catalog';
+	const { provider = 'legacy' } = appSettings.context;
+
+	store.set('settings', appSettings);
+
+	if (
+		provider.includes('catalog') &&
+		!/#\/(playground|export|version)/.test(window.location.href)
+	) {
+		bootstrapReact();
+	}
+	else {
+		window.bootstrapAngular(appSettings);
+		angular
+			.element(document)
+			.ready(() => angular.bootstrap(document, [window.MODULE_NAME]));
+	}
+});
+
 /* eslint-enable angular/window-service */
 
 export default MODULE_NAME;

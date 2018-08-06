@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,6 +11,8 @@
 
  ============================================================================*/
 
+import i18n from './../../../i18n/en';
+
 describe('Breadcrumb component', () => {
 	let scope;
 	let element;
@@ -18,28 +20,31 @@ describe('Breadcrumb component', () => {
 	let stateMock;
 	let controller;
 
-	const allBuildDetails = [
-		{
-			"versionId": "2.0.0-SNAPSHOT",
-			"buildId": "2adb70d",
-			"serviceName": "API"
-		},
-		{
-			"versionId": "2.0.0-SNAPSHOT",
-			"buildId": "2adb70d",
-			"serviceName": "DATASET"
-		},
-		{
-			"versionId": "2.0.0-SNAPSHOT",
-			"buildId": "2adb70d",
-			"serviceName": "PREPARATION"
-		},
-		{
-			"versionId": "2.0.0-SNAPSHOT",
-			"buildId": "2adb70d",
-			"serviceName": "TRANSFORMATION"
-		}
-	];
+	const allBuildDetails = {
+		"displayVersion": "current version",
+		"services": [
+			{
+				"versionId": "2.4.0-SNAPSHOT",
+				"buildId": "3c823c0",
+				"serviceName": "API"
+			},
+			{
+				"versionId": "2.4.0-SNAPSHOT",
+				"buildId": "3c823c0",
+				"serviceName": "DATASET"
+			},
+			{
+				"versionId": "2.4.0-SNAPSHOT",
+				"buildId": "3c823c0",
+				"serviceName": "PREPARATION"
+			},
+			{
+				"versionId": "2.4.0-SNAPSHOT",
+				"buildId": "3c823c0",
+				"serviceName": "TRANSFORMATION"
+			}
+		]
+	};
 
 	beforeEach(angular.mock.module('data-prep.about', ($provide) => {
 		stateMock = {
@@ -54,15 +59,7 @@ describe('Breadcrumb component', () => {
 	}));
 
 	beforeEach(angular.mock.module('pascalprecht.translate', ($translateProvider) => {
-		$translateProvider.translations('en', {
-			"ABOUT_HEADER": "ABOUT TALEND DATA PREPARATION",
-			"MORE": "more",
-			"LESS": "less",
-			"SERVICE_NAME": "SERVICE",
-			"BUILD_ID": "BUILD ID",
-			"VERSION_ID": "VERSION ID",
-			"VERSION": "VERSION",
-		});
+		$translateProvider.translations('en', i18n);
 		$translateProvider.preferredLanguage('en');
 	}));
 
@@ -103,7 +100,7 @@ describe('Breadcrumb component', () => {
 			createElement();
 
 			// then
-			expect(element.find('.modal-header').text().trim()).toBe('ABOUT TALEND DATA PREPARATION');
+			expect(element.find('.modal-header').text().trim()).toBe(i18n.ABOUT_HEADER);
 		});
 
 		it('should render data-prep icon', () => {
@@ -118,10 +115,6 @@ describe('Breadcrumb component', () => {
 			// given
 			createElement();
 
-			// when
-			controller.version = 'current version';
-			scope.$digest();
-
 			// then
 			expect(element.find('#version').text().trim()).toBe('VERSION: current version');
 		});
@@ -130,12 +123,9 @@ describe('Breadcrumb component', () => {
 			// given
 			createElement();
 
-			// when
-			controller.copyRights = 'current copyRights';
-			scope.$digest();
-
 			// then
-			expect(element.find('#copyrights').text().trim()).toBe('current copyRights');
+			expect(element.find('#copyrights').text())
+				.toBe((i18n.COPYRIGHTS).replace('{{year}}', controller.getFullYear()));
 		});
 
 		it('should render toggle button', () => {
@@ -177,10 +167,16 @@ describe('Breadcrumb component', () => {
 				expect(element.find('table thead th').eq(1).text().trim()).toBe('BUILD ID');
 				expect(element.find('table thead th').eq(2).text().trim()).toBe('VERSION ID');
 
-				expect(element.find('table tbody tr').length).toBe(allBuildDetails.length);
-				expect(element.find('table tbody tr td').eq(0).text().trim()).toBe(allBuildDetails[0].serviceName);
-				expect(element.find('table tbody tr td').eq(1).text().trim()).toBe(allBuildDetails[0].buildId);
-				expect(element.find('table tbody tr td').eq(2).text().trim()).toBe(allBuildDetails[0].versionId);
+
+				const services = allBuildDetails.services;
+				const elem = element.find('table tbody tr');
+				for (let i = 0; i < services.length; i++) {
+					expect(elem.eq(i).find('td').eq(0).text().trim()).toBe(services[i].serviceName);
+					expect(elem.eq(i).find('td').eq(1).text().trim()).toBe(services[i].buildId);
+					expect(elem.eq(i).find('td').eq(2).text().trim()).toBe(services[i].versionId);
+				}
+				expect(elem.length).toBe(services.length);
+
 			});
 
 			it('should render less button', () => {

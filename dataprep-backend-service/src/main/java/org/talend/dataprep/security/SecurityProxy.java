@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,6 +11,8 @@
 // ============================================================================
 
 package org.talend.dataprep.security;
+
+import org.talend.dataprep.dataset.DatasetConfiguration;
 
 /**
  * Security Proxy to let a thread borrow the identity of a user out of its authentication token.
@@ -29,6 +31,12 @@ public interface SecurityProxy {
      * thread will become a technical user for the current tenant.
      */
     void asTechnicalUser();
+
+    /**
+     * @deprecated This method should be deleted when the support of dataset legacy mode will be removed
+     * @see DatasetConfiguration
+     */
+    void asTechnicalUserForDataSet();
 
     /**
      * Release the borrowed identity.

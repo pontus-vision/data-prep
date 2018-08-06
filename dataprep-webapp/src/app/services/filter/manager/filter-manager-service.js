@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -10,10 +10,6 @@
  9 rue Pages 92150 Suresnes, France
 
  ============================================================================*/
-
-import d3 from 'd3';
-
-const RANGE_SEPARATOR = ' .. ';
 
 /**
  * @ngdoc service
@@ -26,10 +22,6 @@ export default function FilterManagerService($timeout, state, PlaygroundService,
 	'ngInject';
 
 	const service = {
-		// utils
-		getRangeLabelFor,
-
-		// life
 		addFilter,
 		addFilterAndDigest,
 		updateFilter,
@@ -38,52 +30,6 @@ export default function FilterManagerService($timeout, state, PlaygroundService,
 		toggleFilters,
 	};
 	return service;
-
-	//----------------------------------------------------------------------------------------------
-	// ---------------------------------------------------UTILS-------------------------------------
-	//----------------------------------------------------------------------------------------------
-
-	/**
-	 * @ngdoc method
-	 * @name getRangeLabelFor
-	 * @methodOf data-prep.services.filter-manager.service:FilterManagerService
-	 * @description Define an interval label
-	 * @param {Object} interval
-	 * @param {boolean} isDateRange
-	 * @returns {string} interval label
-	 */
-	function getRangeLabelFor(interval, isDateRange) {
-		let label;
-		const formatDate = d3.time.format('%Y-%m-%d');
-		const formatNumber = d3.format(',');
-		let min;
-		let max;
-		if (isDateRange) {
-			min = formatDate(new Date(interval.min));
-			max = formatDate(new Date(interval.max));
-		}
-		else if (angular.isNumber(interval.min)) {
-			min = formatNumber(interval.min);
-			max = formatNumber(interval.max);
-		}
-		else {
-			min = interval.min;
-			max = interval.max;
-		}
-
-		if (min === max) {
-			label = '[' + min + ']';
-		}
-		else {
-			label = '[' + min + RANGE_SEPARATOR + max + (interval.isMaxReached ? ']' : '[');
-		}
-
-		return label;
-	}
-
-	//--------------------------------------------------------------------------------------------------------------
-	// ---------------------------------------------------FILTER LIFE------------------------------------------------
-	//--------------------------------------------------------------------------------------------------------------
 
 	/**
 	 * @ngdoc method

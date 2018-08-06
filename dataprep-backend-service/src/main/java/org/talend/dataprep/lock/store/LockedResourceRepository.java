@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,6 +17,7 @@ import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.preparation.Identifiable;
 import org.talend.dataprep.api.preparation.Preparation;
 import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.preparation.store.PersistentPreparation;
 
 /**
  * Base interface of user locked-resources repositories (mongodb, file-system).
@@ -35,7 +36,7 @@ public interface LockedResourceRepository {
      *
      * @throws TDPException PREPARATION_DOES_NOT_EXIST if the preparation does not exists.
      */
-    Preparation tryLock(String preparationId, String userId, String displayName);
+    PersistentPreparation tryLock(String preparationId, String userId, String displayName);
 
     /**
      * Unlock the specified preparation. It can only throw an exception if the preparation is held by another user.

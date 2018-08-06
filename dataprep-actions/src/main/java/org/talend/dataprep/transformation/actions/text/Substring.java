@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,29 +13,27 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.talend.dataprep.api.type.Type.STRING;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.ParameterType.INTEGER;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.STRINGS;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.parameters.ParameterType;
-import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + Substring.SUBSTRING_ACTION_NAME)
+@Action(Substring.SUBSTRING_ACTION_NAME)
 public class Substring extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -64,56 +62,80 @@ public class Substring extends AbstractActionMetadata implements ColumnAction {
      */
     private static final String APPENDIX = "_substring"; //$NON-NLS-1$
 
+    public static final boolean CREATE_NEW_COLUMN_DEFAULT = true;
+
     @Override
     public String getName() {
         return SUBSTRING_ACTION_NAME;
     }
 
     @Override
-    public String getCategory() {
-        return STRINGS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return STRINGS.getDisplayName(locale);
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        final Parameter fromIndexParameters = new Parameter(FROM_INDEX_PARAMETER, ParameterType.INTEGER, "0");
-        final Parameter fromNBeforeEndParameters = new Parameter(FROM_N_BEFORE_END_PARAMETER, ParameterType.INTEGER, "5");
-        final Parameter toIndexParameters = new Parameter(TO_INDEX_PARAMETER, ParameterType.INTEGER, "5");
-        final Parameter toNBeforeEndParameters = new Parameter(TO_N_BEFORE_END_PARAMETER, ParameterType.INTEGER, "1");
+    public List<Parameter> getParameters(Locale locale) {
+        final Parameter fromIndexParameters = parameter(locale).setName(FROM_INDEX_PARAMETER)
+                .setType(INTEGER)
+                .setDefaultValue("0")
+                .build(this);
+        final Parameter fromNBeforeEndParameters = parameter(locale).setName(FROM_N_BEFORE_END_PARAMETER)
+                .setType(INTEGER)
+                .setDefaultValue("5")
+                .build(this);
+        final Parameter toIndexParameters = parameter(locale).setName(TO_INDEX_PARAMETER)
+                .setType(INTEGER)
+                .setDefaultValue("5")
+                .build(this);
+        final Parameter toNBeforeEndParameters = parameter(locale).setName(TO_N_BEFORE_END_PARAMETER)
+                .setType(INTEGER)
+                .setDefaultValue("1")
+                .build(this);
 
         // "to" parameter with all possible values
-        final Parameter toCompleteParameters = SelectParameter.Builder.builder() //
+        final Parameter toCompleteParameters = selectParameter(locale) //
                 .name(TO_MODE_PARAMETER) //
                 .item(TO_END, TO_END) //
                 .item(TO_INDEX_PARAMETER, TO_INDEX_PARAMETER, toIndexParameters) //
                 .item(TO_N_BEFORE_END_PARAMETER, TO_N_BEFORE_END_PARAMETER, toNBeforeEndParameters) //
                 .defaultValue(TO_INDEX_PARAMETER) //
-                .build();
+                .build(this);
 
         // "to" parameter with possible values for "From N Before End" selection
         // the "to index" option should not be available
-        final Parameter toParametersWithoutIndexSelection = SelectParameter.Builder.builder() //
+        final Parameter toParametersWithoutIndexSelection = selectParameter(locale) //
                 .name(TO_MODE_PARAMETER) //
                 .item(TO_END, TO_END) //
                 .item(TO_N_BEFORE_END_PARAMETER, TO_N_BEFORE_END_PARAMETER, toNBeforeEndParameters) //
                 .defaultValue(TO_END) //
-                .build();
+                .build(this);
 
         // "from" parameter
-        final Parameter fromParameters = SelectParameter.Builder.builder() //
+        final Parameter fromParameters = selectParameter(locale) //
                 .name(FROM_MODE_PARAMETER) //
                 .item(FROM_BEGINNING, FROM_BEGINNING, toCompleteParameters) // has all the "To" choices
                 .item(FROM_INDEX_PARAMETER, FROM_INDEX_PARAMETER, fromIndexParameters, toCompleteParameters) // has all the "To" choices
-                .item(FROM_N_BEFORE_END_PARAMETER, FROM_N_BEFORE_END_PARAMETER, fromNBeforeEndParameters, toParametersWithoutIndexSelection) // cannot
-                                                                                                                // choose
-                                                                                                                // "To
-                                                                                                                // index"
+                .item(FROM_N_BEFORE_END_PARAMETER, FROM_N_BEFORE_END_PARAMETER, fromNBeforeEndParameters,
+                        toParametersWithoutIndexSelection) // cannot
+                // choose
+                // "To
+                // index"
                 .defaultValue(FROM_BEGINNING) //
-                .build();
+                .build(this);
 
-        final List<Parameter> parameters = ImplicitParameters.getParameters();
+        final List<Parameter> parameters = super.getParameters(locale);
+        parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
         parameters.add(fromParameters);
-        return ActionsBundle.attachToAction(parameters, this);
+        return parameters;
+    }
+
+    @Override
+    public void compile(ActionContext context) {
+        super.compile(context);
+        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(context, getAdditionalColumns(context));
+        }
     }
 
     @Override
@@ -121,37 +143,15 @@ public class Substring extends AbstractActionMetadata implements ColumnAction {
         return Type.STRING.equals(Type.get(column.getType()));
     }
 
-    @Override
-    public void compile(ActionContext context) {
-        super.compile(context);
-        if (context.getActionStatus() == ActionContext.ActionStatus.OK) {
-            // Create result column
-            final RowMetadata rowMetadata = context.getRowMetadata();
-            final String columnId = context.getColumnId();
-            final ColumnMetadata column = rowMetadata.getById(columnId);
-            context.column(column.getName() + APPENDIX, r -> {
-                final ColumnMetadata c = ColumnMetadata.Builder //
-                        .column() //
-                        .name(column.getName() + APPENDIX) //
-                        .type(Type.get(column.getType())) //
-                        .empty(column.getQuality().getEmpty()) //
-                        .invalid(column.getQuality().getInvalid()) //
-                        .valid(column.getQuality().getValid()) //
-                        .headerSize(column.getHeaderSize()) //
-                        .build();
-                rowMetadata.insertAfter(columnId, c);
-                return c;
-            });
-        }
+    protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
+        return singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + APPENDIX).withType(STRING));
     }
 
     @Override
     public void applyOnColumn(DataSetRow row, ActionContext context) {
         // create the new column
-        final RowMetadata rowMetadata = context.getRowMetadata();
         final String columnId = context.getColumnId();
-        final ColumnMetadata column = rowMetadata.getById(columnId);
-        final String substringColumn = context.column(column.getName() + APPENDIX);
+        final String substringColumn = ActionsUtils.getTargetColumnId(context);
 
         // Perform substring
         final String value = row.get(columnId);

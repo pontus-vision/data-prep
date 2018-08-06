@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -10,6 +10,8 @@
  9 rue Pages 92150 Suresnes, France
 
  ============================================================================*/
+
+import i18n from '../../../../i18n/en';
 
 describe('filter search controller', () => {
 	'use strict';
@@ -114,6 +116,11 @@ describe('filter search controller', () => {
 		$provide.constant('state', stateMock);
 	}));
 
+	beforeEach(angular.mock.module('pascalprecht.translate', ($translateProvider) => {
+		$translateProvider.translations('en', i18n);
+		$translateProvider.preferredLanguage('en');
+	}));
+
 	beforeEach(inject(($rootScope, $controller, FilterManagerService) => {
 		scope = $rootScope.$new();
 
@@ -137,13 +144,13 @@ describe('filter search controller', () => {
 		//then
 		expect(suggestions.length).toBe(2);
 		expect(suggestions[0]).toEqual({
-			label: 'ala in <b>MostPopulousCity</b>',
+			label: `ala ${i18n.IN} <b>MostPopulousCity</b>`,
 			value: 'ala',
 			columnId: '0004',
 			columnName: 'MostPopulousCity',
 		});
 		expect(suggestions[1]).toEqual({
-			label: 'ala in <b>State</b>',
+			label: `ala ${i18n.IN} <b>State</b>`,
 			value: 'ala',
 			columnId: '0002',
 			columnName: 'State',
@@ -161,14 +168,14 @@ describe('filter search controller', () => {
 		//then
 		expect(suggestions.length).toBe(2);
 		expect(suggestions[0]).toEqual({
-			label: 'ala*ma in <b>MostPopulousCity</b>',
+			label: `ala*ma ${i18n.IN} <b>MostPopulousCity</b>`,
 			value: 'ala*ma',
 			columnId: '0004',
 			columnName: 'MostPopulousCity',
 
 		});
 		expect(suggestions[1]).toEqual({
-			label: 'ala*ma in <b>State</b>',
+			label: `ala*ma ${i18n.IN} <b>State</b>`,
 			value: 'ala*ma',
 			columnId: '0002',
 			columnName: 'State',
@@ -195,7 +202,7 @@ describe('filter search controller', () => {
 
 		//when
 		ctrl.filterSuggestOptions.on_select({
-			label: 'ala in <b>State</b>',
+			label: `ala ${i18n.IN} <b>State</b>`,
 			value: 'ala',
 			columnName: 'State',
 			columnId: '0002',
@@ -215,7 +222,7 @@ describe('filter search controller', () => {
 
 		//when
 		ctrl.filterSuggestOptions.on_select({
-			label: 'ala in <b>State</b>',
+			label: `ala ${i18n.IN} <b>State</b>`,
 			value: 'ala',
 			columnName: 'State',
 			columnId: '0002',

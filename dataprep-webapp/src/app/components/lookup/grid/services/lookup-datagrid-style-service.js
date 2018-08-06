@@ -1,6 +1,6 @@
 /*  ============================================================================
 
-  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
   This source code is available under agreement available at
   https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -18,11 +18,12 @@
  * @requires data-prep.services.utils.service:ConverterService
  * @requires data-prep.services.utils.service:TextFormatService
  */
-export default function LookupDatagridStyleService($timeout, ConverterService, DatagridStyleService, TextFormatService) {
+export default function LookupDatagridStyleService($timeout, ConverterService, DatagridStyleService, TextFormatService, $translate) {
 	'ngInject';
 
 	let grid;
 	let columnClassTimeout;
+	const invalidTitle = $translate.instant('INVALIDVALUE');
 
 	return {
 		init,
@@ -93,7 +94,10 @@ export default function LookupDatagridStyleService($timeout, ConverterService, D
 		return function formatter(row, cell, value) {
             // hidden characters need to be shown
 			const returnStr = TextFormatService.adaptToGridConstraints(value);
-			return returnStr + (isInvalid(value) ? '<div title="Invalid Value" class="red-rect"></div>' : '<div class="invisible-rect"></div>');
+			if (isInvalid(value)) {
+				return `${returnStr}<div title="${invalidTitle}" class="red-rect"></div>`;
+			}
+			return `${returnStr}<div class="invisible-rect"></div>`;
 		};
 	}
 

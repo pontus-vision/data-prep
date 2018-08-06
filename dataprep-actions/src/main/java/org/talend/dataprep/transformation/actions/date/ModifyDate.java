@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,17 +12,6 @@
 
 package org.talend.dataprep.transformation.actions.date;
 
-import static java.time.temporal.ChronoUnit.*;
-import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.*;
-
-import java.time.DateTimeException;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,32 +20,45 @@ import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.dataset.row.RowMetadataUtils;
 import org.talend.dataprep.exception.error.ActionErrorCodes;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.Providers;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataprep.util.NumericHelper;
 
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static java.time.temporal.ChronoUnit.*;
+import static java.util.Collections.singletonList;
+import static org.talend.dataprep.api.dataset.row.RowMetadataUtils.getMostUsedDatePattern;
+import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.*;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+
 /**
  * Change the date pattern on a 'date' column.
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + ModifyDate.ACTION_NAME)
+@Action(ModifyDate.ACTION_NAME)
 public class ModifyDate extends AbstractDate implements ColumnAction {
 
-    /** Action name. */
+    /**
+     * Action name.
+     */
     public static final String ACTION_NAME = "modify_date"; //$NON-NLS-1$
+
+    protected static final String NEW_COLUMN_SUFFIX = "_modified";
 
     /**
      * The unit of the amount to subtract.
      */
-    protected static final String TIME_UNIT_PARAMETER = "time_unit"; //$NON-NLS-1$
+    static final String TIME_UNIT_PARAMETER = "time_unit"; //$NON-NLS-1$
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModifyDate.class);
 
@@ -66,54 +68,67 @@ public class ModifyDate extends AbstractDate implements ColumnAction {
 
     private static final String AMOUNT_CONTEXT_KEY = "amount"; //$NON-NLS-1$
 
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
+
     @Override
     public String getName() {
         return ACTION_NAME;
     }
 
+    protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
+        return singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX));
+    }
+
     @Override
-    public List<Parameter> getParameters() {
-        List<Parameter> parameters = super.getParameters();
+    public List<Parameter> getParameters(Locale locale) {
+        List<Parameter> parameters = super.getParameters(locale);
+        parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
 
-        parameters.add(SelectParameter.Builder.builder() //
+        parameters.add(SelectParameter.selectParameter(locale) //
                 .name(TIME_UNIT_PARAMETER) //
-                .item(YEARS.name(), YEARS.name()) //
-                .item(MONTHS.name(), MONTHS.name()) //
-                .item(DAYS.name(), DAYS.name()) //
-                .item(HOURS.name(), HOURS.name()) //
+                .item(YEARS.name(), YEARS.name().toLowerCase()) //
+                .item(MONTHS.name(), MONTHS.name().toLowerCase()) //
+                .item(DAYS.name(), DAYS.name().toLowerCase()) //
+                .item(HOURS.name(), HOURS.name().toLowerCase()) //
                 .defaultValue(YEARS.name()) //
-                .build());
+                .build(this));
 
-        parameters.add(SelectParameter.Builder.builder() //
+        parameters.add(SelectParameter.selectParameter(locale) //
                 .name(MODE_PARAMETER) //
-                .item(CONSTANT_MODE, CONSTANT_MODE, new Parameter(CONSTANT_VALUE, ParameterType.INTEGER, "1")) //
-                .item(OTHER_COLUMN_MODE, OTHER_COLUMN_MODE,
-                        new Parameter(SELECTED_COLUMN_PARAMETER, ParameterType.COLUMN, //
-                                StringUtils.EMPTY, false, false, //
-                                StringUtils.EMPTY)) //
+                .item(CONSTANT_MODE, CONSTANT_MODE, Parameter.parameter(locale).setName(CONSTANT_VALUE)
+                        .setType(ParameterType.INTEGER)
+                        .setDefaultValue("1")
+                        .build(this)) //
+                .item(OTHER_COLUMN_MODE, OTHER_COLUMN_MODE, Parameter.parameter(locale).setName(SELECTED_COLUMN_PARAMETER)
+                        .setType(ParameterType.COLUMN)
+                        .setDefaultValue(StringUtils.EMPTY)
+                        .setCanBeBlank(false)
+                        .build(this)) //
                 .defaultValue(CONSTANT_MODE) //
-                .build());
+                .build(this));
 
-        return ActionsBundle.attachToAction(parameters, this);
+        return parameters;
     }
 
     @Override
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
-        if (actionContext.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(actionContext, getAdditionalColumns(actionContext));
+        }
+        if (actionContext.getActionStatus() == OK) {
             try {
-                actionContext.get(PATTERN_CONTEXT_KEY, p -> RowMetadataUtils
-                        .getMostUsedDatePattern((actionContext.getRowMetadata().getById(actionContext.getColumnId()))));
+                actionContext.get(PATTERN_CONTEXT_KEY, p -> getMostUsedDatePattern((actionContext.getRowMetadata().getById(actionContext.getColumnId()))));
 
                 actionContext.get(UNIT_CONTEXT_KEY,
-                        p -> ChronoUnit.valueOf(actionContext.getParameters().get(TIME_UNIT_PARAMETER).toUpperCase()));
+                        p -> valueOf(actionContext.getParameters().get(TIME_UNIT_PARAMETER).toUpperCase()));
 
                 if (actionContext.getParameters().get(MODE_PARAMETER).equals(CONSTANT_MODE)) {
                     actionContext.get(AMOUNT_CONTEXT_KEY, p -> computeAmount(actionContext.getParameters().get(CONSTANT_VALUE)));
                 }
 
             } catch (IllegalArgumentException e) {
-                actionContext.setActionStatus(ActionContext.ActionStatus.CANCELED);
+                actionContext.setActionStatus(CANCELED);
             }
         }
     }
@@ -125,8 +140,9 @@ public class ModifyDate extends AbstractDate implements ColumnAction {
     public void applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
 
-        final String value = row.get(columnId);
-        if (StringUtils.isBlank(value)) {
+        final String originalValue = row.get(columnId);
+        if (StringUtils.isBlank(originalValue)) {
+            row.set(ActionsUtils.getTargetColumnId(context), originalValue);
             return;
         }
 
@@ -135,34 +151,35 @@ public class ModifyDate extends AbstractDate implements ColumnAction {
 
         long amount;
         switch (mode) {
-        case CONSTANT_MODE:
-            amount = context.get(AMOUNT_CONTEXT_KEY);
-            break;
-        case OTHER_COLUMN_MODE:
-            String otherColId = parameters.get(SELECTED_COLUMN_PARAMETER);
-            if (!NumericHelper.isBigDecimal(row.get(otherColId))) {
-                // In this case, do not change the original value
-                return;
-            }
-            amount = computeAmount(row.get(otherColId));
-            break;
-        default:
-            throw new TalendRuntimeException(ActionErrorCodes.BAD_ACTION_PARAMETER, //
-                    ExceptionContext.build().put("paramName", OtherColumnParameters.CONSTANT_MODE));
+            case CONSTANT_MODE:
+                amount = context.get(AMOUNT_CONTEXT_KEY);
+                break;
+            case OTHER_COLUMN_MODE:
+                String otherColId = parameters.get(SELECTED_COLUMN_PARAMETER);
+                if (!NumericHelper.isBigDecimal(row.get(otherColId))) {
+                    // In this case, do not change the original value
+                    return;
+                }
+                amount = computeAmount(row.get(otherColId));
+                break;
+            default:
+                throw new TalendRuntimeException(ActionErrorCodes.BAD_ACTION_PARAMETER, //
+                        ExceptionContext.build().put("paramName", OtherColumnParameters.CONSTANT_MODE));
         }
 
         try {
             final DatePattern outputPattern = new DatePattern(context.get(PATTERN_CONTEXT_KEY));
 
-            LocalDateTime date = Providers.get().parse(value, context.getRowMetadata().getById(columnId));
+            LocalDateTime date = Providers.get().parse(originalValue, context.getRowMetadata().getById(columnId));
 
             date = date.plus(amount, context.get(UNIT_CONTEXT_KEY));
 
-            row.set(columnId, outputPattern.getFormatter().format(date));
+            row.set(ActionsUtils.getTargetColumnId(context), outputPattern.getFormatter().format(date));
 
         } catch (DateTimeException e) {
+            row.set(ActionsUtils.getTargetColumnId(context), originalValue);
             // cannot parse the date, let's leave it as is
-            LOGGER.debug("Unable to parse date {}.", value, e);
+            LOGGER.debug("Unable to parse date {}.", originalValue, e);
         }
     }
 

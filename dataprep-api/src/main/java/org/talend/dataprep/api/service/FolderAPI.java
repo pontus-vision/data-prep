@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -16,17 +16,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-import static org.talend.daikon.exception.ExceptionContext.build;
-import static org.talend.dataprep.command.CommandHelper.toPublisher;
+import static org.talend.dataprep.command.CommandHelper.toStream;
 
-import java.io.EOFException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,7 +33,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.talend.dataprep.api.folder.Folder;
-import org.talend.dataprep.api.service.api.EnrichedPreparation;
+import org.talend.dataprep.api.preparation.PreparationDTO;
+import org.talend.dataprep.api.preparation.PreparationListItemDTO;
 import org.talend.dataprep.api.service.command.folder.CreateChildFolder;
 import org.talend.dataprep.api.service.command.folder.FolderChildrenList;
 import org.talend.dataprep.api.service.command.folder.FolderTree;
@@ -48,31 +45,23 @@ import org.talend.dataprep.api.service.command.folder.SearchFolders;
 import org.talend.dataprep.command.CommandHelper;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.command.preparation.PreparationListByFolder;
-import org.talend.dataprep.dataset.DataSetMetadataBuilder;
+import org.talend.dataprep.conversions.inject.DataSetNameInjection;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 import org.talend.dataprep.metrics.Timed;
-import org.talend.dataprep.preparation.service.UserPreparation;
-import org.talend.dataprep.security.SecurityProxy;
 import org.talend.dataprep.util.SortAndOrderHelper.Order;
 import org.talend.dataprep.util.SortAndOrderHelper.Sort;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.netflix.hystrix.HystrixCommand;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import reactor.core.publisher.Flux;
 
 @RestController
 public class FolderAPI extends APIService {
 
     @Autowired
-    private DataSetMetadataBuilder metadataBuilder;
-
-    /** Security proxy let the current thread to borrow another identity for a while. */
-    @Autowired
-    private SecurityProxy securityProxy;
+    private DataSetNameInjection dataSetNameInjection;
 
     @RequestMapping(value = "/api/folders", method = GET)
     @ApiOperation(value = "List folders. Optional filter on parent ID may be supplied.", produces = APPLICATION_JSON_VALUE)
@@ -183,7 +172,7 @@ public class FolderAPI extends APIService {
     @RequestMapping(value = "/api/folders/{id}/preparations", method = RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get all preparations for a given id.", notes = "Returns the list of preparations for the given id the current user is allowed to see.")
     @Timed
-    public StreamingResponseBody listPreparationsByFolder(
+    public PreparationsByFolder listPreparationsByFolder(
             @PathVariable @ApiParam(name = "id", value = "The destination to search preparations from.") final String id, //
             @ApiParam(value = "Sort key (by name or date), defaults to 'date'.") @RequestParam(defaultValue = "creationDate") final Sort sort, //
             @ApiParam(value = "Order for sort key (desc or asc), defaults to 'desc'.") @RequestParam(defaultValue = "desc") final Order order) {
@@ -195,86 +184,35 @@ public class FolderAPI extends APIService {
 
         LOG.info("Listing preparations in folder {}", id);
 
-        return output -> {
-            try (final JsonGenerator generator = mapper.getFactory().createGenerator(output)) {
-                generator.writeStartObject();
-                // Folder list
-                final FolderChildrenList commandListFolders = getCommand(FolderChildrenList.class, id, sort, order);
-                final Flux<Folder> folders = Flux.from(toPublisher(Folder.class, mapper, commandListFolders));
-                writeFluxToJsonArray(folders, "folders", generator);
-                // Preparation list
-                final PreparationListByFolder listPreparations = getCommand(PreparationListByFolder.class, id, sort, order);
+        final FolderChildrenList commandListFolders = getCommand(FolderChildrenList.class, id, sort, order);
+        final Stream<Folder> folders = toStream(Folder.class, mapper, commandListFolders);
 
-                final Flux<EnrichedPreparation> preparations = Flux
-                        .from(toPublisher(UserPreparation.class, mapper, listPreparations)) // From preparation list
-                        .map(preparation -> beanConversionService.convert(preparation, EnrichedPreparation.class));
-                writeFluxToJsonArray(preparations, "preparations", generator);
-                generator.writeEndObject();
-            } catch (EOFException e) {
-                LOG.debug("Output stream has been closed before finishing preparation writing.", e);
-            } catch (IOException e) {
-                throw new TDPException(APIErrorCodes.UNABLE_TO_LIST_FOLDER_ENTRIES, e, build().put("destination", id));
-            }
-        };
+        final PreparationListByFolder listPreparations = getCommand(PreparationListByFolder.class, id, sort, order);
+        final Stream<PreparationListItemDTO> preparations =
+                toStream(PreparationDTO.class, mapper, listPreparations) //
+                    .map(dto -> beanConversionService.convert(dto, PreparationListItemDTO.class, dataSetNameInjection));
+
+        return new PreparationsByFolder(folders, preparations);
     }
 
-    private static <T> void writeFluxToJsonArray(Flux<T> flux, String arrayElement, JsonGenerator generator) {
-        flux.subscribe(new WriteJsonArraySubscriber<>(generator, arrayElement));
-    }
+    public static class PreparationsByFolder {
 
-    private static class WriteJsonArraySubscriber<T> implements Subscriber<T> {
+        private final Stream<Folder> folders;
 
-        private final JsonGenerator generator;
+        private final Stream<PreparationListItemDTO> preparations;
 
-        private final String arrayElement;
-
-        private Subscription subscription;
-
-        public WriteJsonArraySubscriber(JsonGenerator generator, String arrayElement) {
-            this.generator = generator;
-            this.arrayElement = arrayElement;
+        public PreparationsByFolder(Stream<Folder> folders, Stream<PreparationListItemDTO> preparations) {
+            this.folders = folders;
+            this.preparations = preparations;
         }
 
-        @Override
-        public void onSubscribe(Subscription s) {
-            try {
-                generator.writeArrayFieldStart(arrayElement);
-            } catch (EOFException eofe) {
-                LOG.debug("JsonGenerator was closed before finish streaming.", eofe);
-                subscription.cancel();
-            } catch (IOException e) {
-                LOG.error("Unable to write content.", e);
-            }
-            subscription = s;
-            s.request(Long.MAX_VALUE);
+        public Stream<Folder> getFolders() {
+            return folders;
         }
 
-        @Override
-        public void onNext(T aLong) {
-            try {
-                generator.writeObject(aLong);
-            } catch (EOFException eofe) {
-                LOG.debug("JsonGenerator was closed before finish streaming.", eofe);
-                subscription.cancel();
-            } catch (IOException e) {
-                LOG.error("Unable to write content.", e);
-            }
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            onComplete();
-        }
-
-        @Override
-        public void onComplete() {
-            try {
-                generator.writeEndArray();
-            } catch (EOFException eofe) {
-                LOG.debug("JsonGenerator was closed before finish streaming.", eofe);
-            } catch (IOException e) {
-                LOG.error("Unable to write content.", e);
-            }
+        public Stream<PreparationListItemDTO> getPreparations() {
+            return preparations;
         }
     }
+
 }

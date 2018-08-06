@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,10 +14,10 @@ package org.talend.dataprep.i18n.custom.actions;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
@@ -32,7 +32,7 @@ public class TestAction extends AbstractActionMetadata {
     }
 
     @Override
-    public String getCategory() {
+    public String getCategory(Locale locale) {
         return "No category";
     }
 
@@ -42,8 +42,13 @@ public class TestAction extends AbstractActionMetadata {
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        return ActionsBundle.attachToAction(Collections.singletonList(new Parameter("customParameter", ParameterType.STRING, "", false, false, "")), this);
+    public List<Parameter> getParameters(Locale locale) {
+        return Collections.singletonList(Parameter.parameter(locale).setName("customParameter")
+                .setType(ParameterType.STRING)
+                .setDefaultValue("")
+                .setCanBeBlank(false)
+                .setPlaceHolder("")
+                .build(this));
     }
 
     @Override

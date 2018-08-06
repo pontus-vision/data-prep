@@ -1,6 +1,6 @@
 /*  ============================================================================
 
-  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
   This source code is available under agreement available at
   https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,23 +17,6 @@ describe('Dataprep app', () => {
     beforeEach(angular.mock.module('pascalprecht.translate'));
     beforeEach(angular.mock.module('data-prep.services.state'));
     beforeEach(angular.mock.module('data-prep.services.utils'));
-
-    describe('run', () => {
-        it('should set language from navigator', inject(($rootScope, $injector, $window, $translate) => {
-            //given
-            const myModule = angular.module('data-prep');
-            const runBlock = myModule._runBlocks[1];
-
-            spyOn($translate, 'use').and.returnValue();
-
-            //when
-            $injector.invoke(runBlock);
-            $rootScope.$digest();
-
-            //then
-            expect($translate.use).toHaveBeenCalledWith('en');
-        }));
-    });
 
     describe('config', () => {
         it('should set $httpProvider useApplyAsync config to true', () => {

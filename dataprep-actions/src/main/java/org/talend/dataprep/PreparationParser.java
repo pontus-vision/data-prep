@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -46,7 +46,7 @@ public class PreparationParser {
 
     private static final ActionFactory actionFactory = new ActionFactory();
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private static void assertPreparation(Object preparation) {
         if (preparation == null) {
@@ -77,7 +77,7 @@ public class PreparationParser {
                 .map(action -> {
                     final ActionDefinition actionDefinition = actionRegistry.get(action.getName());
                     // Distributed run check for action
-                    final Set<ActionDefinition.Behavior> behavior = actionDefinition.getBehavior();
+                    final Set<ActionDefinition.Behavior> behavior = actionDefinition.getBehavior(action);
                     // if non distributed actions are forbidden (e.g. running locally)
                     if (!allowNonDistributedActions) {
                         // if some actions cannot be run in distributed environment, let's see how bad it is...

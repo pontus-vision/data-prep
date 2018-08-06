@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -36,7 +36,7 @@ describe('Preparation actions service', () => {
 		it('should set sort in app state',
 			inject(($q, FolderService, PreparationActionsService) => {
 				// given
-				spyOn(FolderService, 'changeSort').and.returnValue();
+				spyOn(FolderService, 'changeSort').and.returnValue($q.when());
 				const action = {
 					type: '@@preparation/SORT',
 					payload: {
@@ -56,9 +56,9 @@ describe('Preparation actions service', () => {
 	});
 
 	describe('dispatch @@preparation/FOLDER_REMOVE', () => {
-		it('should remove folder', inject((FolderService, PreparationActionsService) => {
+		it('should remove folder', inject(($q, FolderService, PreparationActionsService) => {
 			// given
-			spyOn(FolderService, 'remove').and.returnValue();
+			spyOn(FolderService, 'remove').and.returnValue($q.when());
 			const action = {
 				type: '@@preparation/FOLDER_REMOVE',
 				payload: {
@@ -322,10 +322,10 @@ describe('Preparation actions service', () => {
 	describe('dispatch @@preparation/REMOVE', () => {
 		const preparation = { id: 'prep 1' };
 
-		beforeEach(inject(($rootScope, $q, MessageService, TalendConfirmService,
+		beforeEach(inject(($rootScope, $q, MessageService, ConfirmService,
 		                   FolderService, PreparationService, PreparationActionsService) => {
 			// given
-			spyOn(TalendConfirmService, 'confirm').and.returnValue($q.when());
+			spyOn(ConfirmService, 'confirm').and.returnValue($q.when());
 			spyOn(PreparationService, 'delete').and.returnValue();
 			spyOn(FolderService, 'refresh').and.returnValue();
 			spyOn(MessageService, 'success').and.returnValue();
@@ -344,12 +344,11 @@ describe('Preparation actions service', () => {
 			$rootScope.$digest();
 		}));
 
-		it('should ask confirmation', inject((TalendConfirmService) => {
+		it('should ask confirmation', inject((ConfirmService) => {
 			// then
-			expect(TalendConfirmService.confirm).toHaveBeenCalledWith(
-				{ disableEnter: true },
+			expect(ConfirmService.confirm).toHaveBeenCalledWith(
 				['DELETE_PERMANENTLY', 'NO_UNDONE_CONFIRM'],
-				{ type: 'preparation', name: preparation.name }
+				{ type: 'Preparation', name: preparation.name }
 			);
 		}));
 
@@ -369,9 +368,9 @@ describe('Preparation actions service', () => {
 		it('should display success message', inject((MessageService) => {
 			// then
 			expect(MessageService.success).toHaveBeenCalledWith(
-				'REMOVE_SUCCESS_TITLE',
+				'PREPARATION_REMOVE_SUCCESS_TITLE',
 				'REMOVE_SUCCESS',
-				{ type: 'preparation', name: preparation.name }
+				{ type: 'Preparation', name: preparation.name }
 			);
 		}));
 	});

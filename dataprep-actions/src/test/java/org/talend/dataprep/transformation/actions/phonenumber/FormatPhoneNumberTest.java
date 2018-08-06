@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,16 +12,28 @@
 // ============================================================================
 package org.talend.dataprep.transformation.actions.phonenumber;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.DE_PHONE;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.FR_PHONE;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.PHONE;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.UK_PHONE;
+import static org.talend.dataquality.semantic.classifier.SemanticCategoryEnum.US_PHONE;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
@@ -29,40 +41,41 @@ import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
-public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
-
-    private FormatPhoneNumber action = new FormatPhoneNumber();
+public class FormatPhoneNumberTest extends AbstractMetadataBaseTest<FormatPhoneNumber> {
 
     private Map<String, String> parameters;
 
-    private Locale previousLocale;
+    public FormatPhoneNumberTest() {
+        super(new FormatPhoneNumber());
+    }
 
     @Before
     public void init() throws IOException {
         parameters = ActionMetadataTestUtils
                 .parseParameters(FormatPhoneNumberTest.class.getResourceAsStream("formatphonenumber.json"));
-        previousLocale = Locale.getDefault();
-        Locale.setDefault(Locale.ENGLISH);
     }
 
-    @After
-    public void tearDown() throws Exception {
-        Locale.setDefault(previousLocale);
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
     }
 
     @Test
     public void testCategory() throws Exception {
-        assertEquals(action.getCategory(), ActionCategory.PHONE_NUMBER.getDisplayName());
+        assertEquals(action.getCategory(Locale.US), ActionCategory.PHONE_NUMBER.getDisplayName(Locale.US));
     }
 
     @Test
     public void should_accept_column() {
-        assertTrue(action.acceptField(getColumn(Type.STRING)));
-        assertTrue(action.acceptField(getColumn(Type.INTEGER)));
-        assertFalse(action.acceptField(getColumn(Type.NUMERIC)));
+        assertTrue(action.acceptField(getColumn(Type.STRING, PHONE)));
+        assertTrue(action.acceptField(getColumn(Type.STRING, US_PHONE)));
+        assertTrue(action.acceptField(getColumn(Type.STRING, UK_PHONE)));
+        assertTrue(action.acceptField(getColumn(Type.STRING, DE_PHONE)));
+        assertTrue(action.acceptField(getColumn(Type.STRING, FR_PHONE)));
     }
 
     @Test
@@ -74,19 +87,70 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testParameters() throws Exception {
-        final List<Parameter> parameters = action.getParameters();
-        assertEquals(6, parameters.size());
+        final List<Parameter> parameters = action.getParameters(Locale.US);
+        assertEquals(7, parameters.size());
 
         // Test on items label for TDP-2914:
-        final SelectParameter useWithParam = (SelectParameter) parameters.get(4);
+        final SelectParameter useWithParam = (SelectParameter) parameters.get(5);
         assertEquals("Value", useWithParam.getItems().get(1).getLabel());
 
-        final SelectParameter regionsListParam =(SelectParameter) useWithParam.getItems().get(1).getParameters().get(0);
+        final SelectParameter regionsListParam = (SelectParameter) useWithParam.getItems().get(1).getParameters().get(0);
         assertEquals("American standard", regionsListParam.getItems().get(0).getLabel());
     }
 
     @Test
-    public void should_format_FR_International() {
+    public void test_apply_in_newcolumn() {
+        // given
+        parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, "FR");
+        parameters.put(FormatPhoneNumber.FORMAT_TYPE_PARAMETER, FormatPhoneNumber.TYPE_INTERNATIONAL);
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+        Map<String, String> values = new HashMap<>();
+        values.put("0000", "+33656965822");
+
+        DataSetRow row = new DataSetRow(values);
+
+        Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "+33656965822");
+        expectedValues.put("0001", "+33 6 56 96 58 22");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(1).name("0000_formatted").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0001");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_in_newcolumn_with_empty_values() {
+        // given
+        parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, "FR");
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+        Map<String, String> values = new HashMap<>();
+        values.put("0000", "");
+
+        DataSetRow row = new DataSetRow(values);
+
+        Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "");
+        expectedValues.put("0001", "");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(1).name("0000_formatted").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0001");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_inplace() {
         parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, "FR");
         parameters.put(FormatPhoneNumber.FORMAT_TYPE_PARAMETER, FormatPhoneNumber.TYPE_INTERNATIONAL);
         parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
@@ -100,7 +164,24 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
 
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
+    }
 
+    @Test
+    public void test_default_phone_format() {
+        Map<String, String> values = new HashMap<>();
+        parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, "FR");
+        parameters.put(FormatPhoneNumber.FORMAT_TYPE_PARAMETER, "phone_test");
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+
+        values.put("0000", "+33656965822");
+
+        DataSetRow row = new DataSetRow(values);
+
+        Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "+33656965822");
+
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        assertEquals(expectedValues, row.values());
     }
 
     @Test
@@ -130,7 +211,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
         expectedValues.put("0000", "(541) 754-3010");
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -147,7 +227,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
 
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -184,7 +263,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
         expectedValues.put("0001", "FR");
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -218,7 +296,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
         expectedValues.put("0001", "US");
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -236,7 +313,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
 
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -252,7 +328,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
 
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -281,7 +356,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
         ActionTestWorkbench.test(Arrays.asList(row, row2), actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
         assertEquals(expectedValues2, row2.values());
-
     }
 
     @Test
@@ -401,7 +475,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
         expectedValues.put("0001", "CN");
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -418,7 +491,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
         expectedValues.put("0001", "FR");
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -436,7 +508,6 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
 
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
-
     }
 
     @Test
@@ -454,7 +525,24 @@ public class FormatPhoneNumberTest extends AbstractMetadataBaseTest {
 
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
         assertEquals(expectedValues, row.values());
+    }
 
+    @Test
+    public void should_not_format() {
+        parameters.put(FormatPhoneNumber.FORMAT_TYPE_PARAMETER, FormatPhoneNumber.TYPE_E164);
+        parameters.put(FormatPhoneNumber.REGIONS_PARAMETER_CONSTANT_MODE, FormatPhoneNumber.US_REGION_CODE);
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.OTHER_COLUMN_MODE);
+        parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0001");
+        Map<String, String> values = new HashMap<>();
+        values.put("0000", "14/07/2010");
+        values.put("0001", null);
+        DataSetRow row = new DataSetRow(values);
+        Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "14/07/2010");
+        expectedValues.put("0001", null);
+
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        assertEquals(expectedValues, row.values());
     }
 
     @Test

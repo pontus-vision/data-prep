@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,17 +15,17 @@ package org.talend.dataprep.dataset.service.analysis.asynchronous;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.dataset.event.DataSetImportedEvent;
-
+import org.talend.dataprep.dataset.event.DatasetImportedEvent;
+import org.talend.dataprep.dataset.event.DatasetUpdatedEvent;
 
 /**
  * Synchronous analysis of a dataset used for unit / integration tests.
  */
 @Component
 @ConditionalOnProperty(name = "dataset.asynchronous.analysis", havingValue = "false")
-public class SyncBackgroundAnalysis implements ApplicationListener<DataSetImportedEvent> {
+public class SyncBackgroundAnalysis {
 
     @Autowired
     private BackgroundAnalysis backgroundAnalysis;
@@ -35,9 +35,16 @@ public class SyncBackgroundAnalysis implements ApplicationListener<DataSetImport
      *
      * @param event the event to respond to
      */
-    @Override
-    public void onApplicationEvent(DataSetImportedEvent event) {
+
+    @EventListener
+    public void onEvent(DatasetImportedEvent event) {
         String dataSetId = event.getSource();
+        backgroundAnalysis.analyze(dataSetId);
+    }
+
+    @EventListener
+    public void onEvent(DatasetUpdatedEvent event) {
+        String dataSetId = event.getSource().getId();
         backgroundAnalysis.analyze(dataSetId);
     }
 }

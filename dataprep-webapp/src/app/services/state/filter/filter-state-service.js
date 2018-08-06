@@ -1,6 +1,6 @@
 /*  ============================================================================
 
-  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
   This source code is available under agreement available at
   https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,7 +15,6 @@ export const filterState = {
 	gridFilters: [],
 	applyTransformationOnFilters: false,
 	enabled: true,
-	isTQL: false,
 };
 
 export function FilterStateService() {
@@ -26,6 +25,7 @@ export function FilterStateService() {
         // grid
 		addGridFilter,
 		updateGridFilter,
+		updateColumnNameInFilters,
 		removeGridFilter,
 		removeAllGridFilters,
 		enableFilters,
@@ -49,6 +49,15 @@ export function FilterStateService() {
 		const index = filterState.gridFilters.indexOf(oldFilter);
 		filterState.gridFilters = filterState.gridFilters.slice(0);
 		filterState.gridFilters[index] = newFilter;
+	}
+
+	function updateColumnNameInFilters(columns) {
+		filterState.gridFilters.forEach((filter) => {
+			const colToUpdate = columns.find(col => col.id === filter.colId);
+			if (colToUpdate && filter.colName !== colToUpdate.name) {
+				filter.colName = colToUpdate.name;
+			}
+		});
 	}
 
 	function removeGridFilter(filterInfo) {

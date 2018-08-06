@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,12 +13,12 @@
 
 package org.talend.dataprep.api.service.settings.actions.provider;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.service.settings.AppSettingsProvider;
 import org.talend.dataprep.api.service.settings.actions.api.ActionSettings;
-
-import java.util.List;
 
 import static java.util.Arrays.asList;
 
@@ -35,18 +35,6 @@ public class CommonActionsProvider implements AppSettingsProvider<ActionSettings
     public List<ActionSettings> getSettings() {
         // @formatter:off
         return asList(
-                DatasetActions.DATASET_CLONE,
-                DatasetActions.DATASET_CREATE,
-                DatasetActions.DATASET_DISPLAY_MODE,
-                DatasetActions.DATASET_FAVORITE,
-                DatasetActions.DATASET_FETCH,
-                DatasetActions.DATASET_OPEN,
-                DatasetActions.DATASET_PREPARATIONS,
-                DatasetActions.DATASET_REMOVE,
-                DatasetActions.DATASET_SORT,
-                DatasetActions.DATASET_SUBMIT_EDIT,
-                DatasetActions.DATASET_UPDATE,
-
                 InventoryActions.INVENTORY_CANCEL_EDIT,
                 InventoryActions.INVENTORY_EDIT,
 
@@ -78,8 +66,9 @@ public class CommonActionsProvider implements AppSettingsProvider<ActionSettings
                 WindowActions.MODAL_FEEDBACK,
                 WindowActions.ONBOARDING_PREPARATION,
                 WindowActions.ONBOARDING_PLAYGROUND,
-                WindowActions.HEADERBAR_HELP,
-                WindowActions.PLAYGROUND_HEADERBAR_HELP
+                WindowActions.HEADERBAR_INFORMATION,
+                WindowActions.HEADERBAR_INFORMATION_PLAYGROUND,
+                WindowActions.DIVIDER
         );
         // @formatter:on
     }

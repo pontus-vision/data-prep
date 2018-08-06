@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,11 +12,16 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import static java.lang.Long.valueOf;
+import static java.util.Collections.singletonList;
 import static java.util.EnumSet.of;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.STRING;
 import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.ROW_ID;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
@@ -25,17 +30,17 @@ import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.CellAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 /**
  * Replace the content or part of a cell by a value.
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + ReplaceCellValue.REPLACE_CELL_VALUE_ACTION_NAME)
+@Action(ReplaceCellValue.REPLACE_CELL_VALUE_ACTION_NAME)
 public class ReplaceCellValue extends AbstractActionMetadata implements CellAction {
 
     /** For the Serializable interface. */
@@ -56,22 +61,33 @@ public class ReplaceCellValue extends AbstractActionMetadata implements CellActi
     /** Target row ID. */
     private static final String TARGET_ROW_ID_KEY = "targetRowId";
 
+    protected static final String NEW_COLUMN_SUFFIX = "_replace";
+
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
+
     @Override
     public String getName() {
         return REPLACE_CELL_VALUE_ACTION_NAME;
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.STRINGS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.STRINGS.getDisplayName(locale);
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        final List<Parameter> parameters = super.getParameters();
-        parameters.add(new Parameter(ORIGINAL_VALUE_PARAMETER, STRING, EMPTY));
-        parameters.add(new Parameter(NEW_VALUE_PARAMETER, STRING, EMPTY));
-        return ActionsBundle.attachToAction(parameters, this);
+    public List<Parameter> getParameters(Locale locale) {
+        final List<Parameter> parameters = super.getParameters(locale);
+        parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
+        parameters.add(
+                parameter(locale).setName(ORIGINAL_VALUE_PARAMETER).setType(STRING).setDefaultValue(EMPTY).build(this));
+        parameters.add(
+                parameter(locale).setName(NEW_VALUE_PARAMETER).setType(STRING).setDefaultValue(EMPTY).build(this));
+        return parameters;
+    }
+
+    protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
+        return singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX));
     }
 
     @Override
@@ -82,7 +98,10 @@ public class ReplaceCellValue extends AbstractActionMetadata implements CellActi
     @Override
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
-        if (actionContext.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(actionContext, getAdditionalColumns(actionContext));
+        }
+        if (actionContext.getActionStatus() == OK) {
 
             final Map<String, String> parameters = actionContext.getParameters();
             // get the target row ID
@@ -91,21 +110,19 @@ public class ReplaceCellValue extends AbstractActionMetadata implements CellActi
                 if (targetIdAsString == null) {
                     throw new NullPointerException("row ID is null");
                 }
-                final Long targetRowId = Long.valueOf(targetIdAsString);
+                final Long targetRowId = valueOf(targetIdAsString);
                 actionContext.get(TARGET_ROW_ID_KEY, p -> targetRowId);
             } catch (NullPointerException | NumberFormatException nfe) {
                 LOGGER.info("no row ID specified in parameters {}, action canceled", parameters);
-                actionContext.setActionStatus(ActionContext.ActionStatus.CANCELED);
+                actionContext.setActionStatus(CANCELED);
             }
 
             // make sure the replacement value is set
             if (!actionContext.getParameters().containsKey(NEW_VALUE_PARAMETER)) {
                 LOGGER.info("no replacement value specified in parameters {}, action canceled", parameters);
-                actionContext.setActionStatus(ActionContext.ActionStatus.CANCELED);
+                actionContext.setActionStatus(CANCELED);
             }
-
         }
-
     }
 
     /**
@@ -121,7 +138,7 @@ public class ReplaceCellValue extends AbstractActionMetadata implements CellActi
         final String replacement = context.getParameters().get(NEW_VALUE_PARAMETER);
         final String columnId = context.getColumnId();
         final String oldValue = row.get(columnId);
-        row.set(columnId, replacement);
+        row.set(ActionsUtils.getTargetColumnId(context), replacement);
         LOGGER.debug("{} replaced by {} in row {}, column {}", oldValue, replacement, row.getTdpId(), columnId);
 
         // all done

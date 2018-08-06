@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -173,6 +173,10 @@ public class ActionContext implements Serializable {
         throw new IllegalArgumentException("Key '" + key + "' does not exist.");
     }
 
+    public boolean contains(String key) {
+        return getContext().containsKey(key);
+    }
+
     /**
      * Return the object from the context or use the supplier to create it and cache it.
      *
@@ -188,6 +192,11 @@ public class ActionContext implements Serializable {
             LOGGER.debug("adding {}->{} in this context {}", key, value, this);
         }
         return value;
+    }
+
+    /** Remove context cached entry. */
+    public void evict(String key) {
+        getContext().remove(key);
     }
 
     /**
@@ -231,8 +240,22 @@ public class ActionContext implements Serializable {
         this.parameters = parameters;
     }
 
+    /**
+     * The selected column Id, privileged to apply the action.
+     *
+     * @return the selected column Id or null if no column is selected
+     */
     public String getColumnId() {
         return parameters.get(ImplicitParameters.COLUMN_ID.getKey());
+    }
+
+    /**
+     * The selected column name, privileged to apply the action.
+     *
+     * @return the selected column name or null if no column is selected
+     */
+    public String getColumnName() {
+        return getRowMetadata().getById(getColumnId()).getName();
     }
 
     public Map<String, String> getParameters() {
@@ -341,6 +364,11 @@ public class ActionContext implements Serializable {
         @Override
         public <T> T get(String key) {
             return delegate.get(key);
+        }
+
+        @Override
+        public void evict(String key) {
+            // No op: unable to modify once immutable.
         }
 
         @Override

@@ -1,6 +1,6 @@
 /*  ============================================================================
 
-  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
   This source code is available under agreement available at
   https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -185,4 +185,37 @@ describe('Transform simple param controller', () => {
         //then
         expect(ctrl.isBooleanType()).toBe(true);
     });
+
+	it('should set data-feature to empty if it is not boolean type', () => {
+		//given
+		parameter = { name: 'param1', type: 'text' };
+
+		//when
+		const ctrl = createController();
+
+		//then
+		expect(ctrl.getDataFeature()).toBe('');
+	});
+
+	it('should set data-feature to uncheck if it is boolean type and it is checked', () => {
+		//given
+		parameter = { name: 'param1', type: 'boolean', default: 'false' };
+
+		//when
+		const ctrl = createController();
+
+		//then
+		expect(ctrl.getDataFeature()).toBe('preparation.function.param1.check');
+	});
+
+	it('should set data-feature to uncheck if it is boolean type and it is checked', () => {
+		//given
+		parameter = { name: 'param1', type: 'boolean', value: 'true' };
+
+		//when
+		const ctrl = createController();
+
+		//then
+		expect(ctrl.getDataFeature()).toBe('preparation.function.param1.uncheck');
+	});
 });

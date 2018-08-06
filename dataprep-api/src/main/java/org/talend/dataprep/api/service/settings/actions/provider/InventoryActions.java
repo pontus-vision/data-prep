@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,6 +13,7 @@
 
 package org.talend.dataprep.api.service.settings.actions.provider;
 
+import static org.talend.dataprep.api.service.settings.actions.api.ActionSettings.DATA_FEATURE_KEY;
 import static org.talend.dataprep.api.service.settings.actions.api.ActionSettings.PAYLOAD_METHOD_KEY;
 import static org.talend.dataprep.api.service.settings.actions.api.ActionSettings.builder;
 
@@ -25,15 +26,16 @@ import org.talend.dataprep.api.service.settings.actions.api.ActionSettings;
 public interface InventoryActions {
     ActionSettings INVENTORY_EDIT = builder()
             .id("inventory:edit")
-            .name("Edit name")
+            .name("inventory.edit")
             .icon("talend-pencil")
             .type("@@inventory/EDIT")
+            .data(DATA_FEATURE_KEY, "inventory.rename")
             .payload(PAYLOAD_METHOD_KEY, "enableInventoryEdit")
             .build();
 
     ActionSettings INVENTORY_CANCEL_EDIT = builder()
             .id("inventory:cancel-edit")
-            .name("Cancel name edition")
+            .name("inventory.canceledit")
             .type("@@inventory/CANCEL_EDIT")
             .payload(PAYLOAD_METHOD_KEY, "disableInventoryEdit")
             .build();

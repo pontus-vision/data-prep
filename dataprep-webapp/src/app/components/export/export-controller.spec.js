@@ -1,6 +1,6 @@
 /*
  * ============================================================================
- * Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * This source code is available under agreement available at
  * https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -76,6 +76,16 @@ describe('Export controller', () => {
 						"description": "Name of the generated export file",
 						"label": "Filename",
 						"default": ""
+					},
+					{
+						"name": "escapeCharacter",
+						"type": "string",
+						"implicit": false,
+						"canBeBlank": true,
+						"placeHolder": "",
+						"description": "Escape character",
+						"label": "Escape character",
+						"default": "@"
 					}
 				]
 			},
@@ -111,6 +121,9 @@ describe('Export controller', () => {
 						steps: [],
 					},
 				},
+				dataset: {
+					id: 666,
+				},
 			},
 			export: {
 				exportTypes: exportTypes,
@@ -123,10 +136,10 @@ describe('Export controller', () => {
 	}));
 
 	beforeEach(inject((RestURLs) => {
-		RestURLs.register({ serverUrl: '' }, settings.uris);
+		RestURLs.register(settings.uris);
 	}));
 
-	beforeEach(inject(($rootScope, $controller, ExportService) => {
+	beforeEach(inject(($rootScope, $controller, $q, PreparationService, ExportService) => {
 		form = {
 			submit: () => {
 			},
@@ -140,6 +153,7 @@ describe('Export controller', () => {
 		};
 
 		spyOn(form, 'submit').and.returnValue();
+		spyOn(PreparationService, 'isExportPossible').and.returnValue($q.when());
 		spyOn(ExportService, 'getType').and.returnValue();
 	}));
 
@@ -226,6 +240,7 @@ describe('Export controller', () => {
 			const ctrl = createController();
 			ctrl.selectedType = exportTypes[0];
 			ctrl.selectedType.parameters[1].value = 'my prep';
+			ctrl.selectedType.parameters[2].value = '#';
 
 			//when
 			ctrl.saveAndExport();
@@ -235,6 +250,27 @@ describe('Export controller', () => {
 				exportType: 'CSV',
 				'exportParameters.csvSeparator': ';',
 				'exportParameters.fileName': 'my prep',
+				'exportParameters.escapeCharacter': '#',
+			});
+		});
+
+
+		it('should allow empty parameters', () => {
+			//given
+			const ctrl = createController();
+			ctrl.selectedType = exportTypes[0];
+			ctrl.selectedType.parameters[1].value = 'my prep';
+			ctrl.selectedType.parameters[2].value = '';
+
+			//when
+			ctrl.saveAndExport();
+
+			//then
+			expect(ctrl.exportParams).toEqual({
+				exportType: 'CSV',
+				'exportParameters.csvSeparator': ';',
+				'exportParameters.fileName': 'my prep',
+				'exportParameters.escapeCharacter': '',
 			});
 		});
 
@@ -251,7 +287,8 @@ describe('Export controller', () => {
 			expect(ExportService.setExportParams).toHaveBeenCalledWith({
 				exportType: exportTypes[0].id,
 				'exportParameters.csvSeparator': ';',
-				'exportParameters.fileName': ''
+				'exportParameters.fileName': '',
+				'exportParameters.escapeCharacter': '@',
 			});
 		}));
 	});
@@ -297,7 +334,8 @@ describe('Export controller', () => {
 			expect(ctrl.exportParams).toEqual({
 				exportType: 'CSV',
 				'exportParameters.csvSeparator': ';',
-				'exportParameters.fileName': 'prepname'
+				'exportParameters.fileName': 'prepname',
+				'exportParameters.escapeCharacter': '@',
 			});
 		});
 	});
@@ -317,6 +355,7 @@ describe('Export controller', () => {
 				exportType: 'CSV',
 				'exportParameters.csvSeparator': ';',
 				'exportParameters.fileName': 'my prep',
+				'exportParameters.escapeCharacter': '@',
 			});
 		});
 
@@ -335,7 +374,7 @@ describe('Export controller', () => {
 			expect(form.action).toBe(RestURLs.exportUrl);
 		}));
 
-		it('should submit form', inject(($timeout) => {
+		it('should check if content is ready to be exported submit form', inject(($timeout, PreparationService) => {
 			//given
 			const ctrl = createController();
 			ctrl.selectedType = exportTypes[0];
@@ -345,6 +384,7 @@ describe('Export controller', () => {
 			$timeout.flush();
 
 			//then
+			expect(PreparationService.isExportPossible).toHaveBeenCalled();
 			expect(form.submit).toHaveBeenCalled();
 		}));
 	});

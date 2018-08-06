@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -24,12 +24,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonRootName("dataset")
-public class DataSet {
+public class DataSet implements AutoCloseable {
+
+    public static final String RECORDS_FIELD_NAME = "records";
 
     @JsonProperty(value = "metadata")
     private DataSetMetadata metadata;
 
-    @JsonProperty(value = "records")
+    @JsonProperty(value = RECORDS_FIELD_NAME)
     @JsonSerialize(using = DataSetRowStreamSerializer.class)
     @JsonDeserialize(using = DataSetRowStreamDeserializer.class)
     private Stream<DataSetRow> records;
@@ -59,5 +61,12 @@ public class DataSet {
     @Override
     public String toString() {
         return "DataSet{" + "metadata=" + metadata + ", records=...}";
+    }
+
+    @Override
+    public void close() {
+        if (records != null) {
+            records.close();
+        }
     }
 }

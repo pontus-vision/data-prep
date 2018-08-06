@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -106,7 +106,9 @@ describe('Playground Service', () => {
 					initialStep: { transformation: { stepId: 'INITIAL_STEP_ID' } },
 					current: { steps: [] }
 				},
-				filter: {},
+				filter: {
+					gridFilters: []
+				},
 				grid: {},
 				sampleType: 'HEAD',
 				data: {
@@ -278,34 +280,6 @@ describe('Playground Service', () => {
 			assertNewPreparationInitialization();
 		}));
 
-		it('should manage loading spinner', inject(($rootScope, PlaygroundService) => {
-			// given
-			expect($rootScope.$emit).not.toHaveBeenCalled();
-
-			// when
-			PlaygroundService.loadDataset(datasetColumns.metadata.id);
-			expect($rootScope.$emit).toHaveBeenCalledWith(EVENT_LOADING_START);
-			$rootScope.$digest();
-
-			// then
-			expect($rootScope.$emit).toHaveBeenCalledWith(EVENT_LOADING_STOP);
-		}));
-
-		it('should not stop spinner if it has been started more than one time', inject(($rootScope, PlaygroundService) => {
-			// given
-			expect($rootScope.$emit).not.toHaveBeenCalled();
-
-			// when
-			PlaygroundService.loadDataset(datasetColumns.metadata.id);
-			PlaygroundService.loadDataset(datasetColumns.metadata.id);
-			$rootScope.$digest();
-
-			// then
-			expect($rootScope.$emit).toHaveBeenCalledWith(EVENT_LOADING_START);
-			expect($rootScope.$emit).toHaveBeenCalledWith(EVENT_LOADING_STOP);
-			expect($rootScope.$emit).toHaveBeenCalledTimes(2);
-		}));
-
 		it('should reset preparation name', inject(($rootScope, PlaygroundService, StateService) => {
 			// given
 			PlaygroundService.preparationName = 'preparation name';
@@ -418,19 +392,6 @@ describe('Playground Service', () => {
 
 			// then
 			assertDatasetLoadInitialized(dataset, data);
-		}));
-
-		it('should manage loading spinner on preparation load', inject(($rootScope, PlaygroundService) => {
-			// given
-			stateMock.playground.preparation = { id: '5746518486846' };
-
-			// when
-			PlaygroundService.loadPreparation(preparation);
-			expect($rootScope.$emit).toHaveBeenCalledWith(EVENT_LOADING_START);
-			$rootScope.$apply();
-
-			// then
-			expect($rootScope.$emit).toHaveBeenCalledWith(EVENT_LOADING_STOP);
 		}));
 
 		it('should load existing preparation with simulated dataset metadata when its metadata is not set yet',
@@ -610,7 +571,7 @@ describe('Playground Service', () => {
 		const previousLastStepId = '3248fa65e45f588cb464';
 		const lastStep = { transformation: { stepId: lastStepId } };
 		const previousLastStep = { transformation: { stepId: previousLastStepId } };
-		const previousStep = { column: { id: '0003' } };
+		const previousStep = { column: { id: '0003' }, transformation: { stepId: '666' } };
 		beforeEach(inject(($rootScope, $q, PlaygroundService, PreparationService, StepUtilsService) => {
 			preparationHeadContent = {
 				records: [{
@@ -634,6 +595,9 @@ describe('Playground Service', () => {
 					nbCommands: '17',
 					lastname: 'Johnson',
 				},],
+				metadata: {
+					columns: [{ id: '0001', statistics: { frequencyTable: [{ toto: 2 }] } }],
+				},
 			};
 
 			metadata = { id: 'e85afAa78556d5425bc2' };
@@ -768,6 +732,8 @@ describe('Playground Service', () => {
 			it('should refresh datagrid with head content', inject(($rootScope, PlaygroundService, PreparationService, DatagridService, PreviewService) => {
 				// given
 				stateMock.playground.preparation = { id: '15de46846f8a46' };
+				stateMock.playground.filter = { enabled: false, gridFilters: [] };
+
 				const parameters = {
 					param1: 'param1Value',
 					param2: 4,
@@ -782,7 +748,7 @@ describe('Playground Service', () => {
 				$rootScope.$digest();
 
 				// then
-				expect(PreparationService.getContent).toHaveBeenCalledWith('15de46846f8a46', 'head', 'HEAD');
+				expect(PreparationService.getContent).toHaveBeenCalledWith('15de46846f8a46', 'head', 'HEAD', false);
 				expect(DatagridService.updateData).toHaveBeenCalledWith(preparationHeadContent);
 				expect(PreviewService.reset).toHaveBeenCalledWith(false);
 			}));
@@ -951,6 +917,7 @@ describe('Playground Service', () => {
 				// given
 				const preparation = { id: '456415ae348e6046dc' };
 				stateMock.playground.preparation = preparation;
+				stateMock.playground.filter = { enabled: false, gridFilters: [] };
 				const parameters = { value: 'tata', column_id: '0001' };
 
 				// when
@@ -958,7 +925,7 @@ describe('Playground Service', () => {
 				$rootScope.$digest();
 
 				// then
-				expect(PreparationService.getContent).toHaveBeenCalledWith(preparation.id, lastActiveStep.transformation.stepId, 'HEAD');
+				expect(PreparationService.getContent).toHaveBeenCalledWith(preparation.id, lastActiveStep.transformation.stepId, 'HEAD', false);
 				expect(DatagridService.updateData).toHaveBeenCalledWith(preparationHeadContent);
 				expect(PreviewService.reset).toHaveBeenCalledWith(false);
 			}));
@@ -1162,11 +1129,12 @@ describe('Playground Service', () => {
 
 			it('should update datagrid', inject(($rootScope, PlaygroundService, PreparationService, DatagridService, PreviewService) => {
 				// when
+				stateMock.playground.filter = { enabled: false, gridFilters: [] };
 				PlaygroundService.updateStepOrder(previousPosition, nextPosition);
 				$rootScope.$digest();
 
 				// then
-				expect(PreparationService.getContent).toHaveBeenCalledWith(preparationId, 'head', 'HEAD');
+				expect(PreparationService.getContent).toHaveBeenCalledWith(preparationId, 'head', 'HEAD', false);
 				expect(DatagridService.focusedColumn).toBeFalsy();
 				expect(DatagridService.updateData).toHaveBeenCalledWith(preparationHeadContent);
 				expect(PreviewService.reset).toHaveBeenCalledWith(false);
@@ -1220,12 +1188,15 @@ describe('Playground Service', () => {
 				}));
 
 				it('should refresh datagrid content on UNDO', inject(($rootScope, PreparationService, DatagridService, PreviewService) => {
+					//given
+					stateMock.playground.filter = { enabled: false, gridFilters: [] };
+
 					// when
 					undo();
 					$rootScope.$digest();
 
 					// then
-					expect(PreparationService.getContent).toHaveBeenCalledWith(preparationId, 'head', 'HEAD');
+					expect(PreparationService.getContent).toHaveBeenCalledWith(preparationId, 'head', 'HEAD', false);
 					expect(DatagridService.updateData).toHaveBeenCalledWith(preparationHeadContent);
 					expect(PreviewService.reset).toHaveBeenCalledWith(false);
 				}));
@@ -1283,13 +1254,14 @@ describe('Playground Service', () => {
 			it('should update datagrid', inject(($rootScope, PlaygroundService, PreparationService, DatagridService, PreviewService) => {
 				// given
 				stateMock.playground.preparation = { id: preparationId };
+				stateMock.playground.filter = { enabled: false, gridFilters: [] };
 
 				// when
 				PlaygroundService.removeStep(stepToDelete);
 				$rootScope.$digest();
 
 				// then
-				expect(PreparationService.getContent).toHaveBeenCalledWith(preparationId, 'head', 'HEAD');
+				expect(PreparationService.getContent).toHaveBeenCalledWith(preparationId, 'head', 'HEAD', false);
 				expect(DatagridService.focusedColumn).toBeFalsy();
 				expect(DatagridService.updateData).toHaveBeenCalledWith(preparationHeadContent);
 				expect(PreviewService.reset).toHaveBeenCalledWith(false);
@@ -1344,12 +1316,15 @@ describe('Playground Service', () => {
 				}));
 
 				it('should refresh datagrid content on UNDO', inject(($rootScope, PreparationService, DatagridService, PreviewService) => {
+					//given
+					stateMock.playground.filter = { enabled: false, gridFilters: [] };
+
 					// when
 					undo();
 					$rootScope.$digest();
 
 					// then
-					expect(PreparationService.getContent).toHaveBeenCalledWith(preparationId, 'head', 'HEAD');
+					expect(PreparationService.getContent).toHaveBeenCalledWith(preparationId, 'head', 'HEAD', false);
 					expect(DatagridService.updateData).toHaveBeenCalledWith(preparationHeadContent);
 					expect(PreviewService.reset).toHaveBeenCalledWith(false);
 				}));
@@ -1357,16 +1332,9 @@ describe('Playground Service', () => {
 		});
 
 		describe('edit Cell', () => {
-			beforeEach(inject(($q, PlaygroundService, FilterAdapterService) => {
+			beforeEach(inject(($q, PlaygroundService, TqlFilterAdapterService) => {
 				spyOn(PlaygroundService, 'appendStep').and.returnValue($q.when());
-				spyOn(FilterAdapterService, 'toTree').and.returnValue({
-					filter: {
-						eq: {
-							field: '0001',
-							value: 'john',
-						},
-					},
-				});
+				spyOn(TqlFilterAdapterService, 'toTQL').and.returnValue('0001 = john');
 			}));
 
 			it('should append step on cell scope', inject((PlaygroundService) => {
@@ -1453,12 +1421,7 @@ describe('Playground Service', () => {
 					row_id: 58,
 					column_id: '0001',
 					column_name: 'firstname',
-					filter: {
-						eq: {
-							field: '0001',
-							value: 'john',
-						},
-					},
+					filter: '0001 = john',
 				};
 
 				const actions = [{ action: 'replace_on_value', parameters: expectedParams }];
@@ -1467,16 +1430,9 @@ describe('Playground Service', () => {
 		});
 
 		describe('params completion and append Step', () => {
-			beforeEach(inject(($q, PlaygroundService, FilterAdapterService) => {
+			beforeEach(inject(($q, PlaygroundService, TqlFilterAdapterService) => {
 				spyOn(PlaygroundService, 'appendStep').and.returnValue($q.when());
-				spyOn(FilterAdapterService, 'toTree').and.returnValue({
-					filter: {
-						eq: {
-							field: '0001',
-							value: 'john',
-						},
-					},
-				});
+				spyOn(TqlFilterAdapterService, 'toTQL').and.returnValue('0001 = john');
 			}));
 
 			it('should call appendStep with column', inject((PlaygroundService) => {
@@ -1564,12 +1520,7 @@ describe('Playground Service', () => {
 					column_id: '0001',
 					column_name: 'firstname',
 					row_id: undefined,
-					filter: {
-						eq: {
-							field: '0001',
-							value: 'john',
-						},
-					},
+					filter: '0001 = john',
 				};
 
 				const actions = [{ action: 'tolowercase', parameters: expectedParams }];
@@ -1797,7 +1748,7 @@ describe('Playground Service', () => {
 				// given
 				stateMock.playground.dataset = { id: '123456' };
 				spyOn(OnboardingService, 'startTour').and.returnValue();
-				spyOn(OnboardingService, 'shouldStartTour').and.returnValue(true); // not completed
+				spyOn(OnboardingService, 'shouldStartTour').and.callFake(tourName => tourName === 'recipe'); // not completed
 
 				const parameters = { param1: 'param1Value', param2: 4 };
 				const actions = [{ action: 'uppercase', parameters: parameters }];
@@ -1935,6 +1886,8 @@ describe('Playground Service', () => {
 		it('should update datagrid', inject(($rootScope, PlaygroundService, PreparationService) => {
 			// given
 			stateMock.playground.preparation = { id: '79db821355a65cd96' };
+			stateMock.playground.filter = { enabled: false, gridFilters: [] };
+
 			expect(PreparationService.getContent).not.toHaveBeenCalled();
 
 			// when
@@ -1942,7 +1895,7 @@ describe('Playground Service', () => {
 			$rootScope.$digest();
 
 			// then
-			expect(PreparationService.getContent).toHaveBeenCalledWith('79db821355a65cd96', 'head', 'HEAD');
+			expect(PreparationService.getContent).toHaveBeenCalledWith('79db821355a65cd96', 'head', 'HEAD', false);
 		}));
 
 		it('should manage loader', inject(($rootScope, PlaygroundService) => {

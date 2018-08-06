@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,15 +17,19 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.talend.dataprep.api.service.settings.views.api.ViewSettings;
+import org.talend.dataprep.i18n.DataprepBundle;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * Side panel settings
- * see https://talend.github.io/react-talend-components/?selectedKind=Side%20Panel&selectedStory=default&full=0&down=1&left=1&panelRight=0&downPanel=kadirahq%2Fstorybook-addon-actions%2Factions-panel
+ * see
+ * https://talend.github.io/react-talend-components/?selectedKind=Side%20Panel&selectedStory=default&full=0&down=1&left=1&panelRight=0&downPanel=kadirahq%2Fstorybook-addon-actions%2Factions-panel
  */
 @JsonInclude(NON_NULL)
 public class SidePanelSettings implements ViewSettings {
@@ -53,6 +57,14 @@ public class SidePanelSettings implements ViewSettings {
         return id;
     }
 
+    @Override
+    public ViewSettings translate() {
+        return SidePanelSettings
+                .from(this) //
+                .translate() //
+                .build();
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -71,6 +83,21 @@ public class SidePanelSettings implements ViewSettings {
 
     public void setActions(List<String> actions) {
         this.actions = actions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        SidePanelSettings that = (SidePanelSettings) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     public static Builder builder() {
@@ -120,5 +147,14 @@ public class SidePanelSettings implements ViewSettings {
             return settings;
         }
 
+        public Builder translate() {
+            if (Objects.nonNull(this.actions)) {
+                this.actions = this.actions
+                        .stream() //
+                        .map(entry -> DataprepBundle.message(entry)) //
+                        .collect(Collectors.toList());
+            }
+            return this;
+        }
     }
 }

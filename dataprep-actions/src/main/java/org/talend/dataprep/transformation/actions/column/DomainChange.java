@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,7 +13,8 @@
 
 package org.talend.dataprep.transformation.actions.column;
 
-import static org.talend.dataprep.transformation.actions.category.ActionScope.COLUMN_METADATA;
+import static java.util.Collections.singletonList;
+import static org.talend.dataprep.transformation.actions.category.ActionScope.HIDDEN_IN_ACTION_LIST;
 
 import java.util.*;
 
@@ -33,7 +34,7 @@ import org.talend.dataprep.transformation.api.action.context.ActionContext;
  * Change the domain of a column. <b>This action is not displayed in the UI it's here to ease recording it as a Step
  * It's available from column headers</b>
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + DomainChange.DOMAIN_CHANGE_ACTION_NAME)
+@Action(DomainChange.DOMAIN_CHANGE_ACTION_NAME)
 public class DomainChange extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -58,13 +59,13 @@ public class DomainChange extends AbstractActionMetadata implements ColumnAction
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.COLUMN_METADATA.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.COLUMN_METADATA.getDisplayName(locale);
     }
 
     @Override
     public List<String> getActionScope() {
-        return Collections.singletonList(COLUMN_METADATA.getDisplayName());
+        return singletonList(HIDDEN_IN_ACTION_LIST.getDisplayName());
     }
 
     /**

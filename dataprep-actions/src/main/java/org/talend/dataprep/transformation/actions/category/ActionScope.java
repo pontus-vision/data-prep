@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -31,7 +31,16 @@ public enum ActionScope {
     /**
      * Actions works on the column metadata (not column's values).
      */
-    COLUMN_METADATA;
+    COLUMN_METADATA,
+    /**
+     * Actions are hidden from actions list
+     */
+    HIDDEN_IN_ACTION_LIST,
+
+    /**
+     * Actions are showed only when filters are applied
+     */
+    COLUMN_FILTERED;
 
     /**
      * @return A "user friendly" name for the action scope.

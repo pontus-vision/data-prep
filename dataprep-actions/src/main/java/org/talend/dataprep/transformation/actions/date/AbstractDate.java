@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,7 +15,11 @@ package org.talend.dataprep.transformation.actions.date;
 
 import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.talend.dataprep.api.type.Type.DATE;
+import static org.talend.dataprep.i18n.ActionsBundle.choice;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -35,62 +39,91 @@ public abstract class AbstractDate extends AbstractActionMetadata {
     /**
      * Name of the new date pattern parameter.
      */
-    public static String NEW_PATTERN = "new_pattern"; //$NON-NLS-1$
+    public static final String NEW_PATTERN = "new_pattern"; //$NON-NLS-1$
 
     /**
      * The parameter object for the custom new pattern.
      */
-    public static String CUSTOM_PATTERN = "custom_date_pattern"; //$NON-NLS-1$
+    public static final String CUSTOM_PATTERN = "custom_date_pattern"; //$NON-NLS-1$
 
     /**
      * Key to store compiled pattern in action context.
      */
-    public static String COMPILED_DATE_PATTERN = "compiled_datePattern";
-
-    /**
-     * The parameter object for the custom new pattern.
-     */
-    Parameter CUSTOM_PATTERN_PARAMETER = new Parameter(CUSTOM_PATTERN, ParameterType.STRING, EMPTY, false, false);
+    public static final String COMPILED_DATE_PATTERN = "compiled_datePattern";
 
     /**
      * @return the Parameters to display for the date related action.
      */
-    protected List<Parameter> getParametersForDatePattern() {
+    protected List<Parameter> getParametersForDatePattern(Locale locale) {
+        HashMap<String, String> datePatterns = loadDatePatterns();
 
-        ResourceBundle patterns = ResourceBundle
-                .getBundle("org.talend.dataprep.transformation.actions.date.date_patterns", Locale.ENGLISH);
-        Enumeration<String> keys = patterns.getKeys();
+        SelectParameter.SelectParameterBuilder selectParamBuilder = SelectParameter.selectParameter(locale).name(NEW_PATTERN);
 
-        List<Item> items = new ArrayList<>();
-        Item defaultItem = null;
-        while (keys.hasMoreElements()) {
-            String key = keys.nextElement();
-            String value = patterns.getString(key);
-            Item item = Item.Builder.builder()
-                    .value(value)
-                    .label(key)
-                    .build();
-            items.add(item);
+        String defaultItem = null;
+        for (Map.Entry<String, String> datePatternEntry : datePatterns.entrySet()) {
+            String key = datePatternEntry.getKey();
+            String value = datePatternEntry.getValue();
+
+            selectParamBuilder.constant(value, choice(this, locale, key));
 
             if ("ISO".equals(key)){
-                defaultItem = item;
+                defaultItem = value;
+            }
+            if (defaultItem == null) {
+                defaultItem = value;
             }
         }
-        if (defaultItem == null) {
-            defaultItem = items.get(0);
-        }
 
-        items.sort((item, t1) -> item.getLabel().compareTo(t1.getLabel()));
+        SelectParameter custom = selectParamBuilder //
+                .item("custom", "custom", buildCustomPatternParam(locale)) //
+                .defaultValue(defaultItem) //
+                .build(this);
+        custom.getItems().sort(compareOnLabelWithCustomLast());
 
         List<Parameter> parameters = new ArrayList<>();
-        parameters.add(SelectParameter.Builder.builder() //
-                .name(NEW_PATTERN) //
-                .items(items) //
-                .item("custom", CUSTOM_PATTERN_PARAMETER) //
-                .defaultValue(defaultItem.getValue()) //
-                .build());
-
+        parameters.add(custom);
         return parameters;
+    }
+
+    private Comparator<Item> compareOnLabelWithCustomLast() {
+        return new Comparator<Item>() {
+
+            private final Comparator<Item> labelComparator = Comparator.comparing(Item::getLabel);
+
+            @Override
+            public int compare(Item o1, Item o2) {
+                if (o1.getValue().equals("custom")) {
+                    return Integer.MAX_VALUE;
+                } else if (o2.getValue().equals("custom")) {
+                    return Integer.MIN_VALUE;
+                }
+                return labelComparator.compare(o1, o2);
+            }
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    private HashMap<String, String> loadDatePatterns() {
+        HashMap<String, String> datePatterns;
+        try {
+            Properties properties = new Properties();
+            properties.load(new InputStreamReader(getClass().getResourceAsStream("date_patterns.properties"), StandardCharsets.UTF_8));
+            datePatterns = new HashMap(properties);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return datePatterns;
+    }
+
+    /**
+     * The parameter object for the custom new pattern.
+     */
+    private Parameter buildCustomPatternParam(Locale locale) {
+        return Parameter.parameter(locale).setName(CUSTOM_PATTERN)
+                .setType(ParameterType.STRING)
+                .setDefaultValue(EMPTY)
+                .setCanBeBlank(false)
+                .build(this);
     }
 
     /**
@@ -123,8 +156,8 @@ public abstract class AbstractDate extends AbstractActionMetadata {
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.DATE.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.DATE.getDisplayName(locale);
     }
 
     /**

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,15 +13,15 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.BooleanUtils.toStringTrueFalse;
 import static org.apache.commons.lang.StringUtils.EMPTY;
-import static org.talend.dataprep.api.type.Type.BOOLEAN;
-import static org.talend.dataprep.parameters.ParameterType.INTEGER;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.ParameterType.*;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.*;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -30,12 +30,10 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.parameters.ParameterType;
-import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
@@ -43,7 +41,7 @@ import org.talend.dataprep.transformation.api.action.context.ActionContext;
 /**
  * Create a new column with Boolean result <code>true</code> if the Levenstein distance is less or equals the parameter
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + FuzzyMatching.ACTION_NAME)
+@Action(FuzzyMatching.ACTION_NAME)
 public class FuzzyMatching extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -66,8 +64,8 @@ public class FuzzyMatching extends AbstractActionMetadata implements ColumnActio
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.STRINGS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.STRINGS.getDisplayName(locale);
     }
 
     @Override
@@ -76,61 +74,49 @@ public class FuzzyMatching extends AbstractActionMetadata implements ColumnActio
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        final List<Parameter> parameters = super.getParameters();
+        public List<Parameter> getParameters(Locale locale) {
+        final List<Parameter> parameters = super.getParameters(locale);
 
-        parameters.add(SelectParameter.Builder.builder() //
-                .name(OtherColumnParameters.MODE_PARAMETER) //
-                .item(OtherColumnParameters.CONSTANT_MODE, OtherColumnParameters.CONSTANT_MODE,//
-                        new Parameter(VALUE_PARAMETER, ParameterType.STRING, EMPTY, false, true, StringUtils.EMPTY)) //
-                .item(OtherColumnParameters.OTHER_COLUMN_MODE, OtherColumnParameters.OTHER_COLUMN_MODE,//
-                        new Parameter(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, //
-                                ParameterType.COLUMN, //
-                                StringUtils.EMPTY, false, false, StringUtils.EMPTY)) //
-                .defaultValue(OtherColumnParameters.CONSTANT_MODE).build());
+        parameters.add(selectParameter(locale) //
+                .name(MODE_PARAMETER) //
+                .item(CONSTANT_MODE, CONSTANT_MODE,//
+                        parameter(locale).setName(VALUE_PARAMETER)
+                                .setType(STRING)
+                                .setDefaultValue(EMPTY)
+                                .build(this)) //
+                .item(OTHER_COLUMN_MODE, OTHER_COLUMN_MODE,//
+                        parameter(locale).setName(SELECTED_COLUMN_PARAMETER)
+                                .setType(COLUMN)
+                                .setDefaultValue(EMPTY)
+                                .setCanBeBlank(false)
+                                .build(this)) //
+                .defaultValue(CONSTANT_MODE).build(this));
 
-        parameters.add(new Parameter(SENSITIVITY, INTEGER, "1", false, false, StringUtils.EMPTY));
-        return ActionsBundle.attachToAction(parameters, this);
+        parameters.add(parameter(locale).setName(SENSITIVITY)
+                .setType(INTEGER)
+                .setDefaultValue("1")
+                .setCanBeBlank(false)
+                .build(this));
+        return parameters;
     }
 
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (context.getActionStatus() == ActionContext.ActionStatus.OK) {
-            final String columnId = context.getColumnId();
-            // create new column and append it after current column
-            RowMetadata rowMetadata = context.getRowMetadata();
-            ColumnMetadata column = rowMetadata.getById(columnId);
-
-            context.column(column.getName() + APPENDIX, r -> {
-                final ColumnMetadata c = ColumnMetadata.Builder //
-                        .column() //
-                        .name(column.getName() + APPENDIX) //
-                        .type(BOOLEAN) //
-                        .typeForce(true) //
-                        .empty(column.getQuality().getEmpty()) //
-                        .invalid(column.getQuality().getInvalid()) //
-                        .valid(column.getQuality().getValid()) //
-                        .headerSize(column.getHeaderSize()) //
-                        .build();
-                rowMetadata.insertAfter(columnId, c);
-                return c;
-            });
+        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), true)) {
+            ActionsUtils.createNewColumn(context, singletonList(
+                    ActionsUtils.additionalColumn().withName(context.getColumnName() + APPENDIX).withType(Type.BOOLEAN)));
         }
     }
 
     @Override
     public void applyOnColumn(DataSetRow row, ActionContext context) {
-        final String columnId = context.getColumnId();
         Map<String, String> parameters = context.getParameters();
 
         int sensitivity = NumberUtils.toInt(parameters.get(SENSITIVITY));
 
         // create new column and append it after current column
         RowMetadata rowMetadata = context.getRowMetadata();
-        ColumnMetadata column = rowMetadata.getById(columnId);
-
-        final String fuzzyMatches = context.column(column.getName() + APPENDIX);
 
         String value = row.get(context.getColumnId());
         String referenceValue;
@@ -143,7 +129,7 @@ public class FuzzyMatching extends AbstractActionMetadata implements ColumnActio
         }
 
         final String columnValue = toStringTrueFalse(fuzzyMatches(value, referenceValue, sensitivity));
-        row.set(fuzzyMatches, columnValue);
+        row.set(ActionsUtils.getTargetColumnId(context), columnValue);
     }
 
     private boolean fuzzyMatches(String value, String reference, int sensitivity) {

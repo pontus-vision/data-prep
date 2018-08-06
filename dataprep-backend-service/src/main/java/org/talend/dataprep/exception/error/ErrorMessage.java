@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -49,6 +49,18 @@ public class ErrorMessage {
     public static String getMessage(ErrorCode errorCode, Object... values) {
         String title = getMessagePrefix(errorCode) + MESSAGE_SUFFIX;
         return DataprepBundle.message(title, values);
+    }
+
+    /**
+     * Returns the desired error message in default locale according to the specified error code. This is useful for log messages.
+     *
+     * @param errorCode the specified error code
+     * @param values used to specify the message title
+     * @return the desired message to send to the frontend according to the specified error code
+     */
+    public static String getDefaultMessage(ErrorCode errorCode, Object... values) {
+        String title = getMessagePrefix(errorCode) + MESSAGE_SUFFIX;
+        return DataprepBundle.defaultMessage(title, values);
     }
 
     /**

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,23 +12,21 @@
 // ============================================================================
 package org.talend.dataprep.transformation.actions.math;
 
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.math3.util.FastMath.pow;
+import static org.talend.daikon.number.BigDecimalParser.toBigDecimal;
 import static org.talend.dataprep.transformation.actions.math.Pow.POW_NAME;
 
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.math3.util.FastMath;
-import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 /**
  * Calculate Pow with a constant or an other column
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + POW_NAME)
+@Action(POW_NAME)
 public class Pow extends AbstractMathOneParameterAction {
 
-    protected static final String POW_NAME = "pow_numbers";
+    public static final String POW_NAME = "pow_numbers";
 
     @Override
     public String getName() {
@@ -36,18 +34,18 @@ public class Pow extends AbstractMathOneParameterAction {
     }
 
     @Override
-    protected String getColumnNameSuffix(Map<String, String> parameters) {
-        return "pow";
+    protected String getSuffix(ActionContext context) {
+        return "_pow";
     }
 
     @Override
     protected String calculateResult(String columnValue, String parameter) {
 
-        String pow = Double.toString(BigDecimalParser.toBigDecimal(columnValue).doubleValue());
+        String pow = Double.toString(toBigDecimal(columnValue).doubleValue());
 
-        if (StringUtils.isNotBlank(parameter)) {
-            pow = Double.toString(FastMath.pow(BigDecimalParser.toBigDecimal(columnValue).doubleValue(), //
-                    BigDecimalParser.toBigDecimal(parameter).doubleValue()));
+        if (isNotBlank(parameter)) {
+            pow = Double.toString(pow(toBigDecimal(columnValue).doubleValue(), //
+                    toBigDecimal(parameter).doubleValue()));
         }
         return pow;
     }

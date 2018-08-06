@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -200,8 +200,9 @@ describe('Datagrid header directive', () => {
 		$timeout.flush(100);
 
 		//then
-		expect(document.activeElement).toBe(element.find('.grid-header-title-input').eq(0)[0]); //eslint-disable-line angular/document-service
-		//FIXME expect($window.getSelection().toString()).toBe('MostPopulousCity');
+		const activeElement = document.activeElement; //eslint-disable-line angular/document-service
+		expect(activeElement).toBe(element.find('.grid-header-title-input').eq(0)[0]);
+		expect(activeElement.value).toBe('MostPopulousCity');
 	}));
 
 	it('should switch from input to text on ESC keydown', () => {
@@ -359,6 +360,18 @@ describe('Datagrid header directive', () => {
 	});
 
 	describe('quality bar', () => {
+		it('should render quality filters', () => {
+			// given
+			createElement();
+
+			// then
+			const dropdownItems = element.find('sc-dropdown li');
+			expect(dropdownItems.find('a[translate-once="DISPLAY_ROWS_VALID_VALUES"]').length).toBe(1);
+			expect(dropdownItems.find('a[translate-once="DISPLAY_ROWS_INVALID_VALUES"]').length).toBe(1);
+			expect(dropdownItems.find('a[translate-once="DISPLAY_ROWS_EMPTY_VALUES"]').length).toBe(1);
+			expect(dropdownItems.find('a[translate-once="DISPLAY_ROWS_INVALID_EMPTY_VALUES"]').length).toBe(1);
+		});
+
 		it('should render quality bar', () => {
 			// when
 			createElement();
@@ -389,7 +402,7 @@ describe('Datagrid header directive', () => {
 				element.find('quality-bar empty-menu-items > li').eq(0).click();
 
 				// then
-				expect(FilterManagerService.addFilter).toHaveBeenCalledWith('empty_records', column.id, column.name);
+				expect(FilterManagerService.addFilter).toHaveBeenCalledWith('quality', column.id, column.name, { invalid: false, empty: true });
 			}));
 
 			it('should delete rows on 2nd item menu click', inject((PlaygroundService) => {
@@ -425,7 +438,7 @@ describe('Datagrid header directive', () => {
 				element.find('quality-bar invalid-menu-items > li').eq(0).click();
 
 				// then
-				expect(FilterManagerService.addFilter).toHaveBeenCalledWith('invalid_records', column.id, column.name);
+				expect(FilterManagerService.addFilter).toHaveBeenCalledWith('quality', column.id, column.name, { invalid: true, empty: false });
 			}));
 
 			it('should clear invalid cells on 2nd item menu click', inject((PlaygroundService) => {

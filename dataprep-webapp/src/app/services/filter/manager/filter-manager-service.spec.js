@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -10,6 +10,16 @@
  9 rue Pages 92150 Suresnes, France
 
  ============================================================================*/
+
+
+import {
+	INVALID_RECORDS,
+	EMPTY_RECORDS,
+	INVALID_EMPTY_RECORDS,
+	VALID_RECORDS,
+	QUALITY,
+} from '../adapter/tql-filter-adapter-service';
+
 
 describe('Filter Manager Service', () => {
 
@@ -37,23 +47,24 @@ describe('Filter Manager Service', () => {
 		spyOn(FilterService, 'removeFilter').and.returnValue();
 		spyOn(FilterService, 'toggleFilters').and.returnValue();
 		spyOn(FilterService, 'updateFilter').and.returnValue();
+		spyOn(FilterService, 'updateColumnNameInFilters').and.returnValue();
 		spyOn(StorageService, 'saveFilter').and.returnValue();
 		spyOn(StorageService, 'removeFilter').and.returnValue();
 		spyOn(PlaygroundService, 'updateDatagrid').and.returnValue();
 	}));
 
 	describe('Interval label', () => {
-	    it('should construct range label', inject((FilterManagerService) => {
+	    it('should construct range label', inject((FilterUtilsService) => {
 	        //given
 	        const intervals = [
-	            { input: { min: 0, max: 10, isMaxReached: false }, output: '[0 .. 10[' },
-	            { input: { min: 10, max: 10, isMaxReached: false }, output: '[10]' },
-	            { input: { min: 0, max: 10, isMaxReached: true }, output: '[0 .. 10]' },
-	            { input: { min: 'Jan 2015', max: 'Mar 2015', isMaxReached: true }, output: '[Jan 2015 .. Mar 2015]' },
+	            { input: { min: 0, max: 10, excludeMax: true }, output: '[0 .. 10[' },
+	            { input: { min: 10, max: 10, excludeMax: true }, output: '[10]' },
+	            { input: { min: 0, max: 10, excludeMax: false }, output: '[0 .. 10]' },
+	            { input: { min: 'Jan 2015', max: 'Mar 2015', excludeMax: false }, output: '[Jan 2015 .. Mar 2015]' },
 	        ];
 
 	        //when
-	        const fn = FilterManagerService.getRangeLabelFor;
+	        const fn = FilterUtilsService.getRangeLabelFor;
 
 	        //then
 	        intervals.forEach(interval => expect(fn(interval.input)).toEqual(interval.output));

@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -32,8 +32,7 @@ import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.preparation.PreparationMessage;
-import org.talend.dataprep.api.preparation.Step;
+import org.talend.dataprep.api.preparation.PreparationDTO;
 import org.talend.dataprep.dataset.StatisticsAdapter;
 import org.talend.dataprep.quality.AnalyzerService;
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
@@ -49,15 +48,19 @@ import org.talend.dataprep.transformation.pipeline.node.LimitNode;
 
 public class Pipeline implements Node, RuntimeNode, Serializable {
 
-    /** This class' logger. */
+    /**
+     * This class' logger.
+     */
     private static final Logger LOG = getLogger(Pipeline.class);
 
-    /** For the Serialization interface. */
+    /**
+     * For the Serialization interface.
+     */
     private static final long serialVersionUID = 1L;
 
-    private Node node;
-
-    /** Flag used to know if the pipeline is stopped or not. */
+    /**
+     * Flag used to know if the pipeline is stopped or not.
+     */
     private final AtomicBoolean isStopped = new AtomicBoolean();
 
     /**
@@ -67,6 +70,8 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
      * @see Pipeline#signal(Signal)
      */
     private final transient Object isFinished = new Object();
+
+    private Node node;
 
     /**
      * Default empty constructor.
@@ -97,20 +102,15 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
                 // but we proceed all the rows of the stream
                 // to replace when java introduce more useful functions to stream (ex: takeWhile)
                 records //
-                        .map(row -> { //
+                        .peek(row -> { //
                             node.exec().receive(row, rowMetadata);
                             counter.addAndGet(1L);
-                            return row;
                         }) //
                         .allMatch(row -> !isStopped.get());
                 LOG.debug("{} rows sent in the pipeline", counter.get());
                 node.exec().signal(Signal.END_OF_STREAM);
             }
         }
-    }
-
-    public void setNode(Node node) {
-        this.node = node;
     }
 
     @Override
@@ -183,6 +183,10 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
         return node;
     }
 
+    public void setNode(Node node) {
+        this.node = node;
+    }
+
     public static class Builder {
 
         private final List<RunnableAction> actions = new ArrayList<>();
@@ -209,18 +213,20 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
 
         private AnalyzerService analyzerService;
 
-        private PreparationMessage preparation;
+        private PreparationDTO preparation;
 
-        private Function<Step, RowMetadata> rowMetadataSupplier = s -> null;
+        private Function<String, RowMetadata> parentStepRowMetadataSupplier = s -> null;
 
         private Long limit = null;
+
+        private RowMetadataFallbackProvider rowMetadataFallbackProvider;
 
         public static Builder builder() {
             return new Builder();
         }
 
-        public Builder withStepMetadataSupplier(Function<Step, RowMetadata> rowMetadataSupplier) {
-            this.rowMetadataSupplier = rowMetadataSupplier;
+        public Builder withStepMetadataSupplier(Function<String, RowMetadata> previousStepRowMetadataSupplier) {
+            this.parentStepRowMetadataSupplier = previousStepRowMetadataSupplier;
             return this;
         }
 
@@ -245,7 +251,7 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             return this;
         }
 
-        public Builder withPreparation(PreparationMessage preparation) {
+        public Builder withPreparation(PreparationDTO preparation) {
             this.preparation = preparation;
             return this;
         }
@@ -290,6 +296,11 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             return this;
         }
 
+        public Builder withRowMetadataFallbackProvider(RowMetadataFallbackProvider rowMetadataFallbackProvider) {
+            this.rowMetadataFallbackProvider = rowMetadataFallbackProvider;
+            return this;
+        }
+
         public Pipeline build() {
             final NodeBuilder current;
             if (inFilter != null) {
@@ -301,18 +312,24 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             // Apply actions
             final List<RunnableAction> runnableActions;
             if (preparation != null) {
-                LOG.debug("Running using preparation #{} ({} step(s))", preparation.getId(), preparation.getSteps().size());
-                runnableActions = actions.stream() //
+                LOG.debug("Running using preparation #{} ({} step(s))", preparation.getId(),
+                        preparation.getSteps().size());
+                runnableActions = actions
+                        .stream() //
                         .map(a -> {
                             // gather all info for creating runnable actions
                             final Map<String, String> parameters = a.getParameters();
-                            final ScopeCategory scope = ScopeCategory.from(parameters.get(ImplicitParameters.SCOPE.getKey()));
+                            final ScopeCategory scope =
+                                    ScopeCategory.from(parameters.get(ImplicitParameters.SCOPE.getKey()));
                             final ActionDefinition actionDefinition = actionRegistry.get(a.getName());
-                            final CompileDataSetRowAction compile = new CompileDataSetRowAction(parameters, actionDefinition, scope);
-                            final ApplyDataSetRowAction apply = new ApplyDataSetRowAction(actionDefinition, parameters, scope);
+                            final CompileDataSetRowAction compile =
+                                    new CompileDataSetRowAction(parameters, actionDefinition, scope);
+                            final ApplyDataSetRowAction apply =
+                                    new ApplyDataSetRowAction(actionDefinition, parameters, scope);
 
                             // Create runnable action
-                            return RunnableAction.Builder.builder() //
+                            return RunnableAction.Builder
+                                    .builder() //
                                     .withCompile(compile) //
                                     .withRow(apply) //
                                     .withName(a.getName()) //
@@ -326,7 +343,9 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             }
 
             // Build nodes for actions
-            final Node actionsNode = ActionNodesBuilder.builder() //
+            final Node actionsNode = ActionNodesBuilder
+                    .builder() //
+                    .rowMetadataFallbackProvider(rowMetadataFallbackProvider) //
                     .initialMetadata(rowMetadata) //
                     .actions(runnableActions) //
                     // statistics requests
@@ -342,7 +361,8 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             if (preparation != null) {
                 LOG.debug("Applying step node transformations...");
                 actionsNode.logStatus(LOG, "Before transformation\n{}");
-                final Node node = StepNodeTransformer.transform(actionsNode, preparation.getSteps(), rowMetadataSupplier);
+                final Node node = StepNodeTransformer.transform(actionsNode, preparation.getSteps(),
+                        parentStepRowMetadataSupplier);
                 current.to(node);
                 node.logStatus(LOG, "After transformation\n{}");
             } else {

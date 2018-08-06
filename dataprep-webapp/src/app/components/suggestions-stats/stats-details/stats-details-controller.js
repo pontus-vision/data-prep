@@ -1,6 +1,6 @@
 /*  ============================================================================
 
-  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
   This source code is available under agreement available at
   https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,6 +11,10 @@
 
   ============================================================================*/
 import { CTRL_KEY_NAME } from '../../../services/filter/filter-service.js';
+import {
+	MATCHES,
+	QUALITY,
+} from '../../../services/filter/adapter/tql-filter-adapter-service';
 
 /**
  * @ngdoc controller
@@ -21,7 +25,7 @@ import { CTRL_KEY_NAME } from '../../../services/filter/filter-service.js';
  * @requires data-prep.services.statisticsService.service:StatisticsService
  * @requires data-prep.services.statisticsService.service:StatisticsTooltipService
  */
-export default function StatsDetailsCtrl(state, FilterManagerService, StatisticsService, StatisticsTooltipService) {
+export default function StatsDetailsCtrl(state, $translate, FilterManagerService, StatisticsService, StatisticsTooltipService) {
 	'ngInject';
 
 	const vm = this;
@@ -29,6 +33,34 @@ export default function StatsDetailsCtrl(state, FilterManagerService, Statistics
 	vm.statisticsService = StatisticsService;
 	vm.statisticsTooltipService = StatisticsTooltipService;
 	vm.addPatternFilter = addPatternFilter;
+
+	vm.tabs = [
+		{
+			key: 'stats-tab-chart',
+			label: $translate.instant('STATS_TAB_CHART'),
+			'data-feature': 'preparation.chart',
+		},
+		{
+			key: 'stats-tab-value',
+			label: $translate.instant('STATS_TAB_VALUE'),
+			'data-feature': 'preparation.value',
+		},
+		{
+			key: 'stats-tab-pattern',
+			label: $translate.instant('STATS_TAB_PATTERN'),
+			'data-feature': 'preparation.pattern',
+		},
+		{
+			key: 'stats-tab-advanced',
+			label: $translate.instant('STATS_TAB_ADVANCED'),
+			'data-feature': 'preparation.advanced',
+		},
+	];
+	vm.selectedTab = vm.tabs[0].key;
+
+	vm.selectTab = function (event, item) {
+		vm.selectedTab = item.key;
+	};
 
     /**
      * @ngdoc method
@@ -47,7 +79,7 @@ export default function StatsDetailsCtrl(state, FilterManagerService, Statistics
 			],
 		};
 		return item.pattern || keyName === CTRL_KEY_NAME ?
-			FilterManagerService.addFilterAndDigest('matches', column.id, column.name, args, null, keyName) :
-			FilterManagerService.addFilterAndDigest('empty_records', column.id, column.name, null, null, keyName);
+			FilterManagerService.addFilterAndDigest(MATCHES, column.id, column.name, args, null, keyName) :
+			FilterManagerService.addFilterAndDigest(QUALITY, column.id, column.name, { empty: true, invalid: false }, null, keyName);
 	}
 }

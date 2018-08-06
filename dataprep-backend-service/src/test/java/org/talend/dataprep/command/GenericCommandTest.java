@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,12 +12,15 @@
 
 package org.talend.dataprep.command;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.isA;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.talend.dataprep.command.Defaults.asString;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -29,6 +32,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
@@ -108,6 +112,20 @@ public class GenericCommandTest extends ServiceBaseTest {
         // Then
         assertThat(result, is(security.getAuthenticationToken()));
         assertThat(lastException, nullValue());
+    }
+
+    @Test
+    public void testLanguageHeader() throws Exception {
+        // Given
+        LocaleContextHolder.setLocale(Locale.JAPANESE);
+        final GenericCommand<String> command =
+                getCommand("http://localhost:" + port + "/command/test/language", GenericCommandTest::error);
+
+        // When
+        final String result = command.run();
+
+        // Then
+        assertThat(result, is("ja"));
     }
 
     @Test
@@ -286,9 +304,6 @@ public class GenericCommandTest extends ServiceBaseTest {
             return "#1234";
         }
 
-        /**
-         * @return the user groups.
-         */
         @Override
         public Set<UserGroup> getGroups() {
             return Collections.emptySet();
@@ -302,6 +317,16 @@ public class GenericCommandTest extends ServiceBaseTest {
         @Override
         public boolean isTDPUser() {
             return true;
+        }
+
+        @Override
+        public Locale getLocale() {
+            return Locale.getDefault();
+        }
+
+        @Override
+        public String getTenantName() {
+            return "tenant name";
         }
     }
 }

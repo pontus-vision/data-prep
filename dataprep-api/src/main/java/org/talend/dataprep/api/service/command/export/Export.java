@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,10 +12,6 @@
 // ============================================================================
 
 package org.talend.dataprep.api.service.command.export;
-
-import static org.talend.dataprep.command.Defaults.pipeStream;
-
-import java.io.InputStream;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -29,11 +25,17 @@ import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 
+import java.io.InputStream;
+
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.command.Defaults.emptyStream;
+import static org.talend.dataprep.command.Defaults.pipeStream;
+
 /**
  * Command used to start an export of a dataset / preparation.
  */
 @Component
-@Scope("request")
+@Scope(SCOPE_PROTOTYPE)
 public class Export extends GenericCommand<InputStream> {
 
     /**
@@ -44,6 +46,7 @@ public class Export extends GenericCommand<InputStream> {
         super(TRANSFORM_GROUP);
         execute(() -> onExecute(parameters));
         on(HttpStatus.OK).then(pipeStream());
+        on(HttpStatus.ACCEPTED).then(emptyStream());
     }
 
     /**

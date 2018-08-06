@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -55,7 +55,7 @@ describe('Side Panel container', () => {
 			createElement();
 
 			// then
-			expect(element.find('#side-panel-nav-preparations').length).toBe(1);
+			expect(element.find('#side-panel-nav-menu-preparations').length).toBe(1);
 		});
 
 		it('should create datasets button', () => {
@@ -63,7 +63,7 @@ describe('Side Panel container', () => {
 			createElement();
 
 			// then
-			expect(element.find('#side-panel-nav-datasets').length).toBe(1);
+			expect(element.find('#side-panel-nav-menu-datasets').length).toBe(1);
 		});
 
 		it('should set active based on the route state name', () => {
@@ -75,8 +75,8 @@ describe('Side Panel container', () => {
 			scope.$digest();
 
 			// then
-			expect(element.find('nav > ul > li').eq(1).hasClass('active')).toBeFalsy();
-			expect(element.find('nav > ul > li').eq(2).hasClass('active')).toBeTruthy();
+			expect(element.find('nav > ul > li').eq(0).hasClass('active')).toBeFalsy();
+			expect(element.find('nav > ul > li').eq(1).hasClass('active')).toBeTruthy();
 		});
 	});
 
@@ -105,7 +105,7 @@ describe('Side Panel container', () => {
 			createElement();
 
 			// when
-			const preparationsButton = element.find('#side-panel-nav-preparations');
+			const preparationsButton = element.find('#side-panel-nav-menu-preparations');
 			preparationsButton.click(e => e.preventDefault());
 			preparationsButton[0].click();
 
@@ -120,7 +120,7 @@ describe('Side Panel container', () => {
 			createElement();
 
 			// when
-			const datasetsButton = element.find('#side-panel-nav-datasets');
+			const datasetsButton = element.find('#side-panel-nav-menu-datasets');
 			datasetsButton.click(e => e.preventDefault());
 			datasetsButton[0].click();
 

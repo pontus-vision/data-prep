@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,31 +13,32 @@
 
 package org.talend.dataprep.api.service.command.transformation;
 
-import java.io.ByteArrayInputStream;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
+
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.talend.dataprep.api.action.ActionForm;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
-import org.talend.dataprep.api.preparation.Action;
 import org.talend.dataprep.api.service.command.common.ChainedCommand;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
-import org.talend.dataprep.io.ReleasableInputStream;
 import org.talend.dataprep.transformation.actions.datablending.Lookup;
+import org.talend.dataprep.transformation.pipeline.ActionRegistry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.netflix.hystrix.HystrixCommand;
 
 /**
@@ -46,69 +47,50 @@ import com.netflix.hystrix.HystrixCommand;
  * Take the suggested column actions as input and add the lookup ones.
  */
 @Component
-@Scope("request")
-public class SuggestLookupActions extends ChainedCommand<InputStream, String> {
+@Scope(SCOPE_PROTOTYPE)
+public class SuggestLookupActions extends ChainedCommand<List<ActionForm>, DataSetMetadata> {
+
+    @Autowired
+    private ActionRegistry actionRegistry;
 
     /**
      * Constructor.
      *
-     * @param input the command to execute to get the input.
+     * @param dataSetMetadata the command to execute to get the DataSetMetadata.
      */
-    public SuggestLookupActions(HystrixCommand<String> input, String dataSetId) {
-        super(input);
+    public SuggestLookupActions(HystrixCommand<DataSetMetadata> dataSetMetadata, String dataSetId) {
+        super(dataSetMetadata);
         execute(() -> new HttpGet(datasetServiceUrl + "/datasets"));
         on(HttpStatus.OK).then(process(dataSetId));
         // on error, @see getFallBack()
     }
 
-    /**
-     * If this command fails, the previous command's response can always be returned.
-     *
-     * @see HystrixCommand#getFallback()
-     */
     @Override
-    protected InputStream getFallback() {
-        // return the previous command result
-        return new ByteArrayInputStream(getInput().getBytes());
+    protected List<ActionForm> getFallback() {
+        return Collections.emptyList();
     }
 
     /**
      * @param dataSetId the current dataset id.
      * @return the function that aggregates the SuggestColumnActions with the lookups.
      */
-    private BiFunction<HttpRequestBase, HttpResponse, InputStream> process(String dataSetId) {
-
+    private BiFunction<HttpRequestBase, HttpResponse, List<ActionForm>> process(String dataSetId) {
         return (request, response) -> {
 
-            // read suggested actions from previous command
-            ArrayNode suggestedActions;
             try {
-                suggestedActions = (ArrayNode) objectMapper.readerFor(new TypeReference<Action>() {
-                }).readTree(getInput());
-
-                // list datasets from this command's response
                 List<DataSetMetadata> dataSets = objectMapper.readValue(response.getEntity().getContent(),
-                        new TypeReference<List<DataSetMetadata>>() {
-                });
+                        new TypeReference<List<DataSetMetadata>>() {});
 
-                // create and add all the possible lookup to the suggested actions
-                for (DataSetMetadata dataset : dataSets) {
-                    // exclude current dataset from possible lookup sources
-                    if (StringUtils.equals(dataSetId, dataset.getId())) {
-                        continue;
-                    }
-                    final Lookup lookup = new Lookup();
-                    lookup.adapt(dataset);
-                    final JsonNode jsonNode = objectMapper.valueToTree(lookup);
-                    suggestedActions.add(jsonNode);
-                }
-
-                // write the merged actions to the output streams
-                return new ReleasableInputStream( //
-                        IOUtils.toInputStream(suggestedActions.toString(), "UTF-8"), //
-                        request::releaseConnection);
+                return dataSets.stream()
+                        .filter(dataset -> !StringUtils.equals(dataSetId, dataset.getId()))
+                        .map(dataset -> {
+                            Lookup lookup = (Lookup) actionRegistry.get(Lookup.LOOKUP_ACTION_NAME);
+                            return lookup.adapt(dataset).getActionForm(getLocale());
+                        }).collect(Collectors.toList());
             } catch (IOException e) {
                 throw new TDPException(APIErrorCodes.UNABLE_TO_RETRIEVE_SUGGESTED_ACTIONS, e);
+            } finally {
+                request.releaseConnection();
             }
 
         };

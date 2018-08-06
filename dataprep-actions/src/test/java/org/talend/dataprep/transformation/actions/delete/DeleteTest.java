@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -21,10 +21,7 @@ import static org.talend.dataprep.transformation.actions.category.ActionCategory
 import static org.talend.dataprep.transformation.actions.category.ScopeCategory.COLUMN;
 import static org.talend.dataprep.transformation.actions.category.ScopeCategory.LINE;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.junit.Test;
 import org.talend.dataprep.api.action.ActionDefinition;
@@ -38,17 +35,24 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Delete
  */
-public class DeleteTest extends AbstractMetadataBaseTest {
+public class DeleteTest extends AbstractMetadataBaseTest<Delete> {
 
-    private Delete action = new Delete();
+    public DeleteTest() {
+        super(new Delete());
+    }
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.NA;
+    }
 
     @Test
     public void should_be_in_data_cleansing_category() {
         //when
-        final String name = action.getCategory();
+        final String name = action.getCategory(Locale.US);
 
         //then
-        assertThat(name, is(DATA_CLEANSING.getDisplayName()));
+        assertThat(name, is(DATA_CLEANSING.getDisplayName(Locale.US)));
     }
 
     @Test
@@ -67,8 +71,8 @@ public class DeleteTest extends AbstractMetadataBaseTest {
         final ActionDefinition adaptedAction = action.adapt(LINE);
 
         //then
-        assertThat(adaptedAction.getDescription(), is("Delete this row"));
-        assertThat(adaptedAction.getLabel(), is("Delete row"));
+        assertThat(adaptedAction.getDescription(Locale.US), is("Delete this row"));
+        assertThat(adaptedAction.getLabel(Locale.US), is("Delete row"));
 
         assertThat( adaptedAction, not(is(action)) );
     }
@@ -79,8 +83,8 @@ public class DeleteTest extends AbstractMetadataBaseTest {
         final ActionDefinition adaptedAction = action.adapt(COLUMN);
 
         //then
-        assertThat(adaptedAction.getDescription(), is("Delete this column"));
-        assertThat(adaptedAction.getLabel(), is("Delete column"));
+        assertThat(adaptedAction.getDescription(Locale.US), is("Delete this column"));
+        assertThat(adaptedAction.getLabel(Locale.US), is("Delete column"));
     }
 
     @Test

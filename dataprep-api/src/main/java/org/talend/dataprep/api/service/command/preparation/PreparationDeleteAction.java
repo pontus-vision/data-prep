@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,16 +13,17 @@
 
 package org.talend.dataprep.api.service.command.preparation;
 
-import static org.talend.dataprep.command.Defaults.asNull;
-
 import org.apache.http.client.methods.HttpDelete;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.command.GenericCommand;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.command.Defaults.asNull;
+
 @Component
-@Scope("request")
+@Scope(SCOPE_PROTOTYPE)
 public class PreparationDeleteAction extends GenericCommand<Void> {
 
     private PreparationDeleteAction(final String preparationId, final String stepId) {

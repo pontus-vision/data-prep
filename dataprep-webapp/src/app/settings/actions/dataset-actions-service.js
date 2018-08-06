@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,37 +13,56 @@
 
 import { HOME_DATASETS_ROUTE } from '../../index-route';
 
+const BLOCKING_ACTION_TYPES = [
+	'@@dataset/SORT',
+	'@@dataset/CLONE',
+	'@@dataset/FAVORITE',
+	'@@dataset/DATASET_FETCH',
+];
+
 export default class DatasetActionsService {
-	constructor($document, $stateParams, state, StateService, StorageService, DatasetService,
-				ImportService, UploadWorkflowService, MessageService, TalendConfirmService) {
+	constructor($document, $stateParams, $translate, state, StateService, StorageService, DatasetService,
+				ImportService, UploadWorkflowService, MessageService, ConfirmService) {
 		'ngInject';
 		this.$document = $document;
 		this.$stateParams = $stateParams;
+		this.$translate = $translate;
 		this.state = state;
 		this.DatasetService = DatasetService;
 		this.ImportService = ImportService;
 		this.MessageService = MessageService;
 		this.StateService = StateService;
 		this.StorageService = StorageService;
-		this.TalendConfirmService = TalendConfirmService;
+		this.ConfirmService = ConfirmService;
 		this.UploadWorkflowService = UploadWorkflowService;
 
 		this.renamingList = [];
+
+		this.i18n = {
+			DATASET: $translate.instant('DATASET'),
+		};
 	}
 
 	dispatch(action) {
+		if (BLOCKING_ACTION_TYPES.includes(action.type)) {
+			if (this.state.inventory.isFetchingDatasets) {
+				return;
+			}
+			// all blocking action types requiring a loader
+			this.StateService.setFetchingInventoryDatasets(true);
+		}
 		switch (action.type) {
 		case '@@dataset/SORT':
 		case '@@dataset/FAVORITE': {
-			this.DatasetService[action.payload.method](action.payload);
+			this.DatasetService[action.payload.method](action.payload)
+				.finally(() => this.StateService.setFetchingInventoryDatasets(false));
 			break;
 		}
 		case '@@dataset/DATASET_FETCH':
 			this.StateService.setPreviousRoute(HOME_DATASETS_ROUTE);
-			this.StateService.setFetchingInventoryDatasets(true);
 			this.DatasetService
 				.init()
-				.then(() => this.StateService.setFetchingInventoryDatasets(false));
+				.finally(() => this.StateService.setFetchingInventoryDatasets(false));
 			break;
 		case '@@dataset/SUBMIT_EDIT': {
 			const newName = action.payload.value;
@@ -86,24 +105,24 @@ export default class DatasetActionsService {
 		}
 		case '@@dataset/REMOVE': {
 			const dataset = action.payload.model;
-			this.TalendConfirmService
+			this.ConfirmService
 				.confirm(
-					{ disableEnter: true },
 					['DELETE_PERMANENTLY', 'NO_UNDONE_CONFIRM'],
-					{ type: 'dataset', name: dataset.name }
+					{ type: this.i18n.DATASET, name: dataset.name }
 				)
 				.then(() => this.DatasetService.delete(dataset))
 				.then(() => this.MessageService.success(
-					'REMOVE_SUCCESS_TITLE',
+					'DATASET_REMOVE_SUCCESS_TITLE',
 					'REMOVE_SUCCESS',
-					{ type: 'dataset', name: dataset.name }
+					{ type: this.i18n.DATASET, name: dataset.name }
 				));
 			break;
 		}
 		case '@@dataset/CLONE': {
 			const dataset = action.payload.model;
 			this.DatasetService.clone(dataset)
-				.then(() => this.MessageService.success('COPY_SUCCESS_TITLE', 'COPY_SUCCESS'));
+				.then(() => this.MessageService.success('COPY_SUCCESS_TITLE', 'COPY_SUCCESS'))
+				.finally(() => this.StateService.setFetchingInventoryDatasets(false));
 			break;
 		}
 		case '@@dataset/UPDATE': {

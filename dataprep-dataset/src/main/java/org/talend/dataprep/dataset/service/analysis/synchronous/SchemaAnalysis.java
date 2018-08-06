@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,6 +12,8 @@
 // ============================================================================
 
 package org.talend.dataprep.dataset.service.analysis.synchronous;
+
+import static org.talend.dataprep.exception.error.DataSetErrorCodes.UNABLE_TO_ANALYZE_COLUMN_TYPES;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -28,7 +30,6 @@ import org.talend.dataprep.dataset.StatisticsAdapter;
 import org.talend.dataprep.dataset.store.content.ContentStoreRouter;
 import org.talend.dataprep.dataset.store.metadata.DataSetMetadataRepository;
 import org.talend.dataprep.exception.TDPException;
-import org.talend.dataprep.exception.error.DataSetErrorCodes;
 import org.talend.dataprep.lock.DistributedLock;
 import org.talend.dataprep.quality.AnalyzerService;
 import org.talend.dataquality.common.inference.Analyzer;
@@ -75,7 +76,7 @@ public class SchemaAnalysis implements SynchronousDataSetAnalyzer {
                 return;
             }
             // Schema analysis
-            try (Stream<DataSetRow> stream = store.stream(metadata, 100)) {
+            try (Stream<DataSetRow> stream = store.stream(metadata)) {
                 LOGGER.info("Analyzing schema in dataset #{}...", dataSetId);
                 // Configure analyzers
                 final List<ColumnMetadata> columns = metadata.getRowMetadata().getColumns();
@@ -91,7 +92,7 @@ public class SchemaAnalysis implements SynchronousDataSetAnalyzer {
                 }
             } catch (Exception e) {
                 LOGGER.error("Unable to analyse schema for dataset " + dataSetId + ".", e);
-                throw new TDPException(DataSetErrorCodes.UNABLE_TO_ANALYZE_COLUMN_TYPES, e);
+                TDPException.rethrowOrWrap(e, UNABLE_TO_ANALYZE_COLUMN_TYPES);
             }
         } finally {
             datasetLock.unlock();

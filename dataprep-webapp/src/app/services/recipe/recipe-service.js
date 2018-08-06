@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -20,9 +20,9 @@ import _ from 'lodash';
  * @requires data-prep.services.preparation.service:PreparationService
  * @requires data-prep.services.parameters.service:ParametersService
  * @requires data-prep.services.transformation.service:TransformationService
- * @requires data-prep.services.filters.service:FilterAdapterService
+ * @requires data-prep.services.filters.service:TqlFilterAdapterService
  */
-export default function RecipeService(state, StateService, StepUtilsService, PreparationService, ParametersService, TransformationService, FilterAdapterService) {
+export default function RecipeService(state, StateService, StepUtilsService, PreparationService, ParametersService, TransformationService, TqlFilterAdapterService) {
 	'ngInject';
 
 	return {
@@ -107,11 +107,11 @@ export default function RecipeService(state, StateService, StepUtilsService, Pre
 		const actionValues = actionStep[1];
 		const metadata = actionStep[2];
 		const diff = actionStep[3];
-
+		const stepScopeColumn = actionValues.filterColumns.find(col => col.id === actionValues.parameters.column_id);
 		const item = {
 			column: {
 				id: actionValues.parameters.column_id,
-				name: actionValues.parameters.column_name,
+				name: (stepScopeColumn && stepScopeColumn.name) || actionValues.parameters.column_name,
 			},
 			row: {
 				id: actionValues.parameters.row_id,
@@ -126,9 +126,9 @@ export default function RecipeService(state, StateService, StepUtilsService, Pre
 			},
 			actionParameters: actionValues,
 			diff,
-			filters: FilterAdapterService.fromTree(
+			filters: TqlFilterAdapterService.fromTQL(
 				actionValues.parameters.filter,
-				state.playground.data.metadata.columns
+				actionValues.filterColumns
 			),
 		};
 
@@ -293,6 +293,6 @@ export default function RecipeService(state, StateService, StepUtilsService, Pre
 	 * @description Get all filters names
 	 */
 	function getAllFiltersNames(stepFilters) {
-		return '(' + _.pluck(stepFilters, 'colName').join(', ') + ')';
+		return '(' + _.map(stepFilters, 'colName').join(', ') + ')';
 	}
 }

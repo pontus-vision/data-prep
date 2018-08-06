@@ -1,7 +1,7 @@
 <!--
   ~ ============================================================================
   ~
-  ~  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  ~  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
   ~
   ~  This source code is available under agreement available at
   ~  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -23,6 +23,7 @@
     <li ng-repeat="menu in menuCtrl.menuItems track by menu.name">
         <a href
            title="{{ menu.label }}"
+           data-feature="{{ 'column.' + menu.name }}"
            ng-click="menuCtrl.select(menu, 'column')">
             {{ menu.label }}
         </a>
@@ -38,9 +39,8 @@
     <div class="modal-title">{{ menuCtrl.selectedMenu.label }}</div>
     <div class="modal-subtitle">{{ menuCtrl.selectedMenu.description }}</div>
 
-    <div ng-if="menuCtrl.selectedMenu.dynamic && menuCtrl.dynamicFetchInProgress">
-        <i data-icon="e" class="icon continuous-rotate"></i>
-    </div>
+    <loader ng-if="menuCtrl.selectedMenu.dynamic && menuCtrl.dynamicFetchInProgress"></loader>
+
     <transform-form transformation="menuCtrl.selectedMenu"
                     on-submit="menuCtrl.appendClosure(menuCtrl.selectedMenu, menuCtrl.selectedScope)(params)"
                     is-transformation-in-progress="menuCtrl.transformationInProgress"></transform-form>

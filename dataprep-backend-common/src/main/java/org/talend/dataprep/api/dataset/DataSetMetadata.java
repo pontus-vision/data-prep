@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -47,38 +47,30 @@ public class DataSetMetadata implements Serializable {
     private RowMetadata rowMetadata;
 
     /** Dataset life cycle status. */
-    @JsonProperty("lifecycle")
     private DataSetLifecycle lifecycle = new DataSetLifecycle();
 
-    @JsonProperty("content")
     @JsonUnwrapped
     private DataSetContent content = new DataSetContent();
 
     /** Dataset governance. */
-    @JsonProperty("governance")
     @JsonUnwrapped
     private DataSetGovernance governance = new DataSetGovernance();
 
     /** Dataset location. */
-    @JsonProperty("location")
     private DataSetLocation location;
 
     /** Dataset name. */
-    @JsonProperty("name")
     private String name;
 
     /** Dataset author ID. */
-    @JsonProperty("author")
     private String author;
 
     @JsonProperty("created")
     private long creationDate;
 
-    @JsonProperty("lastModificationDate")
     private long lastModificationDate;
 
     /** Sheet number in case of excel source. */
-    @JsonProperty("sheetName")
     private String sheetName;
 
     /** The application version. */
@@ -88,13 +80,11 @@ public class DataSetMetadata implements Serializable {
     /**
      * if <code>true</code> this dataset is still a draft as we need more information from the user
      */
-    @JsonProperty("draft")
     private boolean draft = false;
 
     /**
      * available only when draft is <code>true</code> i.e until some information has been confirmed by the user
      */
-    @JsonProperty("schemaParserResult")
     private Schema schemaParserResult;
 
     /**
@@ -103,13 +93,11 @@ public class DataSetMetadata implements Serializable {
      *
      * @see Serializer#serialize(java.io.InputStream, DataSetMetadata, long)
      */
-    @JsonProperty("encoding")
     private String encoding = "UTF-8";
 
     /**
      * Size of the data set, in bytes.
      */
-    @JsonProperty("dataSetSize")
     private long dataSetSize;
 
     /** A arbitrary tag for the data set (used by studio on creation for a visual distinction). */
@@ -159,9 +147,6 @@ public class DataSetMetadata implements Serializable {
         this.appVersion = appVersion;
     }
 
-    /**
-     * @return the dataset id.
-     */
     public String getId() {
         return id;
     }
@@ -372,15 +357,9 @@ public class DataSetMetadata implements Serializable {
      * @return true if this data set metadata is similar with the specified one and false otherwise
      */
     public boolean compatible(DataSetMetadata other) {
-        if (other == null) {
-            return false;
-        }
-        return rowMetadata != null ? rowMetadata.compatible(other.getRowMetadata()) : rowMetadata == other.getRowMetadata();
+        return other != null && (rowMetadata != null ? rowMetadata.compatible(other.getRowMetadata()) : other.getRowMetadata() == null);
     }
 
-    /**
-     * @see Object#toString()
-     */
     @Override
     public String toString() {
         return "DataSetMetadata{" + //
@@ -401,9 +380,6 @@ public class DataSetMetadata implements Serializable {
                 '}';
     }
 
-    /**
-     * @see Object#equals(Object)
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -430,9 +406,6 @@ public class DataSetMetadata implements Serializable {
                 Objects.equals(appVersion, that.appVersion);
     }
 
-    /**
-     * @see Object#hashCode()
-     */
     @Override
     public int hashCode() {
         return Objects.hash(id, rowMetadata, lifecycle, dataSetSize, content, governance, location, name, author, creationDate,

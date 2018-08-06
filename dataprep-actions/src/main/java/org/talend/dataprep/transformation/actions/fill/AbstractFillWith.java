@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,16 +13,19 @@
 
 package org.talend.dataprep.transformation.actions.fill;
 
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.ParameterType.*;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.daikon.exception.ExceptionContext;
@@ -33,12 +36,10 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.dataset.row.RowMetadataUtils;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.exception.error.ActionErrorCodes;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.parameters.ParameterType;
-import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.actions.date.DatePattern;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
@@ -55,6 +56,8 @@ public abstract class AbstractFillWith extends AbstractActionMetadata implements
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFillWith.class);
 
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
+
     protected Type type;
 
     public abstract boolean shouldBeProcessed(DataSetRow dataSetRow, String columnId);
@@ -62,12 +65,16 @@ public abstract class AbstractFillWith extends AbstractActionMetadata implements
     @Override
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
-        if (actionContext.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(actionContext, singletonList(ActionsUtils.additionalColumn()));
+        }
+        if (actionContext.getActionStatus() == OK) {
             final RowMetadata input = actionContext.getRowMetadata();
             checkParameters(actionContext.getParameters(), input);
         }
     }
 
+    // TODO : utility Overriden methdo WTF
     public void applyOnColumn(DataSetRow row, ActionContext context) {
         final Map<String, String> parameters = context.getParameters();
         final String columnId = context.getColumnId();
@@ -100,13 +107,13 @@ public abstract class AbstractFillWith extends AbstractActionMetadata implements
             }
 
             // At the end, set the new value:
-            row.set(columnId, newValue);
+            row.set(ActionsUtils.getTargetColumnId(context), newValue);
         }
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        final List<Parameter> parameters = super.getParameters();
+    public List<Parameter> getParameters(Locale locale) {
+        final List<Parameter> parameters = super.getParameters(locale);
 
         Parameter constantParameter = null;
 
@@ -115,30 +122,31 @@ public abstract class AbstractFillWith extends AbstractActionMetadata implements
         case DOUBLE:
         case FLOAT:
         case STRING:
-            constantParameter = new Parameter(DEFAULT_VALUE_PARAMETER, //
-                    ParameterType.STRING, //
-                    StringUtils.EMPTY);
+            constantParameter = parameter(locale).setName(DEFAULT_VALUE_PARAMETER)
+                    .setType(STRING)
+                    .setDefaultValue(EMPTY)
+                    .build(this);
             break;
         case INTEGER:
-            constantParameter = new Parameter(DEFAULT_VALUE_PARAMETER, //
-                    ParameterType.INTEGER, //
-                    "0");
+            constantParameter = parameter(locale).setName(DEFAULT_VALUE_PARAMETER)
+                    .setType(INTEGER)
+                    .setDefaultValue("0")
+                    .build(this);
             break;
         case BOOLEAN:
-            constantParameter = SelectParameter.Builder.builder() //
+            constantParameter = selectParameter(locale) //
                     .name(DEFAULT_VALUE_PARAMETER) //
                     .item("True") //
                     .item("False") //
                     .defaultValue("True") //
-                    .build();
+                    .build(this);
             break;
         case DATE:
-            constantParameter = new Parameter(DEFAULT_VALUE_PARAMETER, //
-                    ParameterType.DATE, //
-                    DEFAULT_DATE_VALUE, //
-                    false, //
-                    false, //
-                    StringUtils.EMPTY);
+            constantParameter = parameter(locale).setName(DEFAULT_VALUE_PARAMETER)
+                    .setType(DATE)
+                    .setDefaultValue(DEFAULT_DATE_VALUE)
+                    .setCanBeBlank(false)
+                    .build(this);
             break;
         case ANY:
         default:
@@ -146,17 +154,16 @@ public abstract class AbstractFillWith extends AbstractActionMetadata implements
         }
 
         //@formatter:off
-        parameters.add(SelectParameter.Builder.builder()
+        parameters.add(selectParameter(locale)
                         .name(MODE_PARAMETER)
                         .item(CONSTANT_MODE, CONSTANT_MODE, constantParameter)
-                        .item(OTHER_COLUMN_MODE, OTHER_COLUMN_MODE, new Parameter(SELECTED_COLUMN_PARAMETER, ParameterType.COLUMN, //
-                                                               StringUtils.EMPTY, false, false, StringUtils.EMPTY))
+                        .item(OTHER_COLUMN_MODE, OTHER_COLUMN_MODE, parameter(locale).setName(SELECTED_COLUMN_PARAMETER).setType(COLUMN).setDefaultValue(EMPTY).setCanBeBlank(false).build(this))
                         .defaultValue(CONSTANT_MODE)
-                        .build()
+                        .build(this )
         );
         //@formatter:on
 
-        return ActionsBundle.attachToAction(parameters, this);
+        return parameters;
     }
 
     /**

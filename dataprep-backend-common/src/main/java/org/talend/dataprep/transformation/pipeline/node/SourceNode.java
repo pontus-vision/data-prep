@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,10 +12,17 @@
 
 package org.talend.dataprep.transformation.pipeline.node;
 
+import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.pipeline.Node;
+import org.talend.dataprep.transformation.pipeline.Signal;
 import org.talend.dataprep.transformation.pipeline.Visitor;
 
 public class SourceNode extends BasicNode {
+
+    private long count = 0;
+
+    private RowMetadata lastRowMetadata;
 
     @Override
     public void accept(Visitor visitor) {
@@ -24,7 +31,24 @@ public class SourceNode extends BasicNode {
 
     @Override
     public Node copyShallow() {
-        return new SourceNode();
+        SourceNode result = new SourceNode();
+        result.lastRowMetadata = lastRowMetadata;
+        result.count = count;
+        return result;
     }
 
+    @Override
+    public void signal(Signal signal) {
+        if (lastRowMetadata != null) {
+            lastRowMetadata.setSampleNbRows(count);
+        }
+        super.signal(signal);
+    }
+
+    @Override
+    public void receive(DataSetRow row, RowMetadata metadata) {
+        super.receive(row, metadata);
+        lastRowMetadata = metadata;
+        count++;
+    }
 }

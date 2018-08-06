@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,10 +13,6 @@
 
 package org.talend.dataprep.api.service.settings.views.provider;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -25,6 +21,12 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.talend.dataprep.api.service.settings.views.api.ViewSettings;
 import org.talend.dataprep.security.Security;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit test for CommonViewsProvider class.
@@ -50,14 +52,13 @@ public class CommonViewsProviderTest {
 
         // then
         assertNotNull(settings);
-        assertEquals(settings.size(), 7);
-        assertTrue(settings.contains(HomeViews.APP_HEADER_BAR));
-        assertTrue(settings.contains(HomeViews.SIDE_PANEL));
-        assertTrue(settings.contains(HomeViews.BREADCRUMB));
-        assertTrue(settings.contains(ListViews.FOLDERS_LIST));
-        assertTrue(settings.contains(ListViews.PREPARATIONS_LIST));
-        assertTrue(settings.contains(ListViews.DATASETS_LIST));
-        assertTrue(settings.contains(PlaygroundViews.PLAYGROUND_APP_HEADER_BAR));
+        assertEquals(settings.size(), 6);
+        assertTrue(settings.contains(HomeViews.appHeaderBar()));
+        assertTrue(settings.contains(HomeViews.sidePanel()));
+        assertTrue(settings.contains(HomeViews.breadcrumb()));
+        assertTrue(settings.contains(ListViews.folderList()));
+        assertTrue(settings.contains(ListViews.preparationList()));
+        assertTrue(settings.contains(PlaygroundViews.playgroundAppHeaderBar()));
     }
 
     @Test
@@ -70,13 +71,10 @@ public class CommonViewsProviderTest {
 
         // then
         assertNotNull(settings);
-        assertEquals(5, settings.size());
-        assertTrue(settings.contains(HomeViewsForNonTDPUsers.APP_HEADER_BAR_FOR_NON_TDP_USERS));
-        assertTrue(settings.contains(HomeViewsForNonTDPUsers.SIDE_PANEL));
-        assertTrue(settings.contains(ListViews.FOLDERS_LIST));
-        assertTrue(settings.contains(ListViews.PREPARATIONS_LIST));
-        assertTrue(settings.contains(ListViews.DATASETS_LIST));
-
+        assertEquals(4, settings.size());
+        assertTrue(settings.contains(HomeViewsForNonTDPUsers.appHeaderBarForNonTdpUsers()));
+        assertTrue(settings.contains(HomeViewsForNonTDPUsers.sidePanel()));
+        assertTrue(settings.contains(ListViews.folderList()));
+        assertTrue(settings.contains(ListViews.preparationList()));
     }
-
 }

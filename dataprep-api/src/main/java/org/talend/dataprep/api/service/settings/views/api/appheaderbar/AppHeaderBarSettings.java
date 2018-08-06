@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,8 +15,7 @@ package org.talend.dataprep.api.service.settings.views.api.appheaderbar;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
 import org.talend.dataprep.api.service.settings.views.api.ViewSettings;
 
@@ -25,7 +24,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * An app header bar is a static bar placed on the top of the window
- * see https://talend.github.io/react-talend-components/?selectedKind=App%20Header%20Bar&selectedStory=default&full=0&down=1&left=1&panelRight=0&downPanel=kadirahq%2Fstorybook-addon-actions%2Factions-panel
+ * see
+ * https://talend.github.io/react-talend-components/?selectedKind=App%20Header%20Bar&selectedStory=default&full=0&down=1&left=1&panelRight=0&downPanel=kadirahq%2Fstorybook-addon-actions%2Factions-panel
  */
 @JsonInclude(NON_NULL)
 public class AppHeaderBarSettings implements ViewSettings {
@@ -64,6 +64,11 @@ public class AppHeaderBarSettings implements ViewSettings {
     private String userMenu;
 
     /**
+     * The information dropdown action
+     */
+    private String information;
+
+    /**
      * The products dropdown action
      */
     private String products;
@@ -71,6 +76,14 @@ public class AppHeaderBarSettings implements ViewSettings {
     @Override
     public String getId() {
         return id;
+    }
+
+    @Override
+    public ViewSettings translate() {
+        return AppHeaderBarSettings //
+                .from(this) //
+                .translate() //
+                .build();
     }
 
     public void setId(String id) {
@@ -117,6 +130,14 @@ public class AppHeaderBarSettings implements ViewSettings {
         this.userMenu = userMenu;
     }
 
+    public String getInformation() {
+        return information;
+    }
+
+    public void setInformation(String information) {
+        this.information = information;
+    }
+
     public String getProducts() {
         return products;
     }
@@ -137,7 +158,23 @@ public class AppHeaderBarSettings implements ViewSettings {
                 .search(viewSettings.getSearch()) //
                 .help(viewSettings.getHelp()) //
                 .userMenu(viewSettings.getUserMenu()) //
+                .information(viewSettings.getInformation()) //
                 .products(viewSettings.getProducts());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        AppHeaderBarSettings that = (AppHeaderBarSettings) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     public static class Builder {
@@ -153,6 +190,8 @@ public class AppHeaderBarSettings implements ViewSettings {
         private String help;
 
         private String userMenu;
+
+        private String information;
 
         private String products;
 
@@ -191,8 +230,26 @@ public class AppHeaderBarSettings implements ViewSettings {
             return this;
         }
 
+        public Builder information(final String information) {
+            this.information = information;
+            return this;
+        }
+
         public Builder products(final String products) {
             this.products = products;
+            return this;
+        }
+
+        public Builder translate() {
+            if (this.logo != null) {
+                this.logo = LinkSettings.from(this.logo).translate().build();
+            }
+            if (this.brand != null) {
+                this.brand = LinkSettings.from(this.brand).translate().build();
+            }
+            if (this.search != null) {
+                this.search = SearchSettings.from(this.search).translate().build();
+            }
             return this;
         }
 
@@ -204,6 +261,7 @@ public class AppHeaderBarSettings implements ViewSettings {
             settings.setSearch(this.search);
             settings.setHelp(this.help);
             settings.setUserMenu(this.userMenu);
+            settings.setInformation(this.information);
             settings.setProducts(this.products);
             return settings;
         }

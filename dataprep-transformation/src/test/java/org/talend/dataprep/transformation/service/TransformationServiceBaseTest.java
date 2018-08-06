@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -21,10 +21,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +36,10 @@ import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.folder.Folder;
-import org.talend.dataprep.api.preparation.Preparation;
+import org.talend.dataprep.api.preparation.PreparationDTO;
 import org.talend.dataprep.dataset.store.metadata.DataSetMetadataRepository;
 import org.talend.dataprep.folder.store.FolderRepository;
+import org.talend.dataprep.test.SpringLocalizationRule;
 import org.talend.dataprep.transformation.TransformationBaseTest;
 import org.talend.dataprep.transformation.test.TransformationServiceUrlRuntimeUpdater;
 
@@ -72,6 +75,9 @@ public abstract class TransformationServiceBaseTest extends TransformationBaseTe
     @Autowired
     private TransformationServiceUrlRuntimeUpdater urlUpdater;
 
+    @Rule
+    public SpringLocalizationRule rule = new SpringLocalizationRule(Locale.US);
+
     @Before
     public void setUp() {
         super.setUp();
@@ -85,7 +91,7 @@ public abstract class TransformationServiceBaseTest extends TransformationBaseTe
         dataSetMetadataRepository.clear();
     }
 
-    protected String createFolder(final String path) throws IOException {
+    protected String createFolder(final String path) {
         final Folder folder = folderRepository.addFolder(home.getId(), path);
         return folder.getId();
     }
@@ -203,13 +209,13 @@ public abstract class TransformationServiceBaseTest extends TransformationBaseTe
                 .statusCode(is(200));
     }
 
-    protected Preparation getPreparation(final String preparationId) throws IOException {
+    protected PreparationDTO getPreparation(final String preparationId) throws IOException {
         final String json = given().when() //
                 .expect().statusCode(200).log().ifError() //
                 .get("/preparations/{id}/details", preparationId) //
                 .asString();
 
-        return mapper.readerFor(Preparation.class).readValue(json);
+        return mapper.readerFor(PreparationDTO.class).readValue(json);
 
     }
 }

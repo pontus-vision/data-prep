@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,6 +15,7 @@ package org.talend.dataprep.transformation.actions.math;
 
 import java.math.BigDecimal;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.talend.daikon.number.BigDecimalParser;
@@ -22,9 +23,12 @@ import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.actions.common.*;
+import org.talend.dataprep.transformation.actions.common.AbstractCompareAction;
+import org.talend.dataprep.transformation.actions.common.ColumnAction;
+import org.talend.dataprep.transformation.actions.common.CompareAction;
+import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + CompareNumbers.ACTION_NAME)
+@Action(CompareNumbers.ACTION_NAME)
 public class CompareNumbers extends AbstractCompareAction implements ColumnAction, OtherColumnParameters, CompareAction {
 
     /**
@@ -44,8 +48,8 @@ public class CompareNumbers extends AbstractCompareAction implements ColumnActio
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.NUMBERS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.NUMBERS.getDisplayName(locale);
     }
 
     @Override

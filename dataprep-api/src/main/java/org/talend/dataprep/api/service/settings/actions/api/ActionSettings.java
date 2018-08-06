@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,16 +13,19 @@
 
 package org.talend.dataprep.api.service.settings.actions.api;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static org.talend.dataprep.api.service.settings.actions.api.ActionSettings.TYPE_DROPDOWN;
-import static org.talend.dataprep.api.service.settings.actions.api.ActionSettings.TYPE_SPLIT_DROPDOWN;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.apache.commons.lang.StringUtils;
+import org.talend.dataprep.i18n.DataprepBundle;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static org.talend.dataprep.api.service.settings.actions.api.ActionSettings.TYPE_DROPDOWN;
+import static org.talend.dataprep.api.service.settings.actions.api.ActionSettings.TYPE_SPLIT_DROPDOWN;
 
 /**
  * Actions settings are the configuration for a simple button.
@@ -31,8 +34,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonInclude(NON_NULL)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "displayMode")
-@JsonSubTypes({ @JsonSubTypes.Type(value = ActionDropdownSettings.class, name = TYPE_DROPDOWN),
-        @JsonSubTypes.Type(value = ActionSplitDropdownSettings.class, name = TYPE_SPLIT_DROPDOWN) })
+@JsonSubTypes({@JsonSubTypes.Type(value = ActionDropdownSettings.class, name = TYPE_DROPDOWN),
+        @JsonSubTypes.Type(value = ActionSplitDropdownSettings.class, name = TYPE_SPLIT_DROPDOWN)})
 public class ActionSettings {
 
     public static final String TYPE_DROPDOWN = "dropdown";
@@ -42,6 +45,8 @@ public class ActionSettings {
     public static final String PAYLOAD_METHOD_KEY = "method";
 
     public static final String PAYLOAD_ARGS_KEY = "args";
+
+    public static final String DATA_FEATURE_KEY = "feature";
 
     /**
      * The key that will hold this settings in the actions dictionary
@@ -80,6 +85,11 @@ public class ActionSettings {
     private Boolean hideLabel;
 
     /**
+     * Has divider below
+     */
+    private Boolean divider;
+
+    /**
      * The bootstrap style (ex: primary to apply the primary color)
      */
     private String bsStyle;
@@ -88,6 +98,11 @@ public class ActionSettings {
      * The bootstrap size (ex: small to render a small button)
      */
     private String bsSize;
+
+    /**
+     * Data attributes
+     */
+    private Map<String, Object> data;
 
     /**
      * Can hold any extra static information to pass to the action function
@@ -140,6 +155,14 @@ public class ActionSettings {
         return hideLabel;
     }
 
+    public Boolean getDivider() {
+        return divider;
+    }
+
+    public void setDivider(Boolean divider) {
+        this.divider = divider;
+    }
+
     public void setHideLabel(Boolean hideLabel) {
         this.hideLabel = hideLabel;
     }
@@ -168,6 +191,14 @@ public class ActionSettings {
         this.bsSize = bsSize;
     }
 
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    public void setData(Map<String, Object> data) {
+        this.data = data;
+    }
+
     public Map<String, Object> getPayload() {
         return payload;
     }
@@ -184,9 +215,29 @@ public class ActionSettings {
         return this.enabled;
     }
 
+    public ActionSettings translate() {
+        return ActionSettings
+                .from(this) //
+                .translate() //
+                .build();
+    }
+
     public static Builder from(final ActionSettings actionSettings) {
-        return builder().id(actionSettings.getId()).name(actionSettings.getName()).icon(actionSettings.getIcon())
-                .type(actionSettings.getType()).bsStyle(actionSettings.getBsStyle()).payload(actionSettings.getPayload());
+        return builder() //
+                .id(actionSettings.getId()) //
+                .toolTip(actionSettings.getToolTip()) //
+                .name(actionSettings.getName()) //
+                .icon(actionSettings.getIcon()) //
+                .type(actionSettings.getType()) //
+                .link(actionSettings.getLink()) //
+                .hideLabel(actionSettings.getHideLabel()) //
+                .divider(actionSettings.getDivider()) //
+                .bsStyle(actionSettings.getBsStyle()) //
+                .bsSize(actionSettings.getBsSize()) //
+                .data(actionSettings.getData()) //
+                .payload(actionSettings.getPayload()) //
+                .enabled(actionSettings.isEnabled());
+
     }
 
     public static Builder builder() {
@@ -209,9 +260,13 @@ public class ActionSettings {
 
         private Boolean hideLabel;
 
+        private Boolean divider;
+
         private String bsStyle;
 
         private String bsSize;
+
+        private Map<String, Object> data = new HashMap<>();
 
         private Map<String, Object> payload = new HashMap<>();
 
@@ -242,13 +297,33 @@ public class ActionSettings {
             return this;
         }
 
+        public Builder link(final Boolean link) {
+            this.link = link;
+            return this;
+        }
+
         public Builder isLink() {
             this.link = true;
             return this;
         }
 
+        public Builder hideLabel(final Boolean hideLabel) {
+            this.hideLabel = hideLabel;
+            return this;
+        }
+
         public Builder hideLabel() {
             this.hideLabel = true;
+            return this;
+        }
+
+        public Builder divider(final Boolean divider) {
+            this.divider = divider;
+            return this;
+        }
+
+        public Builder divider() {
+            this.divider = true;
             return this;
         }
 
@@ -262,18 +337,42 @@ public class ActionSettings {
             return this;
         }
 
+        public Builder data(final String key, final Object value) {
+            this.data.put(key, value);
+            return this;
+        }
+
+        public Builder data(final Map<String, Object> data) {
+            if (Objects.nonNull(data)) {
+                data.entrySet().stream().forEach(entry -> this.data.put(entry.getKey(), entry.getValue()));
+            }
+            return this;
+        }
+
         public Builder payload(final String key, final Object value) {
             this.payload.put(key, value);
             return this;
         }
 
         public Builder payload(final Map<String, Object> payload) {
-            payload.entrySet().stream().forEach(entry -> this.payload.put(entry.getKey(), entry.getValue()));
+            if (Objects.nonNull(payload)) {
+                payload.entrySet().stream().forEach(entry -> this.payload.put(entry.getKey(), entry.getValue()));
+            }
             return this;
         }
 
         public Builder enabled(final boolean enabled) {
             this.enabled = enabled;
+            return this;
+        }
+
+        public Builder translate() {
+            if (StringUtils.isNotEmpty(this.name)) {
+                this.name = DataprepBundle.message(this.name);
+            }
+            if (StringUtils.isNotEmpty(this.toolTip)) {
+                this.toolTip = DataprepBundle.message(this.toolTip);
+            }
             return this;
         }
 
@@ -286,8 +385,10 @@ public class ActionSettings {
             action.setType(this.type);
             action.setLink(this.link);
             action.setHideLabel(this.hideLabel);
+            action.setDivider(this.divider);
             action.setBsStyle(this.bsStyle);
             action.setBsSize(this.bsSize);
+            action.setData(this.data.isEmpty() ? null : this.data);
             action.setPayload(this.payload.isEmpty() ? null : this.payload);
             action.setEnabled(this.enabled);
             return action;

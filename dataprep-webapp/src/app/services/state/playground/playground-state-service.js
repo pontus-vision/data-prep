@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,6 +11,8 @@
 
  ============================================================================*/
 
+import { HOME_FOLDER } from '../inventory/inventory-state-service';
+
 export const playgroundState = {
 	candidatePreparations: [],
 	isLoading: false,
@@ -20,9 +22,12 @@ export const playgroundState = {
 	sampleType: 'HEAD',
 	isReadOnly: false,
 	stepInEditionMode: null,
+	transformationInProgress: false,
+	lastActiveStepId: null,
 };
 
-export function PlaygroundStateService(RecipeStateService, recipeState,
+export function PlaygroundStateService($translate,
+                                       RecipeStateService, recipeState,
                                        GridStateService, gridState,
                                        FilterStateService, filterState,
                                        SuggestionsStateService, suggestionsState,
@@ -40,7 +45,7 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 	playgroundState.parameters = parametersState;
 
 	return {
-        // playground
+		// playground
 		reset,
 		setDataset,
 		setIsFetchingStats,
@@ -50,6 +55,9 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		setPreparationName,
 		setNameEditionMode,
 		setData,
+		setLastActiveStepId,
+		getLastActiveStepId,
+		resetLastActiveStepId,
 		updateDatasetRecord,
 		updateDatasetStatistics,
 		setSampleType,
@@ -59,14 +67,15 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		setIsPreprationPickerVisible,
 		setSavingPreparationFolders,
 		setIsSavingPreparationFoldersLoading,
+		setTransformationInProgress,
 
-        // parameters
+		// parameters
 		toggleDatasetParameters,
 		hideDatasetParameters: ParametersStateService.hide,
 		setIsSendingDatasetParameters: ParametersStateService.setIsSending,
 		setDatasetEncodings: ParametersStateService.setEncodings,
 
-        // recipe
+		// recipe
 		showRecipe: RecipeStateService.show,
 		hideRecipe: RecipeStateService.hide,
 		setHoveredStep: RecipeStateService.setHoveredStep,
@@ -76,7 +85,7 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		disableRecipeStepsAfter: RecipeStateService.disableStepsAfter,
 		setRecipeAllowDistributedRun: RecipeStateService.setAllowDistributedRun,
 
-        // datagrid
+		// datagrid
 		setColumnFocus: GridStateService.setColumnFocus,
 		setGridSelection: GridStateService.setGridSelection,
 		toggleColumnSelection: GridStateService.toggleColumnSelection,
@@ -84,7 +93,7 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		setSemanticDomains: GridStateService.setSemanticDomains,
 		setPrimitiveTypes: GridStateService.setPrimitiveTypes,
 
-        // lookup
+		// lookup
 		setLookupActions: LookupStateService.setActions,
 		setLookupAddedActions: LookupStateService.setAddedActions,
 		setLookupDatasets: LookupStateService.setDatasets,
@@ -98,21 +107,22 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		setLookupDatasetsSort: LookupStateService.setSort,
 		setLookupDatasetsOrder: LookupStateService.setOrder,
 
-        // filters
+		// filters
 		addGridFilter,
 		updateGridFilter,
+		updateColumnNameInFilters,
 		removeGridFilter,
 		removeAllGridFilters,
 		enableFilters,
 		disableFilters,
 
-        // actions
+		// actions
 		selectTransformationsTab: SuggestionsStateService.selectTab,
 		setTransformations: SuggestionsStateService.setTransformations,
 		setTransformationsLoading: SuggestionsStateService.setLoading,
 		updateFilteredTransformations: SuggestionsStateService.updateFilteredTransformations,
 
-        // statistics
+		// statistics
 		setStatisticsBoxPlot: StatisticsStateService.setBoxPlot,
 		setStatisticsDetails: StatisticsStateService.setDetails,
 		setStatisticsRangeLimits: StatisticsStateService.setRangeLimits,
@@ -121,11 +131,12 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		setStatisticsHistogramActiveLimits: StatisticsStateService.setHistogramActiveLimits,
 		setStatisticsPatterns: StatisticsStateService.setPatterns,
 		setStatisticsFilteredPatterns: StatisticsStateService.setFilteredPatterns,
+		setStatisticsLoading: StatisticsStateService.setLoading,
 	};
 
-    //--------------------------------------------------------------------------------------------------------------
-    // --------------------------------------------------PLAYGROUND--------------------------------------------------
-    //--------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------
+	// --------------------------------------------------PLAYGROUND--------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------
 	function setReadOnlyMode(bool) {
 		playgroundState.isReadOnly = bool;
 	}
@@ -141,13 +152,6 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 	function setData(data) {
 		playgroundState.data = data;
 		GridStateService.setData(data);
-
-		if (filterState.enabled) {
-			GridStateService.setFilter(filterState.gridFilters, playgroundState.data);
-		}
-		else {
-			GridStateService.setFilter([], playgroundState.data);
-		}
 	}
 
 	function setPreparation(preparation) {
@@ -160,6 +164,18 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 
 	function setNameEditionMode(editionMode) {
 		playgroundState.nameEditionMode = editionMode;
+	}
+
+	function setLastActiveStepId(stepId) {
+		playgroundState.lastActiveStepId = stepId;
+	}
+
+	function getLastActiveStepId() {
+		return playgroundState.lastActiveStepId || 'head';
+	}
+
+	function resetLastActiveStepId() {
+		playgroundState.lastActiveStepId = null;
 	}
 
 	function updateDatasetStatistics(metadata) {
@@ -205,16 +221,23 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		playgroundState.isPreprationPickerVisible = bool;
 	}
 
-	function setSavingPreparationFolders(folders) {
-		playgroundState.savingPreparationFolders = folders;
+	function setSavingPreparationFolders(tree) {
+		if (tree.folder && tree.folder.path === HOME_FOLDER.path) {
+			tree.folder.name = $translate.instant('HOME_FOLDER');
+		}
+		playgroundState.savingPreparationFolders = tree;
 	}
 
 	function setIsSavingPreparationFoldersLoading(bool) {
 		playgroundState.isSavingPreparationFoldersLoading = bool;
 	}
-    //--------------------------------------------------------------------------------------------------------------
-    // -------------------------------------------------PARAMETERS---------------------------------------------------
-    //--------------------------------------------------------------------------------------------------------------
+
+	function setTransformationInProgress(bool) {
+		playgroundState.transformationInProgress = bool;
+	}
+	//--------------------------------------------------------------------------------------------------------------
+	// -------------------------------------------------PARAMETERS---------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------
 	function toggleDatasetParameters() {
 		if (parametersState.visible) {
 			ParametersStateService.hide();
@@ -229,39 +252,37 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		ParametersStateService.show();
 	}
 
-    //--------------------------------------------------------------------------------------------------------------
-    // ---------------------------------------------------FILTERS----------------------------------------------------
-    //--------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------
+	// ---------------------------------------------------FILTERS----------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------
 	function addGridFilter(filter) {
 		FilterStateService.addGridFilter(filter);
-		GridStateService.setFilter(filterState.gridFilters, playgroundState.data);
 		FilterStateService.enableFilters();
+	}
+
+	function updateColumnNameInFilters(columns) {
+		FilterStateService.updateColumnNameInFilters(columns);
 	}
 
 	function updateGridFilter(oldFilter, newFilter) {
 		FilterStateService.updateGridFilter(oldFilter, newFilter);
-		GridStateService.setFilter(filterState.gridFilters, playgroundState.data);
 		FilterStateService.enableFilters();
 	}
 
 	function removeGridFilter(filter) {
 		FilterStateService.removeGridFilter(filter);
-		GridStateService.setFilter(filterState.gridFilters, playgroundState.data);
 	}
 
 	function removeAllGridFilters() {
 		FilterStateService.removeAllGridFilters();
-		GridStateService.setFilter(filterState.gridFilters, playgroundState.data);
 	}
 
 	function enableFilters() {
 		FilterStateService.enableFilters();
-		GridStateService.setFilter(filterState.gridFilters, playgroundState.data);
 	}
 
 	function disableFilters() {
 		FilterStateService.disableFilters();
-		GridStateService.setFilter([], playgroundState.data);
 	}
 
 	function reset() {
@@ -274,12 +295,14 @@ export function PlaygroundStateService(RecipeStateService, recipeState,
 		playgroundState.lookupData = null;
 		playgroundState.preparation = null;
 		playgroundState.sampleType = 'HEAD';
+		playgroundState.lastActiveStepId = null;
 		playgroundState.isReadOnly = false;
 		playgroundState.stepInEditionMode = null;
 		playgroundState.isNameValidationVisible = false;
 		playgroundState.isPreprationPickerVisible = false;
 		playgroundState.savingPreparationFolders = null;
 		playgroundState.isSavingPreparationFoldersLoading = false;
+		playgroundState.transformationInProgress = false;
 
 		RecipeStateService.reset();
 		FilterStateService.reset();

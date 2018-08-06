@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -16,10 +16,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
 
-import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
@@ -37,16 +38,13 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Deduplicate
  */
-public class DeduplicateTest extends AbstractMetadataBaseTest {
-
-    /**
-     * The action to test.
-     */
-    private Deduplicate action = new Deduplicate();
+public class DeduplicateTest extends AbstractMetadataBaseTest<Deduplicate> {
 
     private Map<String, String> parameters;
 
-    final private DecimalFormat format = new DecimalFormat("0000");
+    public DeduplicateTest(){
+        super(new Deduplicate());
+    }
 
     private void initParameters() {
         parameters = new HashMap<>();
@@ -54,12 +52,9 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
     }
 
-    private DataSetRow getDataSetRow(String... values) {
-        Map<String, String> rowContent = new HashMap<>();
-        for (int j = 0; j < values.length; j++) {
-            rowContent.put(format.format(j), values[j]);
-        }
-        return new DataSetRow(rowContent);
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.NA;
     }
 
     @Test
@@ -83,20 +78,20 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.DEDUPLICATION.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.DEDUPLICATION.getDisplayName(Locale.US)));
     }
 
     @Test
     public void should_deduplicate() {
 
         // row 1
-        final DataSetRow row1 = getDataSetRow("David", "Bowie");
+        final DataSetRow row1 = getRow("David", "Bowie");
 
         // row 2
-        final DataSetRow row2 = getDataSetRow("David", "Bowie");
+        final DataSetRow row2 = getRow("David", "Bowie");
 
         // row 3
-        final DataSetRow row3 = getDataSetRow("Toto", "Cafe");
+        final DataSetRow row3 = getRow("Toto", "Cafe");
 
         initParameters();
 
@@ -113,10 +108,10 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
     public void deduplicate_with_empty_string() {
 
         // row 1
-        final DataSetRow row1 = getDataSetRow("David", "Bowie");
+        final DataSetRow row1 = getRow("David", "Bowie");
 
         // row 2
-        final DataSetRow row2 = getDataSetRow("DavidBowie", "");
+        final DataSetRow row2 = getRow("DavidBowie", "");
 
         initParameters();
 
@@ -132,10 +127,10 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
     public void deduplicate_with_uppercase() {
 
         // row 1
-        final DataSetRow row1 = getDataSetRow("David", "Bowie");
+        final DataSetRow row1 = getRow("David", "Bowie");
 
         // row 2
-        final DataSetRow row2 = getDataSetRow("DAvid", "Bowie");
+        final DataSetRow row2 = getRow("DAvid", "Bowie");
 
         initParameters();
 
@@ -151,10 +146,10 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
     public void deduplicate_with_num() {
 
         // row 1
-        final DataSetRow row1 = getDataSetRow("David", "Bowie");
+        final DataSetRow row1 = getRow("David", "Bowie");
 
         // row 2
-        final DataSetRow row2 = getDataSetRow("1David", "Bowie");
+        final DataSetRow row2 = getRow("1David", "Bowie");
 
         initParameters();
 
@@ -170,10 +165,10 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
     public void deduplicate_with_accentued_carac() {
 
         // row 1
-        final DataSetRow row1 = getDataSetRow("David", "Bowie");
+        final DataSetRow row1 = getRow("David", "Bowie");
 
         // row 2
-        final DataSetRow row2 = getDataSetRow("Dàvid", "Bowie");
+        final DataSetRow row2 = getRow("Dàvid", "Bowie");
 
         initParameters();
 
@@ -189,10 +184,10 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
     public void deduplicate_with_date() {
 
         // row 1
-        final DataSetRow row1 = getDataSetRow("05/10/2017", "06/10/2017");
+        final DataSetRow row1 = getRow("05/10/2017", "06/10/2017");
 
         // row 2
-        final DataSetRow row2 = getDataSetRow("05/10/2017", "07/10/2017");
+        final DataSetRow row2 = getRow("05/10/2017", "07/10/2017");
 
         initParameters();
 
@@ -208,10 +203,10 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
     public void deduplicate_with_ponct() {
 
         // row 1
-        final DataSetRow row1 = getDataSetRow("David", "Bowie");
+        final DataSetRow row1 = getRow("David", "Bowie");
 
         // row 2
-        final DataSetRow row2 = getDataSetRow("David.", "Bowie");
+        final DataSetRow row2 = getRow("David.", "Bowie");
 
         initParameters();
 
@@ -227,19 +222,19 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
     public void deduplicate_with_mutiple_deletes() {
 
         // row 1
-        final DataSetRow row1 = getDataSetRow("David", "Bowie");
+        final DataSetRow row1 = getRow("David", "Bowie");
 
         // row 2
-        final DataSetRow row2 = getDataSetRow("Toto", "Cafe");
+        final DataSetRow row2 = getRow("Toto", "Cafe");
 
         // row 3
-        final DataSetRow row3 = getDataSetRow("Toto", "Cafe");
+        final DataSetRow row3 = getRow("Toto", "Cafe");
 
         // row 4
-        final DataSetRow row4 = getDataSetRow("David", "Bowie");
+        final DataSetRow row4 = getRow("David", "Bowie");
 
         // row 5
-        final DataSetRow row5 = getDataSetRow("Bowie", "David");
+        final DataSetRow row5 = getRow("Bowie", "David");
 
         initParameters();
 
@@ -252,6 +247,29 @@ public class DeduplicateTest extends AbstractMetadataBaseTest {
         assertThat(row3.isDeleted(), is(true));
         assertThat(row4.isDeleted(), is(true));
         assertThat(row5.isDeleted(), is(false));
+    }
+
+    @Test
+    public void deduplicate_with_deleted_row() {
+        // row 1
+        final DataSetRow row1 = getRow("David", "Bowie");
+        row1.setDeleted(true);
+
+        // row 2
+        final DataSetRow row2 = getRow("Toto", "Cafe");
+
+        // row 3
+        final DataSetRow row3 = getRow("David", "Bowie");
+
+        initParameters();
+
+        // when
+        ActionTestWorkbench.test(Arrays.asList(row1, row2, row3), actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertThat(row1.isDeleted(), is(true));
+        assertThat(row2.isDeleted(), is(false));
+        assertThat(row3.isDeleted(), is(false));
     }
 
 }

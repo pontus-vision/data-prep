@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -27,7 +27,7 @@ import org.talend.dataprep.transformation.api.transformer.TransformerWriter;
 
 /**
  * Unit test for WriterRegistrationService.
- * 
+ *
  * @see WriterRegistrationService
  */
 public class WriterRegistrationServiceTest extends BaseFormatTest {
@@ -47,7 +47,7 @@ public class WriterRegistrationServiceTest extends BaseFormatTest {
     @Test
     public void shouldReturnWriterWithParameter() {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(CSVWriter.SEPARATOR_PARAM_NAME, "|");
+        parameters.put(CSVWriterTest.SEPARATOR_PARAM_NAME, "|");
         final TransformerWriter csvWriter = service.getWriter(CSVFormat.CSV, output, parameters);
         Assert.assertTrue(csvWriter instanceof CSVWriter);
     }

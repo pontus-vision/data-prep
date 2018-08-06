@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -658,7 +658,7 @@ describe('Range slider controller', () => {
 
                 // then
                 expect(ctrl.onBrushEnd).toHaveBeenCalledWith({
-                    interval: { min: 12, max: 25, isMaxReached: false },
+                    interval: { min: 12, max: 25, excludeMax: false },
                 });
             });
 
@@ -694,7 +694,7 @@ describe('Range slider controller', () => {
 
                 // then
                 expect(ctrl.onBrushEnd).toHaveBeenCalledWith({
-                    interval: { min: 12, max: 40, isMaxReached: true },
+                    interval: { min: 12, max: 40, excludeMax: false },
                 });
             });
         });
@@ -758,7 +758,7 @@ describe('Range slider controller', () => {
 
                 // then
                 expect(ctrl.onBrushEnd).toHaveBeenCalledWith({
-                    interval: { min: 12, max: 40, isMaxReached: true },
+                    interval: { min: 12, max: 40, excludeMax: false },
                 });
             });
         });
@@ -840,7 +840,7 @@ describe('Range slider controller', () => {
 
                 // then
                 expect(ctrl.onBrushEnd).toHaveBeenCalledWith({
-                    interval: { min: 10, max: 115, isMaxReached: true },
+                    interval: { min: 10, max: 115, excludeMax: false },
                 });
             });
 

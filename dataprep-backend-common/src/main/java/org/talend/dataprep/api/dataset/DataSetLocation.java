@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,6 +15,7 @@ package org.talend.dataprep.api.dataset;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Locale;
 
 import org.talend.dataprep.api.dataset.location.LocalStoreLocation;
 import org.talend.dataprep.parameters.Parameter;
@@ -27,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 /**
  * Information about the dataset location.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", defaultImpl = LocalStoreLocation.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = LocalStoreLocation.class)
 public interface DataSetLocation extends Serializable {
 
     /**
@@ -55,20 +56,21 @@ public interface DataSetLocation extends Serializable {
      * be used for instance.
      *
      * @return All needed parameters for this location (data set id, url, job name...).
+     * @param locale
      */
     @JsonIgnore
-    List<Parameter> getParameters();
+    List<Parameter> getParameters(Locale locale);
 
     /**
      * If available, the json schema representation of the parameters.
      */
     @JsonIgnore
-    ComponentProperties getParametersAsSchema();
+    ComponentProperties getParametersAsSchema(Locale locale);
 
     /**
-     * Tell user if he should call the Dataprep internal {@link #getParameters()} or the TComp oriented {@link #getParametersAsSchema()}.
+     * Tell user if he should call the Dataprep internal {@link #getParameters(Locale)} or the TComp oriented {@link #getParametersAsSchema()}.
      *
-     * @return true if {@link #getParametersAsSchema()} should be use, false for {@link #getParameters()}
+     * @return true if {@link #getParametersAsSchema(Locale)} should be use, false for {@link #getParameters(Locale)}
      */
     @JsonIgnore
     boolean isSchemaOriented();

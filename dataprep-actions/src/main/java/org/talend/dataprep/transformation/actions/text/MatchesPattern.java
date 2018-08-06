@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,34 +13,33 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.BooleanUtils.toStringTrueFalse;
 import static org.apache.commons.lang.StringUtils.EMPTY;
-import static org.talend.dataprep.api.type.Type.BOOLEAN;
 import static org.talend.dataprep.api.type.Type.STRING;
+import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.REGEX;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Nonnull;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + MatchesPattern.MATCHES_PATTERN_ACTION_NAME)
+@Action(MatchesPattern.MATCHES_PATTERN_ACTION_NAME)
 public class MatchesPattern extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -79,27 +78,27 @@ public class MatchesPattern extends AbstractActionMetadata implements ColumnActi
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.STRINGS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.STRINGS.getDisplayName(locale);
     }
 
     @Override
     @Nonnull
-    public List<Parameter> getParameters() {
-        final List<Parameter> parameters = super.getParameters();
+    public List<Parameter> getParameters(Locale locale) {
+        final List<Parameter> parameters = super.getParameters(locale);
         // @formatter:off
-		parameters.add(SelectParameter.Builder.builder()
+		parameters.add(selectParameter(locale)
 				.name(PATTERN_PARAMETER)
 				.item("[a-z]+", "[a-z]+")
 				.item("[A-Z]+", "[A-Z]+")
 				.item("[0-9]+", "[0-9]+")
 				.item("[a-zA-Z]+", "[a-zA-Z]+")
 				.item("[a-zA-Z0-9]+", "[a-zA-Z0-9]+")
-				.item(CUSTOM, CUSTOM, new Parameter(MANUAL_PATTERN_PARAMETER, REGEX, EMPTY))
+				.item(CUSTOM, CUSTOM, parameter(locale).setName(MANUAL_PATTERN_PARAMETER).setType(REGEX).setDefaultValue(EMPTY).build(this))
 				.defaultValue("[a-zA-Z]+")
-				.build());
+				.build(this ));
 		// @formatter:on
-        return ActionsBundle.attachToAction(parameters, this);
+        return parameters;
     }
 
     /**
@@ -119,47 +118,29 @@ public class MatchesPattern extends AbstractActionMetadata implements ColumnActi
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (context.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), true)) {
+            ActionsUtils.createNewColumn(context, getAdditionalColumns(context));
+        }
+        if (context.getActionStatus() == OK) {
             try {
                 context.get(REGEX_HELPER_KEY, p -> getPattern(context.getParameters()));
             } catch (IllegalArgumentException e) {
-                context.setActionStatus(ActionContext.ActionStatus.CANCELED);
-            }
-            // Create result column
-            final String columnId = context.getColumnId();
-            final RowMetadata rowMetadata = context.getRowMetadata();
-            final ColumnMetadata column = rowMetadata.getById(columnId);
-            if (column != null) {
-                context.column(column.getName() + APPENDIX, r -> {
-                    final ColumnMetadata c = ColumnMetadata.Builder //
-                            .column() //
-                            .name(column.getName() + APPENDIX) //
-                            .type(BOOLEAN) //
-                            .empty(column.getQuality().getEmpty()) //
-                            .invalid(column.getQuality().getInvalid()) //
-                            .valid(column.getQuality().getValid()) //
-                            .headerSize(column.getHeaderSize()) //
-                            .build();
-                    rowMetadata.insertAfter(columnId, c);
-                    return c;
-                });
+                context.setActionStatus(CANCELED);
             }
         }
     }
 
+    protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
+        return singletonList(
+                ActionsUtils.additionalColumn().withName(context.getColumnName() + APPENDIX).withType(Type.BOOLEAN));
+    }
+
     @Override
     public void applyOnColumn(DataSetRow row, ActionContext context) {
-        // Retrieve the pattern to use
         final String columnId = context.getColumnId();
-
-        // create new column and append it after current column
-        final RowMetadata rowMetadata = context.getRowMetadata();
-        final ColumnMetadata column = rowMetadata.getById(columnId);
-        final String matchingColumn = context.column(column.getName() + APPENDIX);
-
         final String value = row.get(columnId);
         final String newValue = toStringTrueFalse(computeNewValue(value, context));
-        row.set(matchingColumn, newValue);
+        row.set(ActionsUtils.getTargetColumnId(context), newValue);
     }
 
     /**

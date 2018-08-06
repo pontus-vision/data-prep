@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -31,23 +31,6 @@ import com.jayway.restassured.path.json.JsonPath;
  * Integration tests on suggestions.
  */
 public class SuggestionTest extends TransformationServiceBaseTest {
-
-    @Test
-    public void dataSetSuggest() throws Exception {
-        // given
-        final String dataSetMetadata = IOUtils.toString(Application.class.getResourceAsStream("suggestions/dataset_metadata.json"), UTF_8);
-
-        // when
-        final String response = given() //
-                .contentType(JSON) //
-                .body(dataSetMetadata) //
-                .when() //
-                .post("/suggest/dataset") //
-                .asString();
-
-        // then
-        assertEquals("[]", response, false);
-    }
 
     @Test
     public void emptyColumnSuggest() throws Exception {
@@ -193,6 +176,7 @@ public class SuggestionTest extends TransformationServiceBaseTest {
                 .asString();
 
         // then
+
         assertEquals(expectedSuggestions, response, false);
     }
 
@@ -235,13 +219,13 @@ public class SuggestionTest extends TransformationServiceBaseTest {
                 "}";
 
         given() //
-            .contentType(JSON) //
-            .body(columnMetadata) //
-        .when() //
-            .post("/suggest/column?limit=100") // 100 just to make sure that we get all the suggestions
-        .then()
-            .statusCode(200)
-            .body("name", hasItems("mask_data_by_domain", "format_phone_number"));
+                .contentType(JSON) //
+                .body(columnMetadata) //
+                .when() //
+                .post("/suggest/column?limit=100") // 100 just to make sure that we get all the suggestions
+                .then()
+                .statusCode(200)
+                .body("name", hasItems("mask_data_by_domain", "format_phone_number"));
         // @formatter:on
 
     }

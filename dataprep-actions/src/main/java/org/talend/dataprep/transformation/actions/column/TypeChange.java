@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,11 +13,14 @@
 
 package org.talend.dataprep.transformation.actions.column;
 
-import static org.talend.dataprep.transformation.actions.category.ActionScope.COLUMN_METADATA;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.talend.dataprep.transformation.actions.category.ActionScope.HIDDEN_IN_ACTION_LIST;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.DONE;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.util.*;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
@@ -26,6 +29,7 @@ import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
@@ -33,7 +37,7 @@ import org.talend.dataprep.transformation.api.action.context.ActionContext;
  * Change the type of a column <b>This action is not displayed in the UI it's here to ease recording it as a Step It's
  * available from column headers</b>
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + TypeChange.TYPE_CHANGE_ACTION_NAME)
+@Action(TypeChange.TYPE_CHANGE_ACTION_NAME)
 public class TypeChange extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -44,6 +48,8 @@ public class TypeChange extends AbstractActionMetadata implements ColumnAction {
     public static final String NEW_TYPE_PARAMETER_KEY = "new_type";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TypeChange.class);
+
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
 
     @Override
     public String getName() {
@@ -56,26 +62,29 @@ public class TypeChange extends AbstractActionMetadata implements ColumnAction {
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.COLUMN_METADATA.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.COLUMN_METADATA.getDisplayName(locale);
     }
 
     @Override
     public List<String> getActionScope() {
-        return Collections.singletonList(COLUMN_METADATA.getDisplayName());
+        return singletonList(HIDDEN_IN_ACTION_LIST.getDisplayName());
     }
 
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (context.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(context, singletonList(ActionsUtils.additionalColumn()));
+        }
+        if (context.getActionStatus() == OK) {
             final String columnId = context.getColumnId();
             final Map<String, String> parameters = context.getParameters();
             LOGGER.debug("TypeChange for columnId {} with parameters {} ", columnId, parameters);
             final RowMetadata rowMetadata = context.getRowMetadata();
             final ColumnMetadata columnMetadata = rowMetadata.getById(columnId);
             final String newType = parameters.get(NEW_TYPE_PARAMETER_KEY);
-            if (StringUtils.isNotEmpty(newType)) {
+            if (isNotEmpty(newType)) {
                 columnMetadata.setType(newType);
                 columnMetadata.setTypeForced(true);
                 // erase domain
@@ -86,7 +95,7 @@ public class TypeChange extends AbstractActionMetadata implements ColumnAction {
                 columnMetadata.setDomainForced(true);
             }
             rowMetadata.update(columnId, columnMetadata);
-            context.setActionStatus(ActionContext.ActionStatus.DONE);
+            context.setActionStatus(DONE);
         }
     }
 

@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -58,5 +58,9 @@ describe('Home component', () => {
 
 	it('should instantiate home dataset progress bar', () => {
 		expect(element.find('step-progress').length).toBe(1);
+	});
+
+	it('should instantiate confirm modal', () => {
+		expect(element.find('confirm-modal').length).toBe(1);
 	});
 });

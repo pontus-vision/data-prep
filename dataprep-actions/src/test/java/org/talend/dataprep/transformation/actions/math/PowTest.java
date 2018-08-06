@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -29,6 +29,7 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -37,13 +38,14 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Pow
  */
-public class PowTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private Pow action = new Pow();
+public class PowTest extends AbstractMetadataBaseTest<Pow> {
 
     /** The action parameters. */
     private Map<String, String> parameters;
+
+    public PowTest(){
+        super(new Pow());
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -51,8 +53,13 @@ public class PowTest extends AbstractMetadataBaseTest {
         parameters = ActionMetadataTestUtils.parseParameters(parametersSource);
     }
 
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
+    }
+
     @Test
-    public void pow_with_constant() {
+    public void test_apply_inplace() {
         // given
         DataSetRow row = getRow("5", "3", "Done !");
 
@@ -63,8 +70,41 @@ public class PowTest extends AbstractMetadataBaseTest {
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
         // then
+        assertEquals(3, row.getRowMetadata().size());
+        assertEquals("78125.0", row.get("0000"));
+    }
+
+    @Test
+    public void test_apply_in_newcolumn() {
+        // given
+        DataSetRow row = getRow("5", "3", "Done !");
+
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+        parameters.put(OtherColumnParameters.CONSTANT_VALUE, "7");
+
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
         assertColumnWithResultCreated(row);
         assertEquals("78125.0", row.get("0003"));
+    }
+
+    @Test
+    public void pow_with_constant_percentage() {
+        // given
+        DataSetRow row = getRow("500%", "3", "Done !");
+
+        parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+        parameters.put(OtherColumnParameters.CONSTANT_VALUE, "7");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals("78125.0", row.get("0000"));
     }
 
     @Test
@@ -73,6 +113,8 @@ public class PowTest extends AbstractMetadataBaseTest {
         DataSetRow row = getRow("5", "3", "Done !");
 
         parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
+
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -90,6 +132,8 @@ public class PowTest extends AbstractMetadataBaseTest {
         parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.CONSTANT_MODE);
         parameters.put(OtherColumnParameters.CONSTANT_VALUE, "beer");
 
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
@@ -105,6 +149,8 @@ public class PowTest extends AbstractMetadataBaseTest {
 
         parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.OTHER_COLUMN_MODE);
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0001");
+
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -122,6 +168,8 @@ public class PowTest extends AbstractMetadataBaseTest {
         parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.OTHER_COLUMN_MODE);
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "000xx");
 
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
@@ -138,6 +186,8 @@ public class PowTest extends AbstractMetadataBaseTest {
         parameters.put(OtherColumnParameters.MODE_PARAMETER, OtherColumnParameters.OTHER_COLUMN_MODE);
         parameters.put(OtherColumnParameters.SELECTED_COLUMN_PARAMETER, "0002");
 
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
@@ -153,7 +203,7 @@ public class PowTest extends AbstractMetadataBaseTest {
     }
 
     private void assertColumnWithResultCreated(DataSetRow row) {
-        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0000_pow").type(Type.STRING).build();
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0000_pow").type(Type.DOUBLE).build();
         ColumnMetadata actual = row.getRowMetadata().getById("0003");
         assertEquals(expected, actual);
     }

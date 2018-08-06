@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,10 +13,10 @@
 
 package org.talend.dataprep.transformation.actions.column;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static java.util.Collections.singletonList;
+import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.COLUMN_ID;
+
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -25,20 +25,19 @@ import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
-import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 /**
  * Swap columns values
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + Swap.SWAP_COLUMN_ACTION_NAME)
+@Action(Swap.SWAP_COLUMN_ACTION_NAME)
 public class Swap extends AbstractActionMetadata implements ColumnAction, OtherColumnParameters {
 
     /**
@@ -47,6 +46,8 @@ public class Swap extends AbstractActionMetadata implements ColumnAction, OtherC
     public static final String SWAP_COLUMN_ACTION_NAME = "swap_column"; //$NON-NLS-1$
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Swap.class);
+
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
 
     @Override
     public String getName() {
@@ -59,22 +60,29 @@ public class Swap extends AbstractActionMetadata implements ColumnAction, OtherC
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.COLUMNS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.COLUMNS.getDisplayName(locale);
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        List<Parameter> parameters = super.getParameters();
+    public List<Parameter> getParameters(Locale locale) {
+        List<Parameter> parameters = super.getParameters(locale);
 
-        parameters.add(new Parameter(SELECTED_COLUMN_PARAMETER, ParameterType.COLUMN, StringUtils.EMPTY, false, false));
+        parameters.add(Parameter.parameter(locale).setName(SELECTED_COLUMN_PARAMETER)
+                .setType(ParameterType.COLUMN)
+                .setDefaultValue(StringUtils.EMPTY)
+                .setCanBeBlank(false)
+                .build(this));
 
-        return ActionsBundle.attachToAction(parameters, this);
+        return parameters;
     }
 
     @Override
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
+        if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(actionContext, singletonList(ActionsUtils.additionalColumn()));
+        }
 
         Map<String, String> parameters = actionContext.getParameters();
 
@@ -89,7 +97,7 @@ public class Swap extends AbstractActionMetadata implements ColumnAction, OtherC
         String domain = selectedColumn.getDomain();
         String type = selectedColumn.getType();
 
-        String columnId = parameters.get(ImplicitParameters.COLUMN_ID.getKey());
+        String columnId = parameters.get(COLUMN_ID.getKey());
 
         ColumnMetadata originColumn = rowMetadata.getById(columnId);
 

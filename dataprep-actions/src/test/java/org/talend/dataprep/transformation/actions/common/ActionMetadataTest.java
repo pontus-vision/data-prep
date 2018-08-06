@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,7 +13,7 @@
 
 package org.talend.dataprep.transformation.actions.common;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -26,23 +26,28 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.dataprep.BaseErrorCodes;
+import org.talend.dataprep.ClassPathActionRegistry;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
+import org.talend.dataprep.transformation.pipeline.ActionRegistry;
 
-public class ActionMetadataTest extends AbstractMetadataBaseTest {
+public class ActionMetadataTest {
 
-    private CellTransformation cellTransformation = new CellTransformation();
+    private final CellTransformation cellTransformation = new CellTransformation();
 
-    private LineTransformation lineTransformation = new LineTransformation();
+    private final LineTransformation lineTransformation = new LineTransformation();
 
-    private ColumnTransformation columnTransformation = new ColumnTransformation();
+    private final ColumnTransformation columnTransformation = new ColumnTransformation();
 
-    private TableTransformation tableTransformation = new TableTransformation();
+    private final TableTransformation tableTransformation = new TableTransformation();
+
+    protected final ActionFactory factory = new ActionFactory();
+
+    protected final ActionRegistry actionRegistry = new ClassPathActionRegistry("org.talend.dataprep.transformation.actions");
 
     @Test
     public void acceptScope_should_pass_with_cell_transformation() throws Exception {
@@ -119,10 +124,10 @@ public class ActionMetadataTest extends AbstractMetadataBaseTest {
     @Test
     public void default_parameters_should_contains_implicit_parameters() throws Exception {
         // when
-        final List<Parameter> defaultParams = columnTransformation.getParameters();
+        final List<Parameter> defaultParams = columnTransformation.getParameters(Locale.US);
 
         // then
-        assertThat(defaultParams, containsInAnyOrder(ImplicitParameters.getParameters().toArray(new Parameter[3])));
+        assertThat(defaultParams, hasItems(ImplicitParameters.getParameters(Locale.US).toArray(new Parameter[3])));
     }
 
     @Test
@@ -278,7 +283,7 @@ class CellTransformation extends AbstractActionMetadata implements CellAction {
     }
 
     @Override
-    public String getCategory() {
+    public String getCategory(Locale locale) {
         return null;
     }
 
@@ -308,7 +313,7 @@ class LineTransformation extends AbstractActionMetadata implements RowAction {
     }
 
     @Override
-    public String getCategory() {
+    public String getCategory(Locale locale) {
         return null;
     }
 
@@ -338,7 +343,7 @@ class ColumnTransformation extends AbstractActionMetadata implements ColumnActio
     }
 
     @Override
-    public String getCategory() {
+    public String getCategory(Locale locale) {
         return null;
     }
 
@@ -368,7 +373,7 @@ class TableTransformation extends AbstractActionMetadata implements DataSetActio
     }
 
     @Override
-    public String getCategory() {
+    public String getCategory(Locale locale) {
         return null;
     }
 

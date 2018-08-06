@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -20,6 +20,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -33,15 +34,22 @@ import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
-public class KeepOnlyTest extends AbstractMetadataBaseTest {
-
-    private KeepOnly action = new KeepOnly();
+public class KeepOnlyTest extends AbstractMetadataBaseTest<KeepOnly> {
 
     private Map<String, String> parameters;
+
+    public KeepOnlyTest() {
+        super(new KeepOnly());
+    }
 
     @Before
     public void setUp() throws Exception {
         parameters = ActionMetadataTestUtils.parseParameters(KeepOnlyTest.class.getResourceAsStream("keepOnly.json"));
+    }
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.NA;
     }
 
     @Test
@@ -61,7 +69,7 @@ public class KeepOnlyTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.FILTERED.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.FILTERED.getDisplayName(Locale.US)));
     }
 
     @Test

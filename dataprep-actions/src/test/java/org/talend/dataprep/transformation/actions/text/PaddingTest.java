@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,9 +17,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+import static org.talend.dataprep.transformation.actions.common.ActionsUtils.CREATE_NEW_COLUMN;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -37,16 +39,22 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  * Test class for Padding action. Creates one consumer, and test it.
  *
  */
-public class PaddingTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private Padding action = new Padding();
+public class PaddingTest extends AbstractMetadataBaseTest<Padding> {
 
     private Map<String, String> parameters;
+
+    public PaddingTest() {
+        super(new Padding());
+    }
 
     @Before
     public void init() throws IOException {
         parameters = ActionMetadataTestUtils.parseParameters(PaddingTest.class.getResourceAsStream("paddingAction.json"));
+    }
+
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
     }
 
     @Test
@@ -58,11 +66,38 @@ public class PaddingTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.STRINGS_ADVANCED.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.STRINGS_ADVANCED.getDisplayName(Locale.US)));
     }
 
     @Test
-    public void test_basic() {
+    public void test_apply_in_newcolumn() {
+        // given
+        final Map<String, String> values = new HashMap<>();
+        values.put("0000", "Vincent");
+        values.put("0001", "10");
+        values.put("0002", "May 20th 2015");
+        final DataSetRow row = new DataSetRow(values);
+
+        final Map<String, Object> expectedValues = new HashMap<>();
+        expectedValues.put("0000", "Vincent");
+        expectedValues.put("0001", "10");
+        expectedValues.put("0002", "May 20th 2015");
+        expectedValues.put("0003", "0010");
+
+        parameters.put(CREATE_NEW_COLUMN, "true");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0000_padded").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_inplace() {
         // given
         final Map<String, String> values = new HashMap<>();
         values.put("0000", "Vincent");

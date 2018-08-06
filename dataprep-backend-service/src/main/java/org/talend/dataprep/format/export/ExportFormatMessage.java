@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,6 +15,8 @@ package org.talend.dataprep.format.export;
 import java.util.List;
 
 import org.talend.dataprep.parameters.Parameter;
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Models a type of format for DTO
@@ -38,6 +40,8 @@ public class ExportFormatMessage {
 
     private String title;
 
+    // in order to be able to serialize sub-classes of Parameter
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "class")
     private List<Parameter> parameters;
 
     private boolean supportSampling;
@@ -133,5 +137,53 @@ public class ExportFormatMessage {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        ExportFormatMessage that = (ExportFormatMessage) o;
+
+        if (needParameters != that.needParameters)
+            return false;
+        if (defaultExport != that.defaultExport)
+            return false;
+        if (enabled != that.enabled)
+            return false;
+        if (supportSampling != that.supportSampling)
+            return false;
+        if (!mimeType.equals(that.mimeType))
+            return false;
+        if (!extension.equals(that.extension))
+            return false;
+        if (!id.equals(that.id))
+            return false;
+        if (!disableReason.equals(that.disableReason))
+            return false;
+        if (!title.equals(that.title))
+            return false;
+        if (!parameters.equals(that.parameters))
+            return false;
+        return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mimeType.hashCode();
+        result = 31 * result + extension.hashCode();
+        result = 31 * result + id.hashCode();
+        result = 31 * result + (needParameters ? 1 : 0);
+        result = 31 * result + (defaultExport ? 1 : 0);
+        result = 31 * result + (enabled ? 1 : 0);
+        result = 31 * result + disableReason.hashCode();
+        result = 31 * result + title.hashCode();
+        result = 31 * result + parameters.hashCode();
+        result = 31 * result + (supportSampling ? 1 : 0);
+        result = 31 * result + name.hashCode();
+        return result;
     }
 }

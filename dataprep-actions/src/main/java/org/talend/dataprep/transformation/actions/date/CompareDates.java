@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,6 +14,7 @@
 package org.talend.dataprep.transformation.actions.date;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -25,9 +26,12 @@ import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.actions.common.*;
+import org.talend.dataprep.transformation.actions.common.AbstractCompareAction;
+import org.talend.dataprep.transformation.actions.common.ColumnAction;
+import org.talend.dataprep.transformation.actions.common.CompareAction;
+import org.talend.dataprep.transformation.actions.common.OtherColumnParameters;
 
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + CompareDates.ACTION_NAME)
+@Action(CompareDates.ACTION_NAME)
 public class CompareDates extends AbstractCompareAction implements ColumnAction, OtherColumnParameters, CompareAction {
 
     /**
@@ -57,8 +61,8 @@ public class CompareDates extends AbstractCompareAction implements ColumnAction,
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.DATE.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.DATE.getDisplayName(locale);
     }
 
     @Override
@@ -74,16 +78,19 @@ public class CompareDates extends AbstractCompareAction implements ColumnAction,
     }
 
     @Override
-    protected Parameter getDefaultConstantValue() {
+    protected Parameter getDefaultConstantValue(Locale locale) {
         // olamy the javascript will tranform to now if empty
-        return new Parameter(CONSTANT_VALUE, ParameterType.DATE, StringUtils.EMPTY);
+        return Parameter.parameter(locale).setName(CONSTANT_VALUE)
+                .setType(ParameterType.DATE)
+                .setDefaultValue(StringUtils.EMPTY)
+                .build(this);
     }
 
     @Override
-    protected SelectParameter getCompareModeSelectParameter() {
+    protected SelectParameter getCompareModeSelectParameter(Locale locale) {
 
         //@formatter:off
-        return SelectParameter.Builder.builder() //
+        return SelectParameter.selectParameter(locale) //
             .name(COMPARE_MODE) //
             .item(EQ, EQ) //
             .item(NE, NE) //
@@ -92,7 +99,7 @@ public class CompareDates extends AbstractCompareAction implements ColumnAction,
             .item(LT, LT) //
             .item(LE, LE) //
             .defaultValue(EQ) //
-            .build();
+            .build(this );
         //@formatter:on
 
     }

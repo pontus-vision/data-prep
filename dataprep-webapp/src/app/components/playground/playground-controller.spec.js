@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,6 +15,12 @@ import {
 	HOME_PREPARATIONS_ROUTE,
 	HOME_DATASETS_ROUTE,
 } from '../../index-route';
+
+const windowMock = {
+	location: {
+		href: '',
+	},
+};
 
 describe('Playground controller', () => {
 	let createController;
@@ -80,6 +86,7 @@ describe('Playground controller', () => {
 			},
 		};
 		$provide.constant('state', stateMock);
+		$provide.value('$window', windowMock);
 	}));
 
 	beforeEach(inject(($rootScope, $q, $controller, $state, PlaygroundService, PreparationService, StateService) => {
@@ -250,7 +257,7 @@ describe('Playground controller', () => {
 	});
 
 	describe('apply other preparation steps', () => {
-		it('should display modal', inject((StateService) => {
+		it('should update the display modal state', inject((StateService) => {
 			// given
 			const ctrl = createController();
 			expect(StateService.setIsPreprationPickerVisible).not.toHaveBeenCalled();

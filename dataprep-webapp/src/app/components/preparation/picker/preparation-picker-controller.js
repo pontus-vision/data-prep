@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,7 +17,7 @@ class PreparationPickerCtrl {
 		this.candidatePreparations = [];
 	}
 
-    /**
+	/**
      * @ngdoc method
      * @name $onInit
      * @methodOf data-prep.preparation-picker.controller:PreparationPickerCtrl
@@ -26,12 +26,12 @@ class PreparationPickerCtrl {
 	$onInit() {
 		this.isFetchingPreparations = true;
 		this.fetchPreparations({ datasetId: this.dataset.id })
-            .then((compatiblePreparations) => {
-	this.candidatePreparations = compatiblePreparations;
-})
-            .finally(() => {
-	this.isFetchingPreparations = false;
-});
+			.then((compatiblePreparations) => {
+				this.candidatePreparations = compatiblePreparations;
+			})
+			.finally(() => {
+				this.isFetchingPreparations = false;
+			});
 	}
 }
 

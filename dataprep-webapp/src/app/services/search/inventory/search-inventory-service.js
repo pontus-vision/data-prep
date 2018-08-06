@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -65,8 +65,8 @@ export default function SearchInventoryService($q, SearchInventoryRestService, S
 	function adaptSearchResult(data) {
 		let inventoryItems = [];
 
-		if (data.datasets && data.datasets.length) {
-			data.datasets.forEach((item) => {
+		if (data.dataset && data.dataset.length) {
+			data.dataset.forEach((item) => {
 				const itemToDisplay = {};
 
 				itemToDisplay.id = item.id;
@@ -86,22 +86,22 @@ export default function SearchInventoryService($q, SearchInventoryRestService, S
 			});
 		}
 
-		if (data.preparations && data.preparations.length) {
-			data.preparations.forEach((item) => {
+		if (data.preparation && data.preparation.length) {
+			data.preparation.forEach((item) => {
 				item.inventoryType = 'preparation';
 				item.tooltipName = item.name;
 			});
 
-			inventoryItems = inventoryItems.concat(data.preparations);
+			inventoryItems = inventoryItems.concat(data.preparation);
 		}
 
-		if (data.folders && data.folders.length) {
-			data.folders.forEach((item) => {
+		if (data.folder && data.folder.length) {
+			data.folder.forEach((item) => {
 				item.inventoryType = 'folder';
 				item.tooltipName = item.name;
 			});
 
-			inventoryItems = inventoryItems.concat(data.folders);
+			inventoryItems = inventoryItems.concat(data.folder);
 		}
 
 		return inventoryItems;

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,6 +14,7 @@
 package org.talend.dataprep.transformation.actions.text;
 
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.talend.dataprep.api.action.Action;
@@ -25,7 +26,7 @@ import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + TextClustering.TEXT_CLUSTERING)
+@Action(TextClustering.TEXT_CLUSTERING)
 public class TextClustering extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -39,8 +40,8 @@ public class TextClustering extends AbstractActionMetadata implements ColumnActi
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.STRINGS_ADVANCED.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.STRINGS_ADVANCED.getDisplayName(locale);
     }
 
     @Override

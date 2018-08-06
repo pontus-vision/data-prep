@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -51,6 +51,8 @@ export default function PlaygroundService(
 	$translate,
 	$timeout,
 	$stateParams,
+	$window,
+	appSettings,
 	state,
 	StateService,
 	StepUtilsService,
@@ -58,7 +60,7 @@ export default function PlaygroundService(
 	DatagridService,
 	StorageService,
 	FilterService,
-	FilterAdapterService,
+	TqlFilterAdapterService,
 	PreparationService,
 	PreviewService,
 	RecipeService,
@@ -68,7 +70,7 @@ export default function PlaygroundService(
 	HistoryService,
 	OnboardingService,
 	MessageService,
-	TitleService
+	TitleService,
 ) {
 	'ngInject';
 
@@ -142,6 +144,8 @@ export default function PlaygroundService(
 	// -------------------------------------------INIT/LOAD----------------------------------------
 	// --------------------------------------------------------------------------------------------
 	function reset(dataset, data, preparation, sampleType = 'HEAD') {
+		const entityId = preparation ? preparation.id : dataset.id;
+
 		// reset
 		StateService.resetPlayground();
 		TransformationCacheService.invalidateCache();
@@ -150,25 +154,22 @@ export default function PlaygroundService(
 
 		// init
 		StateService.setPreparationName(
-			preparation ? preparation.name : dataset.name
+			preparation ? preparation.name : dataset.name,
 		);
 		StateService.setCurrentDataset(dataset);
 		StateService.setCurrentData(data);
 		StateService.setCurrentPreparation(preparation);
 		StateService.setCurrentSampleType(sampleType);
-		FilterService.initFilters(dataset, preparation);
-		updateDatagrid();
-		updateGridSelection(dataset, preparation);
-		this.updatePreparationDetails().then(() => {
-			if (state.playground.recipe.current.steps.length) {
-				StateService.showRecipe();
-			}
-		});
+		FilterService.initFilters(entityId);
+
+		updateGridSelection(entityId);
+		updatePlayground(data);
 
 		// preparation specific init
 		if (preparation) {
 			ExportService.refreshTypes('preparations', preparation.id);
 			TitleService.setStrict(preparation.name);
+			RecipeService.refresh(preparation);
 		}
 
 		// dataset specific init
@@ -177,40 +178,58 @@ export default function PlaygroundService(
 			ExportService.refreshTypes('datasets', dataset.id);
 			TitleService.setStrict(dataset.name);
 		}
+
+		if (state.playground.recipe.current.steps.length) {
+			StateService.showRecipe();
+		}
 	}
 
 	/**
 	 * @ngdoc method
 	 * @name updateGridSelection
 	 * @methodOf data-prep.services.playground.service:PlaygroundService
-	 * @param {object} dataset The dataset to update
-	 * @param {object} preparation The preparation to update
+	 * @param {string} entityId The preparation (or the dataset) id to update
 	 * @description Update grid selection by using localstorage
 	 */
-	function updateGridSelection(dataset, preparation) {
-		const selectedCols = StorageService.getSelectedColumns(
-			preparation ? preparation.id : dataset.id
-		);
+	function updateGridSelection(entityId) {
+		const selectedCols = StorageService.getSelectedColumns(entityId);
 		if (selectedCols.length) {
 			StateService.setGridSelection(
 				state.playground.grid.columns.filter(
-					col => selectedCols.indexOf(col.id) > -1
-				)
+					col => selectedCols.indexOf(col.id) > -1,
+				),
 			);
 		}
 	}
 
 	/**
 	 * @ngdoc method
+	 * @name getFilters
+	 * @methodOf data-prep.services.playground.service:PlaygroundService
+	 * @param {string} entityId The preparation or the dataset id to load
+	 * @description Get filters as TQL.
+	 * @returns {Object} TQL
+	 */
+	function getFilters(entityId) {
+		FilterService.initFilters(entityId);
+		return state.playground.filter.enabled &&
+			FilterService.stringify(state.playground.filter.gridFilters);
+	}
+
+	/**
+	 * @ngdoc method
 	 * @name loadDataset
 	 * @methodOf data-prep.services.playground.service:PlaygroundService
-	 * @param {string} datasetid The dataset id to load
+	 * @param {string} datasetId The dataset id to load
 	 * @description Initiate a new preparation from dataset.
 	 * @returns {Promise} The process promise
 	 */
-	function loadDataset(datasetid) {
-		startLoader();
-		return DatasetService.getContent(datasetid, true)
+	function loadDataset(datasetId) {
+		return DatasetService.getContent(
+			datasetId,
+			true,
+			getFilters(datasetId),
+		)
 			.then(data => checkRecords(data))
 			.then(data => reset.call(this, data.metadata, data))
 			.then(() => {
@@ -223,8 +242,7 @@ export default function PlaygroundService(
 					fetchStatistics.call(this);
 				}
 			})
-			.catch(errorGoBack)
-			.finally(stopLoader);
+			.catch(errorGoBack);
 	}
 
 	/**
@@ -243,14 +261,19 @@ export default function PlaygroundService(
 	 * @returns {Promise} The process promise
 	 */
 	function loadPreparation(preparation, sampleType = 'HEAD') {
-		startLoader();
-		return PreparationService.getContent(preparation.id, 'head', sampleType)
+		const preparationId = preparation.id;
+		return PreparationService.getContent(
+			preparationId,
+			'head',
+			sampleType,
+			getFilters(preparationId),
+		)
 			.then(data => reset.call(
 				this,
 				state.playground.dataset ? state.playground.dataset : { id: preparation.dataSetId },
 				data,
 				preparation,
-				sampleType
+				sampleType,
 			))
 			.then(() => {
 				if (OnboardingService.shouldStartTour('playground')) {
@@ -262,8 +285,7 @@ export default function PlaygroundService(
 					fetchStatistics.call(this);
 				}
 			})
-			.catch(errorGoBack)
-			.finally(stopLoader);
+			.catch(errorGoBack);
 	}
 
 	/**
@@ -275,11 +297,16 @@ export default function PlaygroundService(
 	 * @returns {Promise} The process promise
 	 */
 	function loadStep(step) {
+		const tql =
+			state.playground.filter.enabled &&
+			FilterService.stringify(state.playground.filter.gridFilters);
+
 		startLoader();
 		return PreparationService.getContent(
 			state.playground.preparation.id,
 			step.transformation.stepId,
-			state.playground.sampleType
+			state.playground.sampleType,
+			tql,
 		)
 			.then((response) => {
 				DatagridService.updateData(response);
@@ -372,6 +399,7 @@ export default function PlaygroundService(
 				RecipeService.refresh(preparation);
 
 				if (!state.playground.isReadOnly &&
+					!OnboardingService.shouldStartTour('playground') &&
 					OnboardingService.shouldStartTour('recipe') &&
 					state.playground.recipe.current.steps.length >= 3) {
 					StateService.showRecipe();
@@ -398,11 +426,11 @@ export default function PlaygroundService(
 			promise = promise.then((preparation) => {
 				const undo = performCreateOrUpdatePreparation.bind(
 					service,
-					oldName
+					oldName,
 				);
 				const redo = performCreateOrUpdatePreparation.bind(
 					service,
-					name
+					name,
 				);
 				HistoryService.addAction(undo, redo);
 				return preparation;
@@ -447,11 +475,10 @@ export default function PlaygroundService(
 	 * @methodOf data-prep.services.playground.service:PlaygroundService
 	 * @param {string} preparationId The preparation id
 	 * @param {string} headId The head id to set
-	 * @param {string} columnToFocus The column id to focus
 	 * @description Move the preparation head to the specified step
 	 * @returns {promise} The process promise
 	 */
-	function setPreparationHead(preparationId, headId, columnToFocus) {
+	function setPreparationHead(preparationId, headId) {
 		startLoader();
 
 		let promise = PreparationService.setHead(preparationId, headId);
@@ -467,7 +494,7 @@ export default function PlaygroundService(
 					const activeStep = StepUtilsService.getStep(
 						state.playground.recipe,
 						lastActiveStepIndex,
-						true
+						true,
 					);
 					return loadStep(activeStep);
 				});
@@ -475,7 +502,7 @@ export default function PlaygroundService(
 		// load the recipe and grid head in parallel
 		else {
 			promise = promise.then(() => {
-				return $q.all([this.updatePreparationDetails(), updatePreparationDatagrid(columnToFocus)]);
+				return $q.all([this.updatePreparationDetails(), updatePreparationDatagrid()]);
 			});
 		}
 
@@ -495,15 +522,14 @@ export default function PlaygroundService(
 	 * in actions history. It there is no preparation yet, it is created first and tagged as draft.
 	 */
 	function appendStep(actions) {
+		StateService.resetLastActiveStepId();
 		startLoader();
 		const actualSteps = state.playground.recipe.current.steps.slice();
 		const previousHead = StepUtilsService.getLastStep(state.playground.recipe);
 
 		return getCurrentPreparation()
-		// append step
-			.then((preparation) => {
-				return PreparationService.appendStep(preparation.id, actions);
-			})
+			// append step
+			.then(preparation => PreparationService.appendStep(preparation.id, actions))
 			// update recipe and datagrid
 			.then(() => {
 				return $q.all([this.updatePreparationDetails(), updatePreparationDatagrid()]);
@@ -539,7 +565,7 @@ export default function PlaygroundService(
 		PreviewService.cancelPreview();
 		PreparationService.copyImplicitParameters(
 			newParams,
-			step.actionParameters.parameters
+			step.actionParameters.parameters,
 		);
 
 		if (!PreparationService.paramsHasChanged(step, newParams)) {
@@ -550,18 +576,18 @@ export default function PlaygroundService(
 
 		// save the head before transformation for undo
 		const previousHead = StepUtilsService.getLastStep(
-			state.playground.recipe
+			state.playground.recipe,
 		).transformation.stepId;
 		// save the last active step index to load this step after update
 		const lastActiveStepIndex = StepUtilsService.getActiveThresholdStepIndex(
-			state.playground.recipe
+			state.playground.recipe,
 		);
 
 		return (
 			PreparationService.updateStep(
 				state.playground.preparation.id,
 				step,
-				newParams
+				newParams,
 			)
 				.then(() => this.updatePreparationDetails())
 				// get step id to load and update datagrid with it
@@ -569,25 +595,25 @@ export default function PlaygroundService(
 					const activeStep = StepUtilsService.getStep(
 						state.playground.recipe,
 						lastActiveStepIndex,
-						true
+						true,
 					);
 					return loadStep(activeStep);
 				})
 				// add entry in history for undo/redo
 				.then(() => {
 					const actualHead = StepUtilsService.getLastStep(
-						state.playground.recipe
+						state.playground.recipe,
 					).transformation.stepId;
 					const undo = setPreparationHead.bind(
 						service,
 						state.playground.preparation.id,
-						previousHead
+						previousHead,
 					);
 					const redo = setPreparationHead.bind(
 						service,
 						state.playground.preparation.id,
 						actualHead,
-						newParams.column_id
+						newParams.column_id,
 					);
 					HistoryService.addAction(undo, redo);
 				})
@@ -615,6 +641,7 @@ export default function PlaygroundService(
 			return;
 		}
 
+		StateService.resetLastActiveStepId();
 		startLoader();
 
 		// If move up or move down buttons, list is not yet updated
@@ -645,15 +672,13 @@ export default function PlaygroundService(
 			PreparationService.moveStep(
 				preparationId,
 				currentStepId,
-				nextParentStepId
+				nextParentStepId,
 			)
-				// update recipe and datagrid
-				.then(() => {
-					return $q.all([
-						this.updatePreparationDetails(),
-						updatePreparationDatagrid(),
-					]);
-				})
+				// update recipe and datagrid (due to backend implementation:
+				// getContent should be called first so that updated stepRowMetadata
+				// is available for getContent)
+				.then(updatePreparationDatagrid)
+				.then(this.updatePreparationDetails)
 				// add entry in history for undo/redo
 				.then(() => {
 					const actualHead = StepUtilsService.getLastStep(recipe)
@@ -662,12 +687,12 @@ export default function PlaygroundService(
 						service,
 						preparationId,
 						previousHead,
-						currentStep.actionParameters.parameters.column_id
+						currentStep.actionParameters.parameters.column_id,
 					);
 					const redo = setPreparationHead.bind(
 						service,
 						preparationId,
-						actualHead
+						actualHead,
 					);
 					HistoryService.addAction(undo, redo);
 				})
@@ -687,17 +712,18 @@ export default function PlaygroundService(
 	function removeStep(step) {
 		startLoader();
 
+		StateService.resetLastActiveStepId();
 		// save the head before transformation for undo
 		const previousHead = StepUtilsService.getLastStep(
-			state.playground.recipe
+			state.playground.recipe,
 		).transformation.stepId;
 
 		return (
 			PreparationService.removeStep(
 				state.playground.preparation.id,
-				step.transformation.stepId
+				step.transformation.stepId,
 			)
-				// update recipe and datagrid
+			// update recipe and datagrid
 				.then(() => {
 					return $q.all([
 						this.updatePreparationDetails(),
@@ -707,18 +733,18 @@ export default function PlaygroundService(
 				// add entry in history for undo/redo
 				.then(() => {
 					const actualHead = StepUtilsService.getLastStep(
-						state.playground.recipe
+						state.playground.recipe,
 					).transformation.stepId;
 					const undo = setPreparationHead.bind(
 						service,
 						state.playground.preparation.id,
 						previousHead,
-						step.actionParameters.parameters.column_id
+						step.actionParameters.parameters.column_id,
 					);
 					const redo = setPreparationHead.bind(
 						service,
 						state.playground.preparation.id,
-						actualHead
+						actualHead,
 					);
 					HistoryService.addAction(undo, redo);
 				})
@@ -740,13 +766,13 @@ export default function PlaygroundService(
 
 		return getCurrentPreparation()
 			.then(preparation =>
-				PreparationService.copySteps(preparation.id, referenceId)
+				PreparationService.copySteps(preparation.id, referenceId),
 			)
 			.then(() =>
 				$q.all([
 					this.updatePreparationDetails(),
 					updatePreparationDatagrid(),
-				])
+				]),
 			)
 			.finally(stopLoader);
 	}
@@ -767,11 +793,12 @@ export default function PlaygroundService(
 			switch (scope) {
 			case DATASET:
 				stepParameters.scope = scope;
+
 				if (state.playground.filter.applyTransformationOnFilters) {
-					const stepFilters = FilterAdapterService.toTree(
-						state.playground.filter.gridFilters
+					const stepFilters = TqlFilterAdapterService.toTQL(
+						state.playground.filter.gridFilters,
 					);
-					stepParameters = { ...stepParameters, ...stepFilters };
+					stepParameters = { ...stepParameters, filter: stepFilters };
 				}
 				actions = [
 					{ action: action.name, parameters: stepParameters },
@@ -782,37 +809,37 @@ export default function PlaygroundService(
 				stepParameters.row_id = line && line.tdpId;
 
 				if (state.playground.filter.applyTransformationOnFilters) {
-					const stepFilters = FilterAdapterService.toTree(
-							state.playground.filter.gridFilters
-						);
-					stepParameters = { ...stepParameters, ...stepFilters };
+					const stepFilters = TqlFilterAdapterService.toTQL(
+						state.playground.filter.gridFilters,
+					);
+					stepParameters = { ...stepParameters, filter: stepFilters };
 				}
 				actions = [
-						{ action: action.name, parameters: stepParameters },
+					{ action: action.name, parameters: stepParameters },
 				];
 				break;
 			default:
 				actions = map(
-						state.playground.grid.selectedColumns,
-						(column) => {
-							let parameters = { ...params };
-							parameters.scope = scope;
-							parameters.column_id = column && column.id;
-							parameters.column_name = column && column.name;
-							parameters.row_id = line && line.tdpId;
+					state.playground.grid.selectedColumns,
+					(column) => {
+						let parameters = { ...params };
+						parameters.scope = scope;
+						parameters.column_id = column && column.id;
+						parameters.column_name = column && column.name;
+						parameters.row_id = line && line.tdpId;
 
-							if (
-								state.playground.filter
-									.applyTransformationOnFilters
-							) {
-								const stepFilters = FilterAdapterService.toTree(
-									state.playground.filter.gridFilters
-								);
-								parameters = { ...parameters, ...stepFilters };
-							}
-							return { action: action.name, parameters };
+						if (
+							state.playground.filter
+								.applyTransformationOnFilters
+						) {
+							const stepFilters = TqlFilterAdapterService.toTQL(
+								state.playground.filter.gridFilters,
+							);
+							parameters = { ...parameters, filter: stepFilters };
 						}
-					);
+						return { action: action.name, parameters };
+					},
+				);
 				break;
 			}
 			return service.appendStep(actions);
@@ -885,6 +912,7 @@ export default function PlaygroundService(
 		const stepToLoad = step.inactive
 			? step
 			: StepUtilsService.getPreviousStep(state.playground.recipe, step);
+		StateService.setLastActiveStepId(step.inactive ? 'head' : stepToLoad.transformation.stepId);
 		service.loadStep(stepToLoad);
 	}
 
@@ -903,22 +931,23 @@ export default function PlaygroundService(
 		const isPreparation = state.playground.preparation;
 		const lastActiveStepIndex = isPreparation
 			? StepUtilsService.getActiveThresholdStepIndex(
-					state.playground.recipe
-				)
+				state.playground.recipe,
+			)
 			: null;
-		return DatasetService.updateParameters(dataset, params).then(() => {
-			if (isPreparation) {
-				const activeStep = StepUtilsService.getStep(
-					state.playground.recipe,
-					lastActiveStepIndex,
-					true
-				);
-				return loadStep(activeStep);
-			}
-			else {
-				this.loadDataset.call(this, dataset.id);
-			}
-		});
+		return DatasetService.updateParameters(dataset, params)
+			.then(() => {
+				if (isPreparation) {
+					const activeStep = StepUtilsService.getStep(
+						state.playground.recipe,
+						lastActiveStepIndex,
+						true,
+					);
+					return loadStep(activeStep);
+				}
+				else {
+					this.loadDataset.call(this, dataset.id);
+				}
+			});
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -931,41 +960,44 @@ export default function PlaygroundService(
 	 * @description Perform an datagrid refresh with the preparation head
 	 */
 	function updatePreparationDatagrid() {
+		const tql =
+			state.playground.filter.enabled &&
+			FilterService.stringify(state.playground.filter.gridFilters);
+		startLoader();
 		return PreparationService.getContent(
 			state.playground.preparation.id,
-			'head',
-			state.playground.sampleType
-		).then((response) => {
-			DatagridService.updateData(response);
-			PreviewService.reset(false);
-		});
+			StateService.getLastActiveStepId(),
+			state.playground.sampleType,
+			tql,
+		)
+			.then(updatePlayground)
+			.finally(stopLoader);
 	}
 
-	function updateDatasetDatagrid(tql) {
-		const { dataset } = state.playground;
+	function updateDatasetDatagrid() {
+		const { dataset, filter } = state.playground;
 		if (!dataset) {
 			return;
 		}
+		const tql =
+			filter.enabled &&
+			FilterService.stringify(filter.gridFilters);
+
+		startLoader();
 		return DatasetService.getContent(
 			dataset.id,
 			true,
-			tql
-		).then((response) => {
-			DatagridService.updateData(response);
-			PreviewService.reset(false);
-		});
+			tql,
+		)
+			.then(updatePlayground)
+			.finally(stopLoader);
 	}
 
 	function updateDatagrid() {
-		const { filter, preparation } = state.playground;
-		if (preparation && preparation.id) {
+		if (state.playground.preparation && state.playground.preparation.id) {
 			return updatePreparationDatagrid();
 		}
-		const tql =
-			filter.enabled &&
-			filter.isTQL &&
-			FilterService.stringify(filter.gridFilters);
-		return updateDatasetDatagrid(tql);
+		return updateDatasetDatagrid();
 	}
 
 	// TODO : temporary fix because asked to.
@@ -980,6 +1012,39 @@ export default function PlaygroundService(
 		return data;
 	}
 
+	function cleanFilters(data) {
+		const filtersToRemove = state.playground.filter.gridFilters.filter(
+			filter => filter.colId !== '*' && !data.metadata.columns.find(col => col.id === filter.colId),
+		);
+
+		if (filtersToRemove && filtersToRemove.length) {
+			filtersToRemove.forEach(filter => FilterService.removeFilter(filter));
+			StatisticsService.updateFilteredStatistics();
+			StorageService.saveFilter(
+				state.playground.preparation ? state.playground.preparation.id : state.playground.dataset.id,
+				state.playground.filter.gridFilters,
+			);
+
+			return true;
+		}
+	}
+
+	function updateColumnNameInFilters(data) {
+		if (data && data.metadata && data.metadata.columns && data.metadata.columns.length) {
+			FilterService.updateColumnNameInFilters(data.metadata.columns);
+		}
+	}
+
+	function updatePlayground(data) {
+		if (cleanFilters(data)) {
+			updateDatagrid();
+		}
+		else {
+			updateColumnNameInFilters(data);
+			DatagridService.updateData(data);
+			PreviewService.reset(false);
+		}
+	}
 	//------------------------------------------------------------------------------------------------------
 	// ----------------------------------------------STATS REFRESH-------------------------------------------
 	//------------------------------------------------------------------------------------------------------
@@ -1013,7 +1078,7 @@ export default function PlaygroundService(
 				fetchStatsTimeout = $timeout(
 					() => fetchStatistics.call(this),
 					1500,
-					false
+					false,
 				);
 			});
 	}
@@ -1049,18 +1114,16 @@ export default function PlaygroundService(
 		}
 
 		StateService.setIsLoadingPlayground(true);
-		startLoader();
 		PreparationService.getDetails(prepid)
 			.then((preparation) => {
 				this.loadPreparation.call(this, preparation);
 				return preparation;
 			})
 			.then(preparation =>
-				DatasetService.getMetadata(preparation.dataSetId)
+				DatasetService.getMetadata(preparation.dataSetId),
 			)
 			.then(dataset => StateService.setCurrentDataset(dataset))
-			.catch(errorGoBack)
-			.finally(stopLoader);
+			.catch(errorGoBack);
 	}
 
 	/**
@@ -1101,6 +1164,14 @@ export default function PlaygroundService(
 	function close() {
 		$timeout.cancel(fetchStatsTimeout);
 		$timeout(StateService.resetPlayground, 500, false);
-		$state.go(state.route.previous, state.route.previousOptions);
+		if (appSettings &&
+			appSettings.context &&
+			appSettings.context.provider &&
+			appSettings.context.provider.includes('catalog')) {
+			$window.location.href = '/';
+		}
+		else {
+			$state.go(state.route.previous, state.route.previousOptions);
+		}
 	}
 }

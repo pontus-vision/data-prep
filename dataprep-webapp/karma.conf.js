@@ -12,7 +12,7 @@ module.exports = function (config) {
 
 		// frameworks to use
 		// available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-		frameworks: ['jasmine'],
+		frameworks: ['viewport', 'jasmine'],
 
 		// list of files/patterns to load in the browser
 		files: ['./spec.bundle.js'],
@@ -63,7 +63,7 @@ module.exports = function (config) {
 		proxies: {
 			'/assets/': '/src/assets/',
 		},
-		
+
 		browserNoActivityTimeout: 120000,
 	});
 };

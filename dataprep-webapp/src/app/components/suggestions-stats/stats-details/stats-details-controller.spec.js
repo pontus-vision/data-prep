@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -76,6 +76,6 @@ describe('Stats-details controller', () => {
 		ctrl.addPatternFilter(obj);
 
 		//then
-		expect(FilterManagerService.addFilterAndDigest).toHaveBeenCalledWith('empty_records', '0001', 'firstname', null, null, null);
+		expect(FilterManagerService.addFilterAndDigest).toHaveBeenCalledWith('quality', '0001', 'firstname', { empty: true, invalid: false }, null, null);
 	}));
 });

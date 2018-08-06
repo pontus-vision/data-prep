@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,34 +14,30 @@ package org.talend.dataprep.transformation.actions.math;
 
 import static org.talend.dataprep.transformation.actions.math.Tan.TAN_NAME;
 
-import java.util.Map;
-
 import org.apache.commons.math3.util.FastMath;
 import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 /**
  * Create a new column with Tangent
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + TAN_NAME)
+@Action(TAN_NAME)
 public class Tan extends AbstractMathNoParameterAction {
 
-    protected static final String TAN_NAME = "tan_numbers";
+    public static final String TAN_NAME = "tan_numbers";
+
+    protected static final String TAN_SUFFIX = "_tan";
 
     @Override
     protected String calculateResult(String columnValue, ActionContext context) {
         double value = BigDecimalParser.toBigDecimal(columnValue).doubleValue();
-
         double result = FastMath.tan(value);
-
         return Double.isNaN(result) ? ERROR_RESULT : Double.toString(result);
     }
 
-    @Override
-    protected String getColumnNameSuffix(Map<String, String> parameters) {
-        return "tan";
+    protected String getSuffix(ActionContext context) {
+        return TAN_SUFFIX;
     }
 
     @Override

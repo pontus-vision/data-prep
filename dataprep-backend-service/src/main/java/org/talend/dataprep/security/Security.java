@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,6 +13,7 @@
 
 package org.talend.dataprep.security;
 
+import java.util.Locale;
 import java.util.Set;
 
 import org.talend.dataprep.api.user.UserGroup;
@@ -48,7 +49,18 @@ public interface Security {
     String getTenantId();
 
     /**
+     * @return the tenant name.
+     */
+    String getTenantName();
+
+    /**
      * @return true if the current user is a valid and registered TDP user.
      */
     boolean isTDPUser();
+
+    /**
+     * @return the {@link Locale} to be used for current user.
+     */
+    Locale getLocale();
+
 }

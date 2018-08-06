@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,13 +13,14 @@
 package org.talend.dataprep.command;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.cloud.sleuth.Span.SPAN_NAME_NAME;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -37,8 +38,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.SpanInjector;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.talend.daikon.exception.ExceptionContext;
 import org.talend.daikon.exception.error.ErrorCode;
 import org.talend.daikon.exception.json.JsonErrorCode;
 import org.talend.dataprep.api.preparation.Action;
@@ -73,11 +80,47 @@ public class GenericCommand<T> extends HystrixCommand<T> {
     /** Hystrix group used for transformation related commands. */
     public static final HystrixCommandGroupKey FULLRUN_GROUP = HystrixCommandGroupKey.Factory.asKey("fullrun");
 
+    /** Hystrix group used for async related commands */
+    public static final HystrixCommandGroupKey ASYNC_GROUP = HystrixCommandGroupKey.Factory.asKey("async");
+
     /** This class' logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericCommand.class);
 
+    private static final HttpStatus[] INFO_STATUS = Stream
+            .of(HttpStatus.values()) //
+            .filter(HttpStatus::is1xxInformational) //
+            .collect(Collectors.toList()) //
+            .toArray(new HttpStatus[0]);
+
+    private static final HttpStatus[] SUCCESS_STATUS = Stream
+            .of(HttpStatus.values()) //
+            .filter(HttpStatus::is2xxSuccessful) //
+            .collect(Collectors.toList()) //
+            .toArray(new HttpStatus[0]);
+
+    private static final HttpStatus[] REDIRECT_STATUS = Stream
+            .of(HttpStatus.values()) //
+            .filter(HttpStatus::is3xxRedirection) //
+            .collect(Collectors.toList()) //
+            .toArray(new HttpStatus[0]);
+
+    private static final HttpStatus[] USER_ERROR_STATUS = Stream
+            .of(HttpStatus.values()) //
+            .filter(HttpStatus::is4xxClientError) //
+            .collect(Collectors.toList()) //
+            .toArray(new HttpStatus[0]);
+
+    private static final HttpStatus[] SERVER_ERROR_STATUS = Stream
+            .of(HttpStatus.values()) //
+            .filter(HttpStatus::is5xxServerError) //
+            .collect(Collectors.toList()) //
+            .toArray(new HttpStatus[0]);
+
     /** Behaviours map. */
-    private final Map<HttpStatus, BiFunction<HttpRequestBase, HttpResponse, T>> behavior = new EnumMap<>(HttpStatus.class);
+    private final Map<HttpStatus, BiFunction<HttpRequestBase, HttpResponse, T>> behavior =
+            new EnumMap<>(HttpStatus.class);
+
+    private final Map<String, String> headers = new HashMap<>();
 
     /** The http client. */
     @Autowired
@@ -110,7 +153,8 @@ public class GenericCommand<T> extends HystrixCommand<T> {
     @Autowired
     private BeanConversionService conversionService;
 
-    private final Map<String, String> headers = new HashMap<>();
+    @Autowired
+    private Tracer tracer;
 
     private Supplier<HttpRequestBase> httpCall;
 
@@ -121,31 +165,6 @@ public class GenericCommand<T> extends HystrixCommand<T> {
     private Function<Exception, RuntimeException> onError = Defaults.passthrough();
 
     private HttpStatus status;
-
-    private static final HttpStatus[] INFO_STATUS = Stream.of(HttpStatus.values()) //
-            .filter(HttpStatus::is1xxInformational) //
-            .collect(Collectors.toList()) //
-            .toArray(new HttpStatus[0]);
-
-    private static final HttpStatus[] SUCCESS_STATUS = Stream.of(HttpStatus.values()) //
-            .filter(HttpStatus::is2xxSuccessful) //
-            .collect(Collectors.toList()) //
-            .toArray(new HttpStatus[0]);
-
-    private static final HttpStatus[] REDIRECT_STATUS = Stream.of(HttpStatus.values()) //
-            .filter(HttpStatus::is3xxRedirection) //
-            .collect(Collectors.toList()) //
-            .toArray(new HttpStatus[0]);
-
-    private static final HttpStatus[] USER_ERROR_STATUS = Stream.of(HttpStatus.values()) //
-            .filter(HttpStatus::is4xxClientError) //
-            .collect(Collectors.toList()) //
-            .toArray(new HttpStatus[0]);
-
-    private static final HttpStatus[] SERVER_ERROR_STATUS = Stream.of(HttpStatus.values()) //
-            .filter(HttpStatus::is5xxServerError) //
-            .collect(Collectors.toList()) //
-            .toArray(new HttpStatus[0]);
 
     /**
      * Protected constructor.
@@ -159,7 +178,6 @@ public class GenericCommand<T> extends HystrixCommand<T> {
     protected GenericCommand(final HystrixCommandGroupKey group, final Map<String, String> headers) {
         this(group);
         this.headers.putAll(headers);
-
     }
 
     /** Override this method to change security token source. Executed in post construct with all fields initialized. */
@@ -197,52 +215,89 @@ public class GenericCommand<T> extends HystrixCommand<T> {
      */
     @Override
     protected T run() throws Exception {
-
         final HttpRequestBase request = httpCall.get();
+        addCommandHeaders(request); // insert all the provided headers in the request
+        addAuthorizationHeaders(request); // update request header with security token
+        addLocaleHeaders(request); // Forward locale to target
+        final Span requestSpan = addTrackingHeaders(request); // Inject tracing stuff
 
-        // insert all the provided headers in the request
-        if (headers.size() > 0) {
-            headers.forEach(request::addHeader);
+        try {
+            final HttpResponse response;
+            try {
+                LOGGER.trace("Requesting {} {}", request.getMethod(), request.getURI());
+                response = client.execute(request);
+            } catch (Exception e) {
+                throw onError.apply(e);
+            }
+            commandResponseHeaders = response.getAllHeaders();
+
+            status = HttpStatus.valueOf(response.getStatusLine().getStatusCode());
+
+            Header cookies = response.getFirstHeader("Set-Cookie");
+            if (cookies != null) {
+                LOGGER.warn(
+                        "request {} {}: Cookie detected in responseHeaders (check security.oauth2.resource.uri settings)",
+                        request.getMethod(), request.getURI());
+            }
+
+            // do we have a behavior for this status code (even an error) ?
+            // if yes use it
+            BiFunction<HttpRequestBase, HttpResponse, T> function = behavior.get(status);
+            if (function != null) {
+                try {
+                    return function.apply(request, response);
+                } catch (Exception e) {
+                    throw onError.apply(e);
+                }
+            }
+
+            // handle response's HTTP status
+            if (status.is4xxClientError() || status.is5xxServerError()) {
+                LOGGER.debug("request {} {} : response on error {}", request.getMethod(), request.getURI(),
+                        response.getStatusLine());
+                // Http status >= 400 so apply onError behavior
+                return callOnError(onError).apply(request, response);
+            } else {
+                // Http status is not error so apply onError behavior
+                return behavior.getOrDefault(status, missingBehavior()).apply(request, response);
+            }
+        } finally {
+            tracer.close(requestSpan);
         }
+    }
 
-        // update request header with security token
+    private Span addTrackingHeaders(HttpRequestBase request) {
+        final Package commandPackage = this.getClass().getPackage();
+        final StringTokenizer tokenizer = new StringTokenizer(commandPackage.getName(), ".");
+        final StringBuilder spanName = new StringBuilder();
+        while (tokenizer.hasMoreTokens()) {
+            spanName.append(String.valueOf(tokenizer.nextToken().charAt(0) + "."));
+        }
+        spanName.append(this.getClass().getSimpleName());
+
+        final Span requestSpan = tracer.createSpan(spanName.toString(), tracer.getCurrentSpan());
+        requestSpan.tag(Span.SPAN_LOCAL_COMPONENT_TAG_NAME, this.getClass().getName());
+        final SpanInjector<HttpRequestBase> injector = new HttpRequestBaseSpanInjector(this.getClass());
+        injector.inject(requestSpan, request);
+        return requestSpan;
+    }
+
+    private void addLocaleHeaders(HttpRequestBase request) {
+        request.addHeader(HttpHeaders.ACCEPT_LANGUAGE, LocaleContextHolder.getLocale().toLanguageTag());
+    }
+
+    private void addAuthorizationHeaders(HttpRequestBase request) {
         if (StringUtils.isNotBlank(getAuthenticationToken())) {
-            request.addHeader(AUTHORIZATION, getAuthenticationToken());
+            request.addHeader(HttpHeaders.AUTHORIZATION, getAuthenticationToken());
         } else {
             // Intentionally left as debug to prevent log flood in open source edition.
             LOGGER.debug("No current authentication token for {}.", this.getClass());
         }
+    }
 
-        final HttpResponse response;
-        try {
-            LOGGER.trace("Requesting {} {}", request.getMethod(), request.getURI());
-            response = client.execute(request);
-        } catch (Exception e) {
-            throw onError.apply(e);
-        }
-        commandResponseHeaders = response.getAllHeaders();
-
-        status = HttpStatus.valueOf(response.getStatusLine().getStatusCode());
-
-        // do we have a behavior for this status code (even an error) ?
-        // if yes use it
-        BiFunction<HttpRequestBase, HttpResponse, T> function = behavior.get(status);
-        if (function != null) {
-            try {
-                return function.apply(request, response);
-            } catch (Exception e) {
-                throw onError.apply(e);
-            }
-        }
-
-        // handle response's HTTP status
-        if (status.is4xxClientError() || status.is5xxServerError()) {
-            LOGGER.debug("request {} {} : response on error {}", request.getMethod(), request.getURI(), response.getStatusLine());
-            // Http status >= 400 so apply onError behavior
-            return callOnError(onError).apply(request, response);
-        } else {
-            // Http status is not error so apply onError behavior
-            return behavior.getOrDefault(status, missingBehavior()).apply(request, response);
+    private void addCommandHeaders(HttpRequestBase request) {
+        if (headers.size() > 0) {
+            headers.forEach(request::addHeader);
         }
     }
 
@@ -368,7 +423,73 @@ public class GenericCommand<T> extends HystrixCommand<T> {
      * @return the serialized actions
      */
     protected String serializeActions(final Collection<Action> stepActions) throws JsonProcessingException {
-        return "{\"actions\": " + objectMapper.writeValueAsString(stepActions) + "}";
+        return objectMapper
+                .writer() //
+                .withRootName("actions") //
+                .writeValueAsString(stepActions);
+    }
+
+    protected String getServiceUrl(ServiceType type) {
+        switch (type) {
+        case DATASET:
+            return datasetServiceUrl;
+        case TRANSFORMATION:
+        case TRANSFORM:
+            return transformationServiceUrl;
+        case PREPARATION:
+            return preparationServiceUrl;
+        case FULLRUN:
+            return fullRunServiceUrl;
+        default:
+            throw new IllegalArgumentException("Type '" + type + "' is not supported.");
+        }
+    }
+
+    public enum ServiceType {
+        DATASET,
+        TRANSFORMATION,
+        TRANSFORM,
+        PREPARATION,
+        FULLRUN,
+
+    }
+
+    /**
+     * A {@link SpanInjector} implementation dedicated to inject tracing headers for {@link HttpRequestBase} objects.
+     */
+    private static class HttpRequestBaseSpanInjector implements SpanInjector<HttpRequestBase> {
+
+        private final Class commandClass;
+
+        private HttpRequestBaseSpanInjector(Class commandClass) {
+            this.commandClass = commandClass;
+        }
+
+        public void inject(Span span, HttpRequestBase httpRequestBase) {
+            this.setIdHeader(httpRequestBase, Span.TRACE_ID_NAME, span.getTraceId());
+            this.setIdHeader(httpRequestBase, Span.SPAN_ID_NAME, span.getSpanId());
+            this.setHeader(httpRequestBase, Span.SAMPLED_NAME, span.isExportable() ? "1" : "0");
+            this.setHeader(httpRequestBase, SPAN_NAME_NAME, span.getName());
+            this.setIdHeader(httpRequestBase, Span.PARENT_ID_NAME, this.getParentId(span));
+            this.setHeader(httpRequestBase, Span.PROCESS_ID_NAME, span.getProcessId());
+            this.setHeader(httpRequestBase, Span.SPAN_LOCAL_COMPONENT_TAG_NAME, commandClass.getName());
+        }
+
+        private void setHeader(HttpRequestBase request, String name, String value) {
+            if (StringUtils.isNotBlank(value) && !request.containsHeader(name)) {
+                request.addHeader(name, value);
+            }
+        }
+
+        private void setIdHeader(HttpRequestBase request, String name, Long value) {
+            if (value != null) {
+                this.setHeader(request, name, Span.idToHex(value));
+            }
+        }
+
+        private Long getParentId(Span span) {
+            return !span.getParents().isEmpty() ? span.getParents().get(0) : null;
+        }
     }
 
     // A intermediate builder for behavior definition.
@@ -417,7 +538,14 @@ public class GenericCommand<T> extends HystrixCommand<T> {
                     LOGGER.trace("Error received {}", content);
                 }
                 TdpExceptionDto exceptionDto = objectMapper.readValue(content, TdpExceptionDto.class);
-                TDPException cause = conversionService.convert(exceptionDto, TDPException.class);
+                TDPException cause;
+                try {
+                    cause = conversionService.convert(exceptionDto, TDPException.class);
+                } catch (RuntimeException e) {
+                    cause = new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, null, content,
+                            "Remote service returned an unhandled error and response could not be deserialized.",
+                            ExceptionContext.build());
+                }
                 ErrorCode code = cause.getCode();
                 if (code instanceof ErrorCodeDto) {
                     ((ErrorCodeDto) code).setHttpStatus(statusCode);
@@ -459,7 +587,8 @@ public class GenericCommand<T> extends HystrixCommand<T> {
             builder.append("method:").append(req.getMethod()).append(",\n");
             if (req instanceof HttpEntityEnclosingRequestBase) {
                 try {
-                    builder.append("load:")
+                    builder
+                            .append("load:")
                             .append(IOUtils.toString(((HttpEntityEnclosingRequestBase) req).getEntity().getContent(),
                                     UTF_8))
                             .append(",\n");

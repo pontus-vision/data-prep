@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -49,6 +49,8 @@ public class Step extends Identifiable implements Serializable {
     static {
         ROOT_STEP.parent = null;
     }
+
+    private String marker;
 
     /**
      * Default empty constructor;
@@ -125,6 +127,9 @@ public class Step extends Identifiable implements Serializable {
 
     @Override
     public void setId(String id) {
+        if (ROOT_STEP.id.equals(id)) {
+            parent = null;
+        }
         this.id = id;
     }
 
@@ -178,12 +183,23 @@ public class Step extends Identifiable implements Serializable {
         if (o == null || getClass() != o.getClass())
             return false;
         Step step = (Step) o;
-        return Objects.equals(getId(), step.getId());
+        return Objects.equals(getId(), step.getId()) && Objects.equals(getMarker(), step.getMarker());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(parent, preparationActions, rowMetadata, appVersion, diff);
+        return Objects.hash(parent, preparationActions, rowMetadata, appVersion, diff, marker);
     }
 
+    /**
+     * Sets a marker on this object (for efficient mass deletion, for example).
+     * @param marker The marker (as string) to set.
+     */
+    public void setMarker(String marker) {
+        this.marker = marker;
+    }
+
+    public String getMarker() {
+        return marker;
+    }
 }

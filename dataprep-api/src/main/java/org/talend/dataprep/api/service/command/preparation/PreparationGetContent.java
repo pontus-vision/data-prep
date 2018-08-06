@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,9 +13,6 @@
 
 package org.talend.dataprep.api.service.command.preparation;
 
-import static org.talend.dataprep.api.export.ExportParameters.SourceType.HEAD;
-import static org.talend.dataprep.command.Defaults.pipeStream;
-
 import java.io.InputStream;
 
 import org.apache.http.client.methods.HttpPost;
@@ -25,29 +22,34 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.export.ExportParameters;
+import org.talend.dataprep.api.export.ExportParameters.SourceType;
+import org.talend.dataprep.command.Defaults;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
-import org.talend.dataprep.exception.error.APIErrorCodes;
+
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.BaseErrorCodes.UNEXPECTED_EXCEPTION;
+import static org.talend.dataprep.api.export.ExportParameters.SourceType.HEAD;
+import static org.talend.dataprep.command.Defaults.emptyStream;
+import static org.talend.dataprep.command.Defaults.pipeStream;
 
 /**
  * Command used to retrieve the preparation content.
  */
 @Component
-@Scope("request")
+@Scope(SCOPE_PROTOTYPE)
 public class PreparationGetContent extends GenericCommand<InputStream> {
-
-    /** The preparation id. */
-    private final String id;
-
-    /** The preparation version. */
-    private final String version;
 
     /**
      * @param id the preparation id.
      * @param version the preparation version.
      */
     private PreparationGetContent(String id, String version) {
-        this(id, version, HEAD);
+        this(id, version, HEAD, null);
+    }
+
+    private PreparationGetContent(String id, String version, ExportParameters.SourceType from) {
+        this(id, version, from, null);
     }
 
     /**
@@ -55,27 +57,28 @@ public class PreparationGetContent extends GenericCommand<InputStream> {
      * @param version the preparation version.
      * @param from where to read the data from.
      */
-    private PreparationGetContent(String id, String version, ExportParameters.SourceType from) {
+    private PreparationGetContent(String id, String version, SourceType from, String filter) {
         super(PREPARATION_GROUP);
-        this.id = id;
-        this.version = version;
+
         execute(() -> {
             try {
                 ExportParameters parameters = new ExportParameters();
-                parameters.setPreparationId(this.id);
-                parameters.setStepId(this.version);
+                parameters.setPreparationId(id);
+                parameters.setStepId(version);
                 parameters.setExportType("JSON");
                 parameters.setFrom(from);
+                parameters.setFilter(filter);
 
                 final String parametersAsString = objectMapper.writerFor(ExportParameters.class).writeValueAsString(parameters);
                 final HttpPost post = new HttpPost(transformationServiceUrl + "/apply");
                 post.setEntity(new StringEntity(parametersAsString, ContentType.APPLICATION_JSON));
                 return post;
             } catch (Exception e) {
-                throw new TDPException(APIErrorCodes.UNABLE_TO_RETRIEVE_PREPARATION_CONTENT, e);
+                throw new TDPException(UNEXPECTED_EXCEPTION, e);
             }
         });
         on(HttpStatus.OK).then(pipeStream());
+        on(HttpStatus.ACCEPTED).then(emptyStream());
+        onError(Defaults.passthrough());
     }
-
 }

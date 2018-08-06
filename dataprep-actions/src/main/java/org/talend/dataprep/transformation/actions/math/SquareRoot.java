@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,21 +14,20 @@ package org.talend.dataprep.transformation.actions.math;
 
 import static org.talend.dataprep.transformation.actions.math.SquareRoot.SQRT_NAME;
 
-import java.util.Map;
-
 import org.apache.commons.math3.util.FastMath;
 import org.talend.daikon.number.BigDecimalParser;
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 /**
  * Create a new column with square root value
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + SQRT_NAME)
+@Action(SQRT_NAME)
 public class SquareRoot extends AbstractMathNoParameterAction {
 
-    protected static final String SQRT_NAME = "square_root_numbers";
+    public static final String SQRT_NAME = "square_root_numbers";
+
+    protected static final String SQRT_SUFFIX = "_square_root";
 
     @Override
     protected String calculateResult(String columnValue, ActionContext context) {
@@ -37,9 +36,8 @@ public class SquareRoot extends AbstractMathNoParameterAction {
         return value < 0 ? ERROR_RESULT : Double.toString(FastMath.sqrt(value));
     }
 
-    @Override
-    protected String getColumnNameSuffix(Map<String, String> parameters) {
-        return "square_root";
+    protected String getSuffix(ActionContext context) {
+        return SQRT_SUFFIX;
     }
 
     @Override

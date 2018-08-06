@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,6 +14,7 @@
 package org.talend.dataprep.schema.csv;
 
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
+import static org.talend.dataprep.schema.csv.CSVFormatFamily.HEADER_NB_LINES_PARAMETER;
 
 import java.io.*;
 import java.util.*;
@@ -35,12 +36,13 @@ import org.talend.dataprep.schema.SchemaParser;
 @Service("parser#csv")
 public class CSVSchemaParser implements SchemaParser {
 
+    /** A list of supported separators for a CSV content */
+    public static final List<Character> DEFAULT_VALID_SEPARATORS = Collections
+            .unmodifiableList(Arrays.asList(' ', '\t', ',', ';', '|'));
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVSchemaParser.class);
 
     private static final String META_KEY = "key";
-
-    @Autowired
-    protected CSVFormatUtils csvFormatUtils;
 
     /**
      * The maximum size used to guess the schema of a CSV input stream.
@@ -58,9 +60,8 @@ public class CSVSchemaParser implements SchemaParser {
      */
     private static final int SMALL_SAMPLE_LIMIT = 10;
 
-    /** A list of supported separators for a CSV content */
-    public static final List<Character> DEFAULT_VALID_SEPARATORS = Collections
-            .unmodifiableList(Arrays.asList(' ', '\t', ',', ';', '|'));
+    @Autowired
+    protected CSVFormatUtils csvFormatUtils;
 
     @Override
     public boolean accept(DataSetMetadata metadata) {
@@ -83,8 +84,8 @@ public class CSVSchemaParser implements SchemaParser {
             final DataSetMetadata metadata = request.getMetadata();
             final Map<String, String> parameters = guess(request, metadata.getEncoding());
             metadata.getContent().setParameters(parameters);
+            metadata.getContent().setNbLinesInHeader(Integer.parseInt(parameters.get(HEADER_NB_LINES_PARAMETER)));
             List<String> header = csvFormatUtils.retrieveHeader(parameters);
-
             if (header == null || header.isEmpty()) {
                 throw new TDPException(DataSetErrorCodes.UNABLE_TO_READ_DATASET_CONTENT);
             }
@@ -122,12 +123,11 @@ public class CSVSchemaParser implements SchemaParser {
         final String temp = request.getMetadata().getContent().getParameters().get(CSVFormatFamily.SEPARATOR_PARAMETER);
         if (temp != null && StringUtils.isNotEmpty(temp)) {
             forcedSeparator = Optional.of(temp.charAt(0));
-            csvFormatUtils.useNewSeparator(request.getMetadata());
         }
 
         Separator sep = guessSeparator(request.getContent(), encoding, forcedSeparator);
 
-        return csvFormatUtils.compileSeparatorProperties(sep);
+        return csvFormatUtils.compileParameterProperties(sep, request.getMetadata().getContent().getParameters());
     }
 
     /**
@@ -145,11 +145,7 @@ public class CSVSchemaParser implements SchemaParser {
             List<String> sampleLines = new ArrayList<>();
             final List<Character> validSepartors;
 
-            if (forcedSeparator.isPresent()) {
-                validSepartors = Collections.singletonList(forcedSeparator.get());
-            } else {
-                validSepartors = DEFAULT_VALID_SEPARATORS;
-            }
+            validSepartors = forcedSeparator.map(Collections::singletonList).orElse(DEFAULT_VALID_SEPARATORS);
 
             while ((line = csvStreamReader.readLine()) != null) {
                 if (!line.isEmpty() && sampleLines.size() < SMALL_SAMPLE_LIMIT) {
@@ -169,7 +165,7 @@ public class CSVSchemaParser implements SchemaParser {
 
     /**
      * Process a line to update the separators with the current line
-     * 
+     *
      * @param line the current line
      * @param separatorMap the map of current candidates
      * @param validSeparators the list of valid separators
@@ -285,7 +281,7 @@ public class CSVSchemaParser implements SchemaParser {
 
         /**
          * Constructs an CSVReaderStream object.
-         * 
+         *
          * @param inputStream the specified base input stream
          * @param encoding the encoding of the file
          * @param sizeLimit maximum size that can be read from the file
@@ -302,7 +298,7 @@ public class CSVSchemaParser implements SchemaParser {
 
         /**
          * Returns the portion of a line that is not in quote as a string.
-         * 
+         *
          * @return he portion of a line that is not in quote as a string
          * @throws IOException
          */
@@ -322,7 +318,7 @@ public class CSVSchemaParser implements SchemaParser {
 
         /**
          * Processes a line and only returns the portion of a line that is not in quote as a string.
-         * 
+         *
          * @param line the line as read from the input stream
          * @return the portion of a line that is not in quote as a string
          */

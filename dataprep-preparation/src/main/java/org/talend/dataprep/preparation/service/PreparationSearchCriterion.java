@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  *
  * This source code is available under agreement available at
  * https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,10 +17,17 @@ package org.talend.dataprep.preparation.service;
 public class PreparationSearchCriterion {
 
     private String dataSetId;
+
     private String folderId;
+
     private String name;
+
     private boolean nameExactMatch;
+
     private String folderPath;
+
+    private PreparationSearchCriterion() {
+    }
 
     public static PreparationSearchCriterion filterPreparation() {
         return new PreparationSearchCriterion();

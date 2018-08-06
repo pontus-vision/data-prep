@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -69,6 +69,41 @@ describe('Settings actions service', () => {
 			// then
 			SettingsActionsHandlers.forEach((handler) => {
 				expect(handler.dispatch).toHaveBeenCalledWith(expectedPayload);
+			});
+		}));
+	});
+
+	describe('adaptDataAttributes', () => {
+		const action = {
+			data: {
+				feature: 'my.feature',
+			}
+		};
+
+		it('should adapt action data attributes', inject((SettingsActionsService) => {
+			// when
+			const adaptedAction = SettingsActionsService.adaptDataAttributes(action);
+
+			// then
+			expect(adaptedAction).toEqual({
+				'data-feature': 'my.feature',
+			});
+		}));
+
+		it('should adapt action data attributes from another action', inject((SettingsActionsService) => {
+			// given
+			const anotherAction = {
+				data: {
+					feature: 'my.another.feature',
+				}
+			};
+
+			// when
+			const adaptedAction = SettingsActionsService.adaptDataAttributes(action, anotherAction);
+
+			// then
+			expect(adaptedAction).toEqual({
+				'data-feature': 'my.another.feature',
 			});
 		}));
 	});

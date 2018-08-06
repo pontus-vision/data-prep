@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -21,6 +21,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
@@ -42,10 +43,11 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Swap
  */
-public class SwapTest extends BaseDateTest {
+public class SwapTest extends BaseDateTest<Swap> {
 
-    /** The action to test. */
-    private Swap action = new Swap();
+    public SwapTest() {
+        super(new Swap());
+    }
 
     /** The action parameters. */
     private Map<String, String> parameters;
@@ -65,7 +67,7 @@ public class SwapTest extends BaseDateTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.COLUMNS.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.COLUMNS.getDisplayName(Locale.US)));
     }
 
     @Test
@@ -169,4 +171,18 @@ public class SwapTest extends BaseDateTest {
         assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.METADATA_CHANGE_ROW));
     }
 
+    @Test
+    public void test_apply_in_newcolumn() {
+        // Nothing to test, this action is never applied in newcolumn
+    }
+
+    @Test
+    public void test_apply_inplace() {
+        // Nothing to test, this action is never applied in place
+    }
+
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.NA;
+    }
 }

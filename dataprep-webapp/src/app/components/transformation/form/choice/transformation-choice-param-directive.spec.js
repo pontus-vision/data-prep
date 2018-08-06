@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,6 +11,8 @@
 
  ============================================================================*/
 
+import i18n from '../../../../../i18n/en.json';
+
 describe('Transformation choice params directive', () => {
     'use strict';
     let scope;
@@ -18,12 +20,11 @@ describe('Transformation choice params directive', () => {
 
     beforeEach(angular.mock.module('data-prep.transformation-form'));
 
-    beforeEach(angular.mock.module('pascalprecht.translate', ($translateProvider) => {
-        $translateProvider.translations('en', {
-            COLON: ': ',
-        });
-        $translateProvider.preferredLanguage('en');
-    }));
+
+		beforeEach(angular.mock.module('pascalprecht.translate', ($translateProvider) => {
+			$translateProvider.translations('en', i18n);
+			$translateProvider.preferredLanguage('en');
+		}));
 
     beforeEach(inject(($rootScope, $compile) => {
         scope = $rootScope.$new();

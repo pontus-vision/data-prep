@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -105,7 +105,7 @@ public enum Type implements Serializable {
     /**
      * @return the type label for the UI.
      */
-    private String getLabelKey() {
+    public String getLabelKey() {
         return labelKey;
     }
 
@@ -162,16 +162,11 @@ public enum Type implements Serializable {
         if (name == null) {
             throw new IllegalArgumentException("Name cannot be null.");
         }
-        List<Type> types = ANY.list();
 
-        Optional<Type> type = types.stream().filter(type1 -> type1.getName().equalsIgnoreCase(name)).findFirst();
-
-        if (type.isPresent()) {
-            return type.get();
-        }
-
-        // default type to String
-        return STRING;
+        return ANY.list().stream()
+                .filter(type -> type.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(STRING);
     }
 
     /**

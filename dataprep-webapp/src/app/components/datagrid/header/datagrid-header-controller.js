@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -10,6 +10,10 @@
  9 rue Pages 92150 Suresnes, France
 
  ============================================================================*/
+
+import {
+	QUALITY,
+} from '../../../services/filter/adapter/tql-filter-adapter-service';
 
 /**
  * @ngdoc controller
@@ -37,6 +41,8 @@ export default function DatagridHeaderCtrl($scope, state,
 	vm.filterManagerService = FilterManagerService;
 	vm.PlaygroundService = PlaygroundService;
 	vm.state = state;
+
+	vm.QUALITY = QUALITY;
 
 	/**
 	 * @ngdoc property
@@ -148,8 +154,8 @@ export default function DatagridHeaderCtrl($scope, state,
 	 * @methodOf data-prep.datagrid-header.controller:DatagridHeaderCtrl
 	 * @description add filter
 	 */
-	vm.addFilter = (type) => {
-		vm.filterManagerService.addFilter(type, vm.column.id, vm.column.name);
+	vm.addFilter = (type, args) => {
+		vm.filterManagerService.addFilter(type, vm.column.id, vm.column.name, args);
 	};
 
 	/**
@@ -159,7 +165,7 @@ export default function DatagridHeaderCtrl($scope, state,
 	 * @description returns the type label
 	 */
 	vm.getTypeLabel = () => {
-		return vm.column.domainLabel || vm.converterService.simplifyType(vm.column.type);
+		return vm.column.domainLabel || vm.converterService.simplifyTypeLabel(vm.column.type);
 	};
 
 	/**

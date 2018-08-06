@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,7 +15,11 @@ package org.talend.dataprep.api.dataset;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.talend.dataprep.api.dataset.row.Flag.UPDATE;
 import static org.talend.dataprep.test.SerializableMatcher.isSerializable;
 
@@ -328,6 +332,53 @@ public class RowMetadataTest {
         assertEquals("0001", addedColumn.getId());
     }
 
+    @Test
+    public void shouldMoveAfter() throws Exception {
+        // given
+        RowMetadata value = new RowMetadata();
+        final ColumnMetadata first = value.addColumn(getColumnMetadata("first"));
+        value.addColumn(getColumnMetadata("second"));
+        final ColumnMetadata third = value.addColumn(getColumnMetadata("third"));
+
+        // when
+        value.moveAfter(first.getId(), third.getId());
+
+        // then
+        final List<ColumnMetadata> columns = value.getColumns();
+        assertEquals(3, columns.size());
+        assertEquals("first", columns.get(0).getName());
+        assertEquals("third", columns.get(1).getName());
+        assertEquals("second", columns.get(2).getName());
+    }
+
+    @Test
+    public void shouldMoveAfterIncorrectInputs() throws Exception {
+        // given
+        RowMetadata value = new RowMetadata();
+        value.addColumn(getColumnMetadata("first"));
+        value.addColumn(getColumnMetadata("second"));
+        value.addColumn(getColumnMetadata("third"));
+
+        // when
+        value.moveAfter("0001", "0004");
+
+        // then
+        assertMoveAfterIncorrectInput(value);
+
+        // when
+        value.moveAfter("0004", "0004");
+
+        // then
+        assertMoveAfterIncorrectInput(value);
+    }
+
+    private static void assertMoveAfterIncorrectInput(RowMetadata value) {
+        final List<ColumnMetadata> columns = value.getColumns();
+        assertEquals(3, columns.size());
+        assertEquals("first", columns.get(0).getName());
+        assertEquals("second", columns.get(1).getName());
+        assertEquals("third", columns.get(2).getName());
+    }
 
     /**
      * @param name the column name.

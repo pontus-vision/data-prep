@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -10,6 +10,8 @@
  9 rue Pages 92150 Suresnes, France
 
  ============================================================================*/
+
+import { HOME_FOLDER } from '../inventory/inventory-state-service';
 
 export const homeState = {
 	sidePanelDocked: false,
@@ -34,14 +36,20 @@ export const homeState = {
 		isVisible: false,
 		builds: [],
 	},
+	content: {
+		isLoading: false,
+	},
 };
 
-export function HomeStateService() {
+export function HomeStateService($translate) {
+	'ngInject';
+
 	return {
 		setBuilds,
 		setCopyMoveTree,
 		setCopyMoveTreeLoading,
 		setSidePanelDock,
+		setContentLoading,
 		toggleAbout,
 		toggleCopyMovePreparation,
 		toggleFolderCreator,
@@ -64,11 +72,18 @@ export function HomeStateService() {
 	}
 
 	function setCopyMoveTree(tree) {
+		if (tree.folder && tree.folder.path === HOME_FOLDER.path) {
+			tree.folder.name = $translate.instant('HOME_FOLDER');
+		}
 		homeState.preparations.copyMove.tree = tree;
 	}
 
 	function setCopyMoveTreeLoading(bool) {
 		homeState.preparations.copyMove.isTreeLoading = bool;
+	}
+
+	function setContentLoading(bool) {
+		homeState.content.isLoading = bool;
 	}
 
 	function toggleFolderCreator() {

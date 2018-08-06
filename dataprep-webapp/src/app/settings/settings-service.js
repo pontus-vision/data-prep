@@ -1,5 +1,5 @@
 /*  ============================================================================
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
  You should have received a copy of the agreement
@@ -8,10 +8,12 @@
  ============================================================================*/
 
 export const appSettings = {
-	actions: [],
-	views: [],
-	uris: [],
-	help: [],
+	actions: {},
+	views: {},
+	uris: {},
+	help: {},
+	analytics: {},
+	context: {},
 };
 
 export function SettingsService($http, RestURLs) {
@@ -24,7 +26,8 @@ export function SettingsService($http, RestURLs) {
 	};
 
 	function refreshSettings() {
-		return $http.get(RestURLs.settingsUrl)
+		return $http
+			.get(RestURLs.settingsUrl)
 			.then(response => response.data)
 			.then(settings => this.setSettings(settings));
 	}
@@ -35,9 +38,11 @@ export function SettingsService($http, RestURLs) {
 	}
 
 	function clearSettings() {
-		appSettings.views = [];
-		appSettings.actions = [];
-		appSettings.uris = [];
-		appSettings.help = [];
+		appSettings.views = {};
+		appSettings.actions = {};
+		appSettings.uris = {};
+		appSettings.help = {};
+		appSettings.analytics = {};
+		appSettings.context = {};
 	}
 }

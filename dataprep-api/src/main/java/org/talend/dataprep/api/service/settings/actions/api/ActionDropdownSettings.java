@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,6 +17,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.talend.dataprep.i18n.DataprepBundle;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -77,6 +80,14 @@ public class ActionDropdownSettings extends ActionSettings {
 
     public void setStaticActions(List<String> staticActions) {
         this.staticActions = staticActions;
+    }
+
+    @Override
+    public ActionSettings translate() {
+        return ActionDropdownSettings //
+                .from(this) //
+                .translate() //
+                .build();
     }
 
     public static Builder from(final ActionDropdownSettings actionSettings) {
@@ -156,6 +167,13 @@ public class ActionDropdownSettings extends ActionSettings {
         public Builder staticActions(final List<String> staticActions) {
             if (staticActions != null) {
                 this.staticActions.addAll(staticActions);
+            }
+            return this;
+        }
+
+        public ActionDropdownSettings.Builder translate() {
+            if (StringUtils.isNotEmpty(this.name)) {
+                this.name = DataprepBundle.message(this.name);
             }
             return this;
         }

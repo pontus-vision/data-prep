@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -18,17 +18,15 @@ import static org.junit.Assert.*;
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getTypedRow;
 
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import org.assertj.core.api.Assertions;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
@@ -45,27 +43,19 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see ExtractNumber
  */
-public class ExtractNumberTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private ExtractNumber action = new ExtractNumber();
+public class ExtractNumberTest extends AbstractMetadataBaseTest<ExtractNumber> {
 
     /** The action parameters. */
     private Map<String, String> parameters;
 
-    private Locale previousLocale;
+    public ExtractNumberTest() {
+        super(new ExtractNumber());
+    }
 
     @Before
     public void setUp() throws Exception {
         final InputStream parametersSource = ExtractNumberTest.class.getResourceAsStream("extractNumberAction.json");
         parameters = ActionMetadataTestUtils.parseParameters(parametersSource);
-        previousLocale = Locale.getDefault();
-        Locale.setDefault(Locale.US);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        Locale.setDefault(previousLocale);
     }
 
     @Test
@@ -82,7 +72,7 @@ public class ExtractNumberTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testActionParameters() throws Exception {
-        final List<Parameter> parameters = action.getParameters();
+        final List<Parameter> parameters = action.getParameters(Locale.US);
         Assertions.assertThat(parameters).isNotNull().isNotEmpty().hasSize(4);
     }
 
@@ -95,12 +85,50 @@ public class ExtractNumberTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.SPLIT.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.SPLIT.getDisplayName(Locale.US)));
+    }
+
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.INVISIBLE_ENABLED;
+    }
+
+    @Test
+    public void test_apply_inplace() throws Exception {
+        // Nothing to test, this action is never applied in place
+    }
+
+    @Test
+    public void test_apply_in_newcolumn() {
+        // given
+        final Map<String, String> values = new HashMap<>();
+        values.put("0000", "lorem bacon");
+        values.put("0001", "j'ai 10 ans");
+        values.put("0002", "01/01/2015");
+        final DataSetRow row = new DataSetRow(values);
+
+        final Map<String, String> expectedValues = new HashMap<>();
+        expectedValues.put("0000", "lorem bacon");
+        expectedValues.put("0001", "j'ai 10 ans");
+        expectedValues.put("0003", "0");
+        expectedValues.put("0002", "01/01/2015");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
     }
 
     @Test
     public void extract_simple() throws Exception {
         inner_test("5000", "5000", Type.INTEGER);
+    }
+
+    @Test
+    public void extract_percentage() throws Exception {
+        inner_test("50%", "0.50", Type.DOUBLE);
     }
 
     @Test
@@ -215,9 +243,9 @@ public class ExtractNumberTest extends AbstractMetadataBaseTest {
         assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.METADATA_CREATE_COLUMNS));
     }
 
-    private void inner_test(String from, String expected, Type expectedType) throws Exception {
+    private void inner_test(String from, String expected, Type expectedType) {
         // given
-        DataSetRow row = getRow(from);
+        DataSetRow row = getTypedRow(Type.DOUBLE, from);
         Assertions.assertThat(row.getRowMetadata().getColumns()).isNotEmpty().hasSize(1);
 
         // when

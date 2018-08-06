@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -61,7 +61,7 @@ public class InMemoryDataSetMetadataRepositoryTest {
         assertTrue(Defaults.defaultValue(float.class).equals(obj.zeFloat));
         assertTrue(Defaults.defaultValue(double.class).equals(obj.zeDouble));
         assertTrue(obj.zeObject == Defaults.defaultValue(Object.class));// cause it is null
-        assertTrue(Defaults.defaultValue(boolean.class).equals(obj.zeStaticBoolean));
+        assertTrue(Defaults.defaultValue(boolean.class).equals(TransientTestObject.zeStaticBoolean));
     }
 
     @Test

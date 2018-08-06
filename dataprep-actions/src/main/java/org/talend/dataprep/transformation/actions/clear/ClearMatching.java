@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,9 +13,17 @@
 
 package org.talend.dataprep.transformation.actions.clear;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.talend.dataprep.api.type.Type.BOOLEAN;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.ParameterType.REGEX;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.DATA_CLEANSING;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -25,11 +33,7 @@ import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.parameters.ParameterType;
-import org.talend.dataprep.parameters.SelectParameter;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
@@ -38,7 +42,7 @@ import org.talend.dataprep.transformation.api.action.context.ActionContext;
  * Clear cell when value is matching.
  */
 
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + ClearMatching.ACTION_NAME)
+@Action(ClearMatching.ACTION_NAME)
 public class ClearMatching extends AbstractClear implements ColumnAction {
 
     /** the action name. */
@@ -62,8 +66,8 @@ public class ClearMatching extends AbstractClear implements ColumnAction {
     }
 
     @Override
-    public String getCategory() {
-        return DATA_CLEANSING.getDisplayName();
+    public String getCategory(Locale locale) {
+        return DATA_CLEANSING.getDisplayName(locale);
     }
 
     @Override
@@ -72,20 +76,23 @@ public class ClearMatching extends AbstractClear implements ColumnAction {
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        final List<Parameter> parameters = super.getParameters();
-        if (this.type == Type.BOOLEAN) {
-            parameters.add(SelectParameter.Builder.builder() //
+    public List<Parameter> getParameters(Locale locale) {
+        final List<Parameter> parameters = super.getParameters(locale);
+        if (this.type == BOOLEAN) {
+            parameters.add(selectParameter(locale) //
                     .name(VALUE_PARAMETER) //
-                    .item(Boolean.TRUE.toString()) //
-                    .item(Boolean.FALSE.toString()) //
-                    .build());
+                    .item(TRUE.toString()) //
+                    .item(FALSE.toString()) //
+                    .build(this));
         } else {
-            parameters.add(new Parameter(VALUE_PARAMETER, ParameterType.REGEX, //
-                    StringUtils.EMPTY, false, false, StringUtils.EMPTY));
+            parameters.add(parameter(locale).setName(VALUE_PARAMETER)
+                    .setType(REGEX)
+                    .setDefaultValue(EMPTY)
+                    .setCanBeBlank(false)
+                    .build(this));
         }
 
-        return ActionsBundle.attachToAction(parameters, this);
+        return parameters;
     }
 
     @Override

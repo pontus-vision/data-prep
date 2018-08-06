@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -19,6 +19,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -38,16 +39,22 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see DeleteOnValue
  */
-public class DeleteOnValueTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private DeleteOnValue action = new DeleteOnValue();
+public class DeleteOnValueTest extends AbstractMetadataBaseTest<DeleteOnValue> {
 
     private Map<String, String> parameters;
+
+    public DeleteOnValueTest() {
+        super(new DeleteOnValue());
+    }
 
     @Before
     public void init() throws IOException {
         parameters = ActionMetadataTestUtils.parseParameters(DeleteOnValueTest.class.getResourceAsStream("deleteOnValueAction.json"));
+    }
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.NA;
     }
 
     @Test
@@ -59,7 +66,7 @@ public class DeleteOnValueTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.DATA_CLEANSING.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.DATA_CLEANSING.getDisplayName(Locale.US)));
     }
 
     @Test

@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,9 +14,11 @@ package org.talend.dataprep.security;
 
 import static java.util.Collections.emptySet;
 
+import java.util.Locale;
 import java.util.Set;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.user.UserGroup;
 
@@ -54,8 +56,22 @@ public class NoOpSecurity implements Security {
         return "none";
     }
 
+    /**
+     * @return the tenant name.
+     */
+    @Override
+    public String getTenantName() {
+        return "none";
+    }
+
     @Override
     public boolean isTDPUser() {
         return true;
     }
+
+    @Override
+    public Locale getLocale() {
+        return LocaleContextHolder.getLocale();
+    }
+
 }

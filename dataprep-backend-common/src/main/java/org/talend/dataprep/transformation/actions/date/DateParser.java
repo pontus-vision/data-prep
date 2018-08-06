@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -20,8 +20,14 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -32,6 +38,7 @@ import org.talend.dataprep.quality.AnalyzerService;
 import org.talend.dataprep.transformation.actions.Providers;
 import org.talend.dataquality.common.inference.Analyzer;
 import org.talend.dataquality.common.inference.Analyzers;
+import org.talend.dataquality.statistics.datetime.SystemDateTimePatternManager;
 import org.talend.dataquality.statistics.frequency.pattern.PatternFrequencyStatistics;
 
 /**
@@ -122,7 +129,7 @@ public class DateParser {
                 }
 
                 // as Christopher L. said : "there can be only one" :-)
-                return getPatterns(patterns).get(0);
+                return results.get(0);
             } else {
                 throw new DateTimeException("DQ did not find any pattern for '" + value + "'");
             }
@@ -146,8 +153,12 @@ public class DateParser {
         }
 
         for (DatePattern pattern : patterns) {
-            final DateTimeFormatter formatter = new DateTimeFormatterBuilder().parseCaseInsensitive()
-                    .append(pattern.getFormatter()).toFormatter(Locale.ENGLISH);
+            // TDQ-14421 use ResolverStyle.STRICT to parse a date. such as "2017-02-29" should be invalid.
+            final DateTimeFormatter formatter = SystemDateTimePatternManager.getDateTimeFormatterByPattern(pattern.getPattern(),
+                    Locale.ENGLISH);
+            if (formatter == null) {
+                continue;
+            }
 
             // first try to parse directly as LocalDateTime
             try {
@@ -177,7 +188,7 @@ public class DateParser {
 
         return patternsFrequency.stream().filter(patternFreqItem -> isNotEmpty(patternFreqItem.getPattern()))
                 .filter(patternFreqItem -> distinctPatterns.add(patternFreqItem.getPattern())) // use Set<> to detect if
-                                                                                               // pattern is a duplicate
+                // pattern is a duplicate
                 .map(patternFreqItem -> {
                     try {
                         return new DatePattern(patternFreqItem.getPattern(), patternFreqItem.getOccurrences());

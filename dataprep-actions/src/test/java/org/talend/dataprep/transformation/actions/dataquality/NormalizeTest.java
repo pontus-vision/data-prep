@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -20,6 +20,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -31,6 +32,7 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.text.LowerCase;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -39,16 +41,16 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see LowerCase
  */
-public class NormalizeTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private Normalize action;
+public class NormalizeTest extends AbstractMetadataBaseTest<Normalize> {
 
     private Map<String, String> parameters;
 
+    public NormalizeTest() {
+        super(new Normalize());
+    }
+
     @Before
     public void init() throws IOException {
-        action = new Normalize();
         parameters = ActionMetadataTestUtils.parseParameters(NormalizeTest.class.getResourceAsStream("normalize.json"));
     }
 
@@ -61,11 +63,43 @@ public class NormalizeTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.STRINGS_ADVANCED.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.STRINGS_ADVANCED.getDisplayName(Locale.US)));
+    }
+
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
     }
 
     @Test
-    public void should_normalize() {
+    public void test_apply_in_newcolumn() {
+        //given
+        final Map<String, String> values = new HashMap<>();
+        values.put("0000", "Vincent");
+        values.put("0001", "François et Stéphane sont là");
+        values.put("0002", "May 20th 2015");
+        final DataSetRow row = new DataSetRow(values);
+
+        final Map<String, Object> expectedValues = new LinkedHashMap<>();
+        expectedValues.put("0000", "Vincent");
+        expectedValues.put("0001", "François et Stéphane sont là");
+        expectedValues.put("0003", "francois et stephane sont la");
+        expectedValues.put("0002", "May 20th 2015");
+
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        //then
+        assertEquals(expectedValues, row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0000_normalized").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_inplace() {
         //given
         final Map<String, String> values = new HashMap<>();
         values.put("0000", "Vincent");

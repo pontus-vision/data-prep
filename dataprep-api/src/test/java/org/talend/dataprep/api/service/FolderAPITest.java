@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,9 +15,17 @@ package org.talend.dataprep.api.service;
 
 import static com.jayway.restassured.RestAssured.given;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.talend.dataprep.api.folder.FolderContentType.DATASET;
+import static org.talend.dataprep.exception.error.DataSetErrorCodes.FOLDER_DOES_NOT_EXIST;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -31,6 +39,7 @@ import org.talend.dataprep.api.folder.Folder;
 import org.talend.dataprep.api.folder.FolderEntry;
 import org.talend.dataprep.api.folder.FolderInfo;
 import org.talend.dataprep.api.folder.FolderTreeNode;
+import org.talend.dataprep.exception.TdpExceptionDto;
 import org.talend.dataprep.exception.error.FolderErrorCodes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,12 +51,13 @@ import com.jayway.restassured.response.Response;
  * Unit tests for the folder API.
  */
 public class FolderAPITest extends ApiServiceTestBase {
+
     private Folder home;
 
     @Before
     public void cleanupFolder() throws Exception {
         folderRepository.clear();
-        home = folderRepository.getHome();
+        home = testClient.getFolderByPath("/");
     }
 
     @Test
@@ -97,6 +107,15 @@ public class FolderAPITest extends ApiServiceTestBase {
         assertThat(response.getStatusCode(), is(200));
         final List<Folder> folders = getFolderChildren(home.getId());
         assertThat(folders, is(empty()));
+    }
+
+    @Test
+    public void should_remove_missing_folder() throws IOException {
+        // when
+        final Response response = removeFolder("folder1234");
+
+        // then
+        assertThat(response.getStatusCode(), is(404));
     }
 
     @Test
@@ -154,12 +173,7 @@ public class FolderAPITest extends ApiServiceTestBase {
             final JsonNode dataset = preparation.get("dataset");
             // check for dataset
             assertNotNull(dataset);
-            assertTrue(dataset.has("dataSetId"));
             assertTrue(dataset.has("dataSetName"));
-            assertTrue(dataset.has("dataSetNbRow"));
-            // check for owner
-            assertTrue(preparation.has("owner"));
-            assertFalse(preparation.get("owner").isNull());
         }
     }
 
@@ -322,6 +336,35 @@ public class FolderAPITest extends ApiServiceTestBase {
         assertThat(hierarchy, hasSize(2));
         assertThat(hierarchy.get(0).getId(), equalTo(home.getId()));
         assertThat(hierarchy.get(1).getId(), equalTo(firstFolder.getId()));
+    }
+
+    // check that path query parameter with non query-encoding neutral element does not return a 500 error
+    @Test
+    public void updateFolderPathEncodingIssue_TDP_4959() throws IOException {
+        String parentId = testClient.getFolderByPath("/").getId();
+
+        given() //
+                .queryParam("parentId", parentId) //
+                .queryParam("path", "ZAP%n%s%n%s%n%s%n%s%n%s") //
+                .expect().statusCode(200).log().ifError() //
+                .when() //
+                .put("/api/folders");
+    }
+
+    // check that nonexistent non query-encoding neutral parent id returns 404 error, not 500.
+    @Test
+    public void updateFolderWithUnknownParent_TDP_4959() {
+        // check non encoding issue on path query parameter
+        Response response = given() //
+                .queryParam("parentId", "ZAP%n%s%n%s%n%s%n%s%n%s") //
+                .queryParam("path", "new-folder") //
+                .expect().statusCode(400).log().ifError() //
+                .when() //
+                .put("/api/folders");
+
+        TdpExceptionDto exception = response.as(TdpExceptionDto.class);
+
+        assertTrue(exception.getCode().endsWith(FOLDER_DOES_NOT_EXIST.getCode()));
     }
 
     private void assertTree(final FolderTreeNode node, final String nodePath, final String[] expectedChildrenPaths) {

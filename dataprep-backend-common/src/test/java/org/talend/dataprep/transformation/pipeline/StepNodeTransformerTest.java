@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -66,7 +66,7 @@ public class StepNodeTransformerTest {
                 .build();
 
         // when
-        final Node processed = StepNodeTransformer.transform(node, asList(ROOT, STEP), s -> null);
+        final Node processed = StepNodeTransformer.transform(node, asList(ROOT.id(), STEP.id()), s -> null);
 
         // then
         final Class[] expectedClasses = { SourceNode.class, StepNode.class };
@@ -87,7 +87,7 @@ public class StepNodeTransformerTest {
                 .build();
 
         // when
-        final Node processed = StepNodeTransformer.transform(node, asList(ROOT, STEP), s -> null);
+        final Node processed = StepNodeTransformer.transform(node, asList(ROOT.id(), STEP.id()), s -> null);
 
         // then
         final Class[] expectedClasses = { SourceNode.class, TestNode.class, StepNode.class, BasicNode.class };
@@ -109,7 +109,7 @@ public class StepNodeTransformerTest {
                 .build();
 
         // when
-        final Node processed = StepNodeTransformer.transform(node, asList(ROOT, STEP, STEP), s -> null);
+        final Node processed = StepNodeTransformer.transform(node, asList(ROOT.id(), STEP.id(), STEP.id()), s -> null);
 
         // then
         final AtomicInteger stepNodeCount = new AtomicInteger();
@@ -145,7 +145,7 @@ public class StepNodeTransformerTest {
                 .build();
 
         // when
-        final Node processed = StepNodeTransformer.transform(node, asList(ROOT, STEP, STEP), s -> null);
+        final Node processed = StepNodeTransformer.transform(node, asList(ROOT.id(), STEP.id(), STEP.id()), s -> null);
 
         // then
         final Class[] expectedClasses = { SourceNode.class, StepNode.class };

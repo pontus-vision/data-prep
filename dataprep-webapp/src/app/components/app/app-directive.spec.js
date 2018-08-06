@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -20,8 +20,14 @@ describe('App directive', () => {
 	let scope;
 	let createElement;
 	let element;
+	let appSettingsMock;
 
-	beforeEach(window.module(DataPrepAppModule));
+	beforeEach(window.module(DataPrepAppModule, ($provide) => {
+		appSettingsMock = {
+			context: {},
+		};
+		$provide.constant('appSettings', appSettingsMock);
+	}));
 
 	beforeEach(inject(($rootScope, $compile) => {
 		scope = $rootScope.$new(true);
@@ -34,7 +40,7 @@ describe('App directive', () => {
 	}));
 
 	beforeEach(inject(($injector, $q, RestURLs, AboutService, UpgradeVersionService) => {
-		RestURLs.register({ serverUrl: '' }, settings.uris);
+		RestURLs.register(settings.uris);
 
 		const $httpBackend = $injector.get('$httpBackend');
 		$httpBackend
@@ -50,12 +56,12 @@ describe('App directive', () => {
 		element.remove();
 	});
 
-	it('should hold toaster container', () => {
+	it('should hold notifications container', () => {
 		//when
 		createElement();
 
 		//then
-		expect(element.find('#toast-container').length).toBe(1);
+		expect(element.find('notifications').length).toBe(1);
 	});
 
 	it('should hold loader element', () => {
@@ -63,7 +69,9 @@ describe('App directive', () => {
 		createElement();
 
 		//then
-		expect(element.find('talend-loading').length).toBe(1);
+		const e = element.find('talend-loading');
+		expect(e.length).toBe(1);
+		expect(e.attr('size')).toBe("'large'");
 	});
 
 	it('should hold svg icons', () => {

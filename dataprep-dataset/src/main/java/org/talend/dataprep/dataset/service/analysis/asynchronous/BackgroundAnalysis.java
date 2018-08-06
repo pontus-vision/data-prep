@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -90,7 +90,7 @@ public class BackgroundAnalysis {
                 try (final Stream<DataSetRow> stream = store.stream(metadata)) {
                     try (Analyzer<Analyzers.Result> analyzer = analyzerService.schemaAnalysis(columns)) {
                         computeStatistics(analyzer, columns, stream);
-                        LOGGER.debug("Base statistics analysis done for{}", dataSetId);
+                        LOGGER.debug("Base statistics analysis done for {}", dataSetId);
                         // Save base analysis
                         saveAnalyzerResults(dataSetId, analyzer);
                     }
@@ -115,11 +115,8 @@ public class BackgroundAnalysis {
                 DistributedLock datasetLock = repository.createDatasetMetadataLock(metadata.getId());
                 try {
                     datasetLock.lock();
-                    final DataSetMetadata dataSetMetadata = repository.get(dataSetId);
-                    if (dataSetMetadata != null) {
-                        dataSetMetadata.getLifecycle().qualityAnalyzed(true);
-                        repository.save(metadata);
-                    }
+                    metadata.getLifecycle().qualityAnalyzed(true);
+                    repository.save(metadata);
                 } finally {
                     datasetLock.unlock();
                 }
@@ -157,7 +154,7 @@ public class BackgroundAnalysis {
         }
         // get the analyzer of the first column
         final Analyzers.Result result = results.get(0);
-        if (result.exist(ValueQualityStatistics.class)) {
+        if (metadata.getContent().getNbRecords() == 0 && result.exist(ValueQualityStatistics.class)) {
             final ValueQualityStatistics valueQualityStatistics = result.get(ValueQualityStatistics.class);
             metadata.getContent().setNbRecords(valueQualityStatistics.getCount());
         }

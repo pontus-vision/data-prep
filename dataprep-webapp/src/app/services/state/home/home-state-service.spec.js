@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,9 +11,16 @@
 
  ============================================================================*/
 
+import i18n from '../../../../i18n/en.json';
+
 describe('home state', () => {
 
 	beforeEach(angular.mock.module('data-prep.services.state'));
+
+	beforeEach(angular.mock.module('pascalprecht.translate', function ($translateProvider) {
+		$translateProvider.translations('en', i18n);
+		$translateProvider.preferredLanguage('en');
+	}));
 
 	describe('toggleSidepanel', () => {
 		it('should toggle sidepanel', inject((homeState, HomeStateService) => {
@@ -24,7 +31,7 @@ describe('home state', () => {
 			HomeStateService.toggleSidepanel();
 
 			//then
-			expect(homeState.sidePanelDocked).toBe(true);
+			expect(homeState.sidePanelDocked).toBeTruthy();
 		}));
 	});
 
@@ -37,7 +44,7 @@ describe('home state', () => {
 			HomeStateService.toggleCopyMovePreparation();
 
 			//then
-			expect(homeState.preparations.copyMove.isVisible).toBe(true);
+			expect(homeState.preparations.copyMove.isVisible).toBeTruthy();
 		}));
 
 		it('should set preparation and its initial folder',
@@ -82,9 +89,22 @@ describe('home state', () => {
 				HomeStateService.setCopyMoveTreeLoading(true);
 
 				//then
-				expect(homeState.preparations.copyMove.isTreeLoading).toBe(true);
+				expect(homeState.preparations.copyMove.isTreeLoading).toBeTruthy();
 			})
 		);
+	});
+
+	describe('content', () => {
+		it('should set content loading flag', inject((homeState, HomeStateService) => {
+			//given
+			homeState.content.isLoading = false;
+
+			//when
+			HomeStateService.setContentLoading(true);
+
+			//then
+			expect(homeState.content.isLoading).toBeTruthy();
+		}));
 	});
 
 	describe('togglePreparationCreator', () => {
@@ -96,7 +116,7 @@ describe('home state', () => {
 			HomeStateService.togglePreparationCreator();
 
 			//then
-			expect(homeState.preparations.creator.isVisible).toBe(true);
+			expect(homeState.preparations.creator.isVisible).toBeTruthy();
 		}));
 	});
 
@@ -109,7 +129,7 @@ describe('home state', () => {
 			HomeStateService.toggleFolderCreator();
 
 			//then
-			expect(homeState.folders.creator.isVisible).toBe(true);
+			expect(homeState.folders.creator.isVisible).toBeTruthy();
 		}));
 	});
 
@@ -119,7 +139,7 @@ describe('home state', () => {
 			HomeStateService.toggleAbout();
 
 			//then
-			expect(homeState.about.isVisible).toBe(true);
+			expect(homeState.about.isVisible).toBeTruthy();
 		}));
 
 		it('should populate builds', inject((homeState, HomeStateService) => {

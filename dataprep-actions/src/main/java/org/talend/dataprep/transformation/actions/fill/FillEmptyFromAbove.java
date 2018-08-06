@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,9 +13,12 @@
 
 package org.talend.dataprep.transformation.actions.fill;
 
+import static java.util.Collections.singletonList;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.DATA_CLEANSING;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -23,13 +26,14 @@ import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 /**
  * TDQ-13265 msjian : Fill empty cell from above.
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + FillEmptyFromAbove.ACTION_NAME)
+@Action(FillEmptyFromAbove.ACTION_NAME)
 public class FillEmptyFromAbove extends AbstractActionMetadata implements ColumnAction {
 
     /** the action name. */
@@ -38,14 +42,16 @@ public class FillEmptyFromAbove extends AbstractActionMetadata implements Column
     /** previous row's value store. */
     public static final String PREVIOUS = "previous"; //$NON-NLS-1$
 
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
+
     @Override
     public String getName() {
         return ACTION_NAME;
     }
 
     @Override
-    public String getCategory() {
-        return DATA_CLEANSING.getDisplayName();
+    public String getCategory(Locale locale) {
+        return DATA_CLEANSING.getDisplayName(locale);
     }
 
     @Override
@@ -59,7 +65,10 @@ public class FillEmptyFromAbove extends AbstractActionMetadata implements Column
     @Override
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
-        if (actionContext.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(actionContext, singletonList(ActionsUtils.additionalColumn()));
+        }
+        if (actionContext.getActionStatus() == OK) {
             actionContext.get(PREVIOUS, values -> new PreviousValueHolder());
         }
     }
@@ -69,6 +78,9 @@ public class FillEmptyFromAbove extends AbstractActionMetadata implements Column
         // the first time applyOnColumn is called, save the current value in PreviousValueHolder
         // and the Optional.ofNullable(...) allows you to NOT modify the first row (add an empty value)
         // then second call of applyOnColumn, PreviousContextHolder has... previous value
+        if (row.isDeleted()) {
+            return;
+        }
         final PreviousValueHolder holder = context.get(PREVIOUS);
         final String columnId = context.getColumnId();
         final String value = row.get(columnId);
@@ -76,19 +88,23 @@ public class FillEmptyFromAbove extends AbstractActionMetadata implements Column
         // Empty means null, empty string and any whitespace only strings
         if (StringUtils.isBlank(value)) {
             if (holder.getValue() != null) {
-                row.set(columnId, holder.getValue());
+                row.set(ActionsUtils.getTargetColumnId(context), holder.getValue());
             }
         } else {
             holder.setValue(value);
+            row.set(ActionsUtils.getTargetColumnId(context), value);
         }
     }
 
     /** this class is used to store the previous value. */
     private static class PreviousValueHolder {
+
         String value;
+
         public String getValue() {
             return value;
         }
+
         public void setValue(String value) {
             this.value = value;
         }

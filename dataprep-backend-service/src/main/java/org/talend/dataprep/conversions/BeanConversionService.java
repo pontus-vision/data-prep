@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,20 +12,31 @@
 
 package org.talend.dataprep.conversions;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.stereotype.Service;
+import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Stream.of;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
-import static java.util.stream.Stream.of;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.cloud.sleuth.annotation.NewSpan;
+import org.springframework.cloud.sleuth.annotation.SpanTag;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.stereotype.Service;
 
 /**
  * This service provides methods to convert beans to other beans (DTOs, transient beans...). This service helps code to
@@ -36,6 +47,9 @@ public class BeanConversionService implements ConversionService {
 
     private final Map<Class<?>, Registration<Object>> registrations = new HashMap<>();
 
+    @Autowired(required = false)
+    private Tracer tracer;
+
     /**
      * The {@link BeanUtils#copyProperties(java.lang.Object, java.lang.Object)} method does <b>NOT</b> check if parametrized type
      * are compatible when copying values, this helper method performs this additional check and ignore copy of those values.
@@ -45,7 +59,21 @@ public class BeanConversionService implements ConversionService {
      */
     private static void copyBean(Object source, Object converted) {
         // Find property(ies) to ignore during copy.
-        List<String> discardedProperties = new LinkedList<>();
+        final List<String> discardedProperties = getDiscardedProperties(source, converted);
+
+        // Perform copy
+        BeanUtils.copyProperties(source, converted, discardedProperties.toArray(new String[0]));
+    }
+
+    private static final Map<String, List<String>> discardedPropertiesCache = new HashMap<>();
+
+    private static List<String> getDiscardedProperties(Object source, Object converted) {
+        final String cacheKey = source.getClass().getName() + " to " + converted.getClass().getName();
+        if (discardedPropertiesCache.containsKey(cacheKey)) {
+            return discardedPropertiesCache.get(cacheKey);
+        }
+
+        final List<String> discardedProperties = new LinkedList<>();
         final BeanWrapper sourceBean = new BeanWrapperImpl(source);
         final BeanWrapper targetBean = new BeanWrapperImpl(converted);
         final PropertyDescriptor[] sourceProperties = sourceBean.getPropertyDescriptors();
@@ -71,9 +99,9 @@ public class BeanConversionService implements ConversionService {
                 }
             }
         }
+        discardedPropertiesCache.put(cacheKey, unmodifiableList(discardedProperties));
 
-        // Perform copy
-        BeanUtils.copyProperties(source, converted, discardedProperties.toArray(new String[discardedProperties.size()]));
+        return discardedProperties;
     }
 
     public static <T> RegistrationBuilder<T> fromBean(Class<T> source) {
@@ -114,19 +142,30 @@ public class BeanConversionService implements ConversionService {
      * @param <T> The target type.
      * @return The converted bean (typed as <code>T</code>).
      */
-    public <U, T> T convert(U source, Class<T> aClass, BiFunction<U, T, T> onTheFlyConvert) {
+    public <U, T> T convert(U source, Class<T> aClass, BiFunction<U, T, T>... onTheFlyConvert) {
         try {
-            T convert = convert(source, aClass);
-            return onTheFlyConvert.apply(source, convert);
+            T current = convert(source, aClass);
+            for (BiFunction<U, T, T> function: onTheFlyConvert) {
+                current = function.apply(source, current);
+            }
+            return current;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public <U> U convert(Object source, Class<U> targetClass) {
+    @NewSpan("conversion")
+    public <U> U convert(Object source, @SpanTag("target") Class<U> targetClass) {
         if (source == null) {
             return null;
+        }
+        if (tracer != null) {
+            tracer.addTag(Span.SPAN_LOCAL_COMPONENT_TAG_NAME, BeanConversionService.class.getName());
+            tracer.addTag("source", "class " + source.getClass().getName());
+        }
+        if (source.getClass().equals(targetClass)) {
+            return (U) source;
         }
         try {
             U converted = targetClass.newInstance();

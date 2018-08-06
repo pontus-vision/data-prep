@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,58 +12,79 @@
 // ============================================================================
 package org.talend.dataprep.transformation.actions.fill;
 
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.ParameterType.INTEGER;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+
+import java.math.BigInteger;
+import java.util.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.parameters.ParameterType;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.AbstractGenerateSequenceAction;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
-
-import java.math.BigInteger;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Generate a sequence on a column based on start value and step value.
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + GenerateSequence.ACTION_NAME)
-public class GenerateSequence extends AbstractActionMetadata implements ColumnAction {
+@Action(GenerateSequence.ACTION_NAME)
+public class GenerateSequence extends AbstractGenerateSequenceAction {
 
     public static final String ACTION_NAME = "generate_a_sequence";
-    /** The starting value of sequence.*/
-    protected static final String START_VALUE = "start_value";
 
-    /** The step value of sequence.*/
-    protected static final String STEP_VALUE = "step_value";
+    /** Class logger */
+    private static final Logger LOGGER = LoggerFactory.getLogger(GenerateSequence.class);
+
+    protected static final String NEW_COLUMN_SUFFIX = "_sequence";
 
     @Override
     public String getName() {
         return GenerateSequence.ACTION_NAME;
     }
 
-    @Override
-    public List<Parameter> getParameters() {
-        final List<Parameter> parameters = super.getParameters();
-        Parameter startParameter = new Parameter(START_VALUE, ParameterType.INTEGER, "1");
-        parameters.add(startParameter);
-        Parameter stepParameter = new Parameter(STEP_VALUE, ParameterType.INTEGER, "1");
-        parameters.add(stepParameter);
-        return ActionsBundle.attachToAction(parameters, this);
+    protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
+        return singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX));
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.NUMBERS.getDisplayName();
+    public List<Parameter> getParameters(Locale locale) {
+        final List<Parameter> parameters = super.getParameters(locale);
+        parameters.add(ActionsUtils.getColumnCreationParameter(locale, true));
+
+        Parameter startParameter = parameter(locale).setName(START_VALUE)
+                .setType(INTEGER)
+                .setDefaultValue("1")
+                .build(this);
+        parameters.add(startParameter);
+
+        Parameter stepParameter = parameter(locale).setName(STEP_VALUE)
+                .setType(INTEGER)
+                .setDefaultValue("1")
+                .build(this);
+        parameters.add(stepParameter);
+
+        return parameters;
+    }
+
+    @Override
+    public String getCategory(Locale locale) {
+        return ActionCategory.NUMBERS.getDisplayName(locale);
     }
 
     @Override
     public boolean acceptField(ColumnMetadata column) {
-        return  true;
+        return true;
     }
 
     @Override
@@ -72,16 +93,29 @@ public class GenerateSequence extends AbstractActionMetadata implements ColumnAc
     }
 
     @Override
+    public void compile(ActionContext actionContext) {
+        super.compile(actionContext);
+        if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), true)) {
+            ActionsUtils.createNewColumn(actionContext, getAdditionalColumns(actionContext));
+        }
+        Map<String, String> parameters = actionContext.getParameters();
+        if (isEmpty(parameters.get(START_VALUE)) || isEmpty(parameters.get(STEP_VALUE))) {
+            LOGGER.warn("At least one of the parameters is invalid {}/{} {}/{} ", START_VALUE, parameters.get(START_VALUE),
+                    STEP_VALUE, parameters.get(STEP_VALUE));
+            actionContext.setActionStatus(CANCELED);
+        }
+        if (actionContext.getActionStatus() == OK) {
+            actionContext.get(SEQUENCE, values -> new CalcSequence(parameters));
+        }
+    }
+
+    @Override
     public void applyOnColumn(DataSetRow row, ActionContext context) {
-        String startValue = context.getParameters().get(START_VALUE);
-        String stepValue = context.getParameters().get(STEP_VALUE);
-        if (startValue.isEmpty() || stepValue.isEmpty()) {
+        if (row.isDeleted()) {
             return;
         }
-        final String columnId = context.getColumnId();
-        BigInteger start = new BigInteger(startValue);
-        BigInteger step = new BigInteger(stepValue);
-        BigInteger currentValue = start.add(step.multiply(BigInteger.valueOf(row.getTdpId() - 1)));
-        row.set(columnId, currentValue.toString());
+        final CalcSequence sequence = context.get(SEQUENCE);
+        row.set(ActionsUtils.getTargetColumnId(context), sequence.getNextValue());
     }
+
 }

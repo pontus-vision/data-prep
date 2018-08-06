@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -22,14 +22,13 @@ import org.talend.daikon.exception.error.ErrorCode;
 
 public enum ActionErrorCodes implements ErrorCode {
     UNEXPECTED_EXCEPTION(500),
-    BAD_ACTION_PARAMETER(400, "paramName"),
-    UNABLE_TO_READ_LOOKUP_DATASET(500);
+    BAD_ACTION_PARAMETER(400, "paramName");
 
     /** The http status to use. */
-    private int httpStatus;
+    private final int httpStatus;
 
     /** Expected entries to be in the context. */
-    private List<String> expectedContextEntries;
+    private final List<String> expectedContextEntries;
 
     /**
      * default constructor.

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,11 +13,9 @@
 
 package org.talend.dataprep.transformation.actions.net;
 
-import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.api.type.Type.STRING;
 
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.talend.dataprep.api.action.Action;
@@ -27,13 +25,14 @@ import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 /**
  * Split a cell value on a separator.
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + ExtractEmailDomain.EXTRACT_DOMAIN_ACTION_NAME)
+@Action(ExtractEmailDomain.EXTRACT_DOMAIN_ACTION_NAME)
 public class ExtractEmailDomain extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -57,8 +56,8 @@ public class ExtractEmailDomain extends AbstractActionMetadata implements Column
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.SPLIT.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.SPLIT.getDisplayName(locale);
     }
 
     @Override
@@ -69,21 +68,13 @@ public class ExtractEmailDomain extends AbstractActionMetadata implements Column
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (context.getActionStatus() == ActionContext.ActionStatus.OK) {
-            final String columnId = context.getColumnId();
+        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), true)) {
+            final List<ActionsUtils.AdditionalColumn> additionalColumns = new ArrayList<>();
             final RowMetadata rowMetadata = context.getRowMetadata();
-            final ColumnMetadata column = rowMetadata.getById(columnId);
-            // Perform metadata level actions (add local + domain columns).
-            final String local = context.column(LOCAL, r -> {
-                final ColumnMetadata newColumn = column().name(column.getName() + LOCAL).type(Type.STRING).build();
-                rowMetadata.insertAfter(columnId, newColumn);
-                return newColumn;
-            });
-            context.column(DOMAIN, r -> {
-                final ColumnMetadata newColumn = column().name(column.getName() + DOMAIN).type(Type.STRING).build();
-                rowMetadata.insertAfter(local, newColumn);
-                return newColumn;
-            });
+            final ColumnMetadata column = rowMetadata.getById(context.getColumnId());
+            additionalColumns.add(ActionsUtils.additionalColumn().withKey(LOCAL).withName(column.getName() + LOCAL));
+            additionalColumns.add(ActionsUtils.additionalColumn().withKey(DOMAIN).withName(column.getName() + DOMAIN));
+            ActionsUtils.createNewColumn(context, additionalColumns);
         }
     }
 
@@ -95,8 +86,8 @@ public class ExtractEmailDomain extends AbstractActionMetadata implements Column
         final String columnId = context.getColumnId();
         final String originalValue = row.get(columnId);
         // Perform metadata level actions (add local + domain columns).
-        final String local = context.column(LOCAL);
-        final String domain = context.column(DOMAIN);
+        final String local = ActionsUtils.getTargetColumnIds(context).get(LOCAL);
+        final String domain = ActionsUtils.getTargetColumnIds(context).get(DOMAIN);
         // Set the values in newly created columns
         if (originalValue == null) {
             return;

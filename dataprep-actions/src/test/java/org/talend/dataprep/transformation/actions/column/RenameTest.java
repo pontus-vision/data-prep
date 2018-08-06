@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -22,6 +22,7 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -42,12 +43,18 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Rename
  */
-public class RenameTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private Rename action = new Rename();
+public class RenameTest extends AbstractMetadataBaseTest<Rename> {
 
     private Map<String, String> parameters;
+
+    public RenameTest() {
+        super(new Rename());
+    }
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.NA;
+    }
 
     @Before
     public void init() throws IOException {
@@ -60,7 +67,7 @@ public class RenameTest extends AbstractMetadataBaseTest {
         ColumnMetadata column = column().name("myColumn").id(0).type(Type.STRING).build();
         assertThat(action.adapt(column), not(is(action)));
         boolean hasMetExpectedParameter = false;
-        for (Parameter parameter : action.adapt(column).getParameters()) {
+        for (Parameter parameter : action.adapt(column).getParameters(Locale.US)) {
             if (Rename.NEW_COLUMN_NAME_PARAMETER_NAME.equals(parameter.getName())) {
                 assertThat(parameter.getDefault(), is(column.getName()));
                 hasMetExpectedParameter = true;
@@ -71,7 +78,7 @@ public class RenameTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.COLUMN_METADATA.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.COLUMN_METADATA.getDisplayName(Locale.US)));
     }
 
     @Test

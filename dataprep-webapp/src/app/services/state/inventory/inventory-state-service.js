@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -23,11 +23,12 @@ const orderList = [
 	{ id: 'desc', name: 'DESC_ORDER' },
 ];
 
-const HOME_FOLDER = {
+export const HOME_FOLDER = {
 	id: 'Lw==',
 	path: '/',
-	name: 'Home',
 };
+
+const FALLBACK_DISPLAY_MODE = 'table';
 
 export const inventoryState = {
 	datasetToUpdate: null,
@@ -35,8 +36,8 @@ export const inventoryState = {
 	sortList,
 	orderList,
 
-	datasetsDisplayMode: 'table',
-	preparationsDisplayMode: 'table',
+	datasetsDisplayMode: FALLBACK_DISPLAY_MODE,
+	preparationsDisplayMode: FALLBACK_DISPLAY_MODE,
 
 	datasets: {
 		sort: {
@@ -65,8 +66,12 @@ export const inventoryState = {
 	isFetchingPreparations: false,
 };
 
-export function InventoryStateService() {
+export function InventoryStateService($translate, StorageService) {
+	'ngInject';
+
 	return {
+		init,
+
 		enableEdit,
 		disableEdit,
 
@@ -89,6 +94,12 @@ export function InventoryStateService() {
 		setFetchingDatasets,
 		setFetchingPreparations,
 	};
+
+	function init() {
+		const { datasets, preparations } = StorageService.getListsDisplayModes();
+		inventoryState.datasetsDisplayMode = datasets || FALLBACK_DISPLAY_MODE;
+		inventoryState.preparationsDisplayMode = preparations || FALLBACK_DISPLAY_MODE;
+	}
 
 	function createNextEntities(type, fn) {
 		switch (type) {
@@ -251,7 +262,13 @@ export function InventoryStateService() {
 	 * @param {array} folders The folders in breadcrumb
 	 */
 	function setBreadcrumb(folders) {
-		inventoryState.breadcrumb = folders;
+		inventoryState.breadcrumb = folders.map((folder) => {
+			const translatedFolder = folder;
+			if (folder.path === HOME_FOLDER.path) {
+				translatedFolder.name = $translate.instant('HOME_FOLDER');
+			}
+			return translatedFolder;
+		});
 		inventoryState.breadcrumbChildren = {};
 	}
 
@@ -285,8 +302,14 @@ export function InventoryStateService() {
 	 * @param {string} displayMode.mode The display mode
 	 * @description Set the dataset display mode
 	 */
-	function setDatasetsDisplayMode(displayMode) {
-		inventoryState.datasetsDisplayMode = displayMode.mode;
+	function setDatasetsDisplayMode({ mode }) {
+		if (mode !== inventoryState.datasetsDisplayMode) {
+			inventoryState.datasetsDisplayMode = mode;
+			StorageService.setListsDisplayModes({
+				preparations: inventoryState.preparationsDisplayMode,
+				datasets: inventoryState.datasetsDisplayMode,
+			});
+		}
 	}
 
 	/**
@@ -311,7 +334,13 @@ export function InventoryStateService() {
 	 * @param {string} displayMode.mode The display mode
 	 * @description Set the preparation display mode
 	 */
-	function setPreparationsDisplayMode(displayMode) {
-		inventoryState.preparationsDisplayMode = displayMode.mode;
+	function setPreparationsDisplayMode({ mode }) {
+		if (mode !== inventoryState.preparationsDisplayMode) {
+			inventoryState.preparationsDisplayMode = mode;
+			StorageService.setListsDisplayModes({
+				preparations: inventoryState.preparationsDisplayMode,
+				datasets: inventoryState.datasetsDisplayMode,
+			});
+		}
 	}
 }

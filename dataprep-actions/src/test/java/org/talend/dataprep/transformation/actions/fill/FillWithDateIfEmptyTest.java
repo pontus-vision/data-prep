@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -43,10 +43,11 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see FillIfEmpty
  */
-public class FillWithDateIfEmptyTest extends AbstractMetadataBaseTest {
+public class FillWithDateIfEmptyTest extends AbstractMetadataBaseTest<FillIfEmpty> {
 
-    /** The action to test. */
-    private FillIfEmpty action = new FillIfEmpty();
+    public FillWithDateIfEmptyTest() {
+        super(new FillIfEmpty());
+    }
 
     @PostConstruct
     public void init() {
@@ -60,8 +61,18 @@ public class FillWithDateIfEmptyTest extends AbstractMetadataBaseTest {
         assertThat(action.adapt(column), not(is(action)));
     }
 
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.INVISIBLE_DISABLED;
+    }
+
     @Test
-    public void should_fill_empty_date() throws Exception {
+    public void test_apply_in_newcolumn() throws Exception {
+        // Always in place
+    }
+
+    @Test
+    public void test_apply_inplace() throws Exception {
         // given
         final DataSetRow row = builder() //
                 .with(value("David Bowie").type(Type.STRING)) //

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,6 +14,9 @@
 package org.talend.dataprep.api.service.settings.views.api.appheaderbar;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
+import org.apache.commons.lang.StringUtils;
+import org.talend.dataprep.i18n.DataprepBundle;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -59,10 +62,6 @@ public class LinkSettings {
         this.onClick = onClick;
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
     public String getName() {
         return name;
     }
@@ -77,6 +76,18 @@ public class LinkSettings {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static LinkSettings.Builder from(final LinkSettings linkSettings) {
+        return builder() //
+                .title(linkSettings.getTitle()) //
+                .name(linkSettings.getName()) //
+                .label(linkSettings.getLabel()) //
+                .onClick(linkSettings.getOnClick());
     }
 
     public static class Builder {
@@ -106,6 +117,19 @@ public class LinkSettings {
 
         public Builder onClick(final String onClick) {
             this.onClick = onClick;
+            return this;
+        }
+
+        public Builder translate() {
+            if (StringUtils.isNotEmpty(this.title)) {
+                this.title = DataprepBundle.message(this.title);
+            }
+            if (StringUtils.isNotEmpty(this.name)) {
+                this.name = DataprepBundle.message(this.name);
+            }
+            if (StringUtils.isNotEmpty(this.label)) {
+                this.label = DataprepBundle.message(this.label);
+            }
             return this;
         }
 

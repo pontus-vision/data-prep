@@ -1,6 +1,5 @@
 // ============================================================================
-//
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -14,27 +13,30 @@
 package org.talend.dataprep.command.preparation;
 
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
-import static org.talend.daikon.exception.ExceptionContext.build;
-import static org.talend.dataprep.command.Defaults.emptyStream;
-import static org.talend.dataprep.command.Defaults.pipeStream;
-import static org.talend.dataprep.exception.error.PreparationErrorCodes.UNABLE_TO_READ_PREPARATION;
+import static org.talend.dataprep.command.Defaults.asNull;
+import static org.talend.dataprep.command.Defaults.convertResponse;
 
-import java.io.InputStream;
+import java.net.URISyntaxException;
 
-import org.apache.commons.lang.StringUtils;
+import javax.annotation.PostConstruct;
+
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.talend.dataprep.api.preparation.PreparationDetailsDTO;
+import org.talend.dataprep.command.Defaults;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.exception.error.CommonErrorCodes;
 
 /**
  * Command that retrieves preparation details (NOT the content !)
  */
 @Component
 @Scope(SCOPE_PROTOTYPE)
-public class PreparationDetailsGet extends GenericCommand<InputStream> {
+public class PreparationDetailsGet extends GenericCommand<PreparationDetailsDTO> {
 
     /**
      * Constructor.
@@ -54,16 +56,23 @@ public class PreparationDetailsGet extends GenericCommand<InputStream> {
     public PreparationDetailsGet(String preparationId, String stepId) {
         super(PREPARATION_GROUP);
         execute(() -> onExecute(preparationId, stepId));
-        on(HttpStatus.NO_CONTENT).then(emptyStream());
-        on(HttpStatus.OK).then(pipeStream());
-        onError(e -> new TDPException(UNABLE_TO_READ_PREPARATION, e, build().put("id", preparationId)));
+        on(HttpStatus.NO_CONTENT).then(asNull());
+        onError(Defaults.passthrough());
+    }
+
+    @PostConstruct
+    public void init() {
+        on(HttpStatus.OK).then(convertResponse(objectMapper, PreparationDetailsDTO.class));
     }
 
     private HttpGet onExecute(String preparationId, String stepId) {
-        String uri = preparationServiceUrl + "/preparations/" + preparationId + "/details";
-        if (StringUtils.isNotBlank(stepId)) {
-            uri += "?stepId=" + stepId;
+        try {
+            final URIBuilder uriBuilder = new URIBuilder(preparationServiceUrl);
+            uriBuilder.setPath(uriBuilder.getPath() + "/preparations/" + preparationId + "/details/full");
+            uriBuilder.addParameter("stepId", stepId);
+            return new HttpGet(uriBuilder.build());
+        } catch (URISyntaxException e) {
+            throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
         }
-        return new HttpGet(uri);
     }
 }

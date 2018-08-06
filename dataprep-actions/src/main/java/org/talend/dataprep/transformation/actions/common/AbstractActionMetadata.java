@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,7 +12,8 @@
 
 package org.talend.dataprep.transformation.actions.common;
 
-import java.util.ArrayList;
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -23,6 +24,7 @@ import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.i18n.ActionsBundle;
+import org.talend.dataprep.i18n.DocumentationLinkGenerator;
 import org.talend.dataprep.i18n.MessagesBundle;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
@@ -38,8 +40,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public abstract class AbstractActionMetadata implements InternalActionDefinition {
 
-    public static final String ACTION_BEAN_PREFIX = "action#"; //$NON-NLS-1$
-
     @Override
     public ActionDefinition adapt(ColumnMetadata column) {
         return this;
@@ -47,8 +47,8 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
 
     /**
      * <p>
-     * Adapts the current action metadata to the scope. This method may return <code>this</code> if no action specific
-     * change should be done. It may return a different instance with information from scope (like a different label).
+     * Adapts the current action metadata to the scope. This method may return <code>this</code> if no action specific change
+     * should be done. It may return a different instance with information from scope (like a different label).
      * </p>
      *
      * @param scope A {@link ScopeCategory scope}.
@@ -71,7 +71,7 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
      * @see ActionCategory
      */
     @Override
-    public abstract String getCategory();
+    public abstract String getCategory(Locale locale);
 
     /**
      * Return true if the action can be applied to the given column metadata.
@@ -87,8 +87,8 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
      * @see MessagesBundle
      */
     @Override
-    public String getLabel() {
-        return ActionsBundle.INSTANCE.actionLabel(this, Locale.ENGLISH, getName());
+    public String getLabel(Locale locale) {
+        return ActionsBundle.actionLabel(this, locale, getName());
     }
 
     /**
@@ -96,13 +96,19 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
      * @see MessagesBundle
      */
     @Override
-    public String getDescription() {
-        return ActionsBundle.INSTANCE.actionDescription(this, Locale.ENGLISH, getName());
+    public String getDescription(Locale locale) {
+        return ActionsBundle.actionDescription(this, locale, getName());
     }
 
     @Override
-    public String getDocUrl() {
-        return ActionsBundle.INSTANCE.actionDocUrl(this, Locale.ENGLISH, getName());
+    public String getDocUrl(Locale locale) {
+        String actionDocUrl = ActionsBundle.actionDocUrl(this, locale, getName());
+        return DocumentationLinkGenerator
+                .builder() //
+                .url(actionDocUrl) //
+                .locale(locale) //
+                .addAfsLanguageParameter(true)
+                .build();
     }
 
     /**
@@ -115,7 +121,7 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
      */
     @Override
     public List<String> getActionScope() {
-        return new ArrayList<>();
+        return emptyList();
     }
 
     /**
@@ -154,8 +160,7 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
     /**
      * Called by transformation process <b>before</b> the first transformation occurs. This method allows action
      * implementation to compute reusable objects in actual transformation execution. Implementations may also indicate
-     * that action is not applicable and should be discarded (
-     * {@link ActionContext.ActionStatus#CANCELED}.
+     * that action is not applicable and should be discarded ( {@link ActionContext.ActionStatus#CANCELED}.
      *
      * @param actionContext The action context that contains the parameters and allows compile step to change action
      * status.
@@ -196,10 +201,10 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
 
     /**
      * @return The list of parameters required for this Action to be executed.
-     **/
+     */
     @Override
-    public List<Parameter> getParameters() {
-        return ActionsBundle.attachToAction(ImplicitParameters.getParameters(), this);
+    public List<Parameter> getParameters(Locale locale) {
+        return ImplicitParameters.getParameters(locale);
     }
 
     @JsonIgnore
@@ -210,4 +215,5 @@ public abstract class AbstractActionMetadata implements InternalActionDefinition
     public Function<GenericRecord, GenericRecord> action(List<Parameter> parameters) {
         return r -> r;
     }
+
 }

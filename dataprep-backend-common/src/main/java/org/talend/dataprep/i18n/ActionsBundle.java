@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,23 +13,54 @@
 package org.talend.dataprep.i18n;
 
 import java.text.MessageFormat;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.Objects;
+import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.talend.daikon.exception.ExceptionContext;
 import org.talend.daikon.exception.TalendRuntimeException;
 import org.talend.dataprep.BaseErrorCodes;
-import org.talend.dataprep.parameters.Parameter;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 /**
- * Non-spring accessor to actions resources bundle.
+ * Non-spring accessor to actions resources bundle. This implementation use a simple caching mechanism based on action, locale and key searched.
+ * Each key is searched using a fallback mechanism that search in this order:
+ * <ol>
+ *     <li>in the current supplied action package</li>
+ *     <li>in the current supplied action package hierarchy (org.talend.dataprep.transformation.actions.MyAction, org.talend.dataprep.transformation.actions)</li>
+ *     <li>in this bundle package</li>
+ *     <li>in this bundle hierarchy</li>
+ *     <li>in the default {@code actions_messages} bundle</li>
+ * </ol>
+ * For instance, {@code org.talend.dataprep.transformation.actions.MyAction} will be searched in:
+ * <ol>
+ *     <li>org.talend.dataprep.transformation.actions.MyAction</li>
+ *     <li>org.talend.dataprep.transformation.actions</li>
+ *     <li>org.talend.dataprep.transformation</li>
+ *     <li>org.talend.dataprep</li>
+ *     <li>org.talend</li>
+ *     <li>org</li>
+ *     <li>org.talend.dataprep.i18n.ActionsBundle</li>
+ *     <li>org.talend.dataprep.i18n</li>
+ *     <li>org.talend.dataprep.i18n.actions_messages</li>
+ * </ol>
+ *
+ *
  */
 public class ActionsBundle implements MessagesBundle {
 
-    public static final ActionsBundle INSTANCE = new ActionsBundle();
+    private static final ActionsBundle INSTANCE = new ActionsBundle();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionsBundle.class);
 
@@ -49,36 +80,23 @@ public class ActionsBundle implements MessagesBundle {
 
     private static final String PARAMETER_PREFIX = "parameter.";
 
+    private static final String CATEGORY_PREFIX = "category.";
+
     private static final String CHOICE_PREFIX = "choice.";
-
-    /**
-     * Represents the fallBackKey used to map the default resource bundle since a concurrentHashMap does not map a null key.
-     */
-    private final Class fallBackKey;
-
-    private final Map<Class, ResourceBundle> actionToResourceBundle = new ConcurrentHashMap<>();
 
     /** Base URL of the documentation portal. */
     // Documentation URL is not thread safe. It is acceptable while it is only changed at the application startup.
     // If more changes is to happen, there should be a thread safety mechanism
     private String documentationUrlBase;
 
-    private ActionsBundle() {
-        fallBackKey = this.getClass();
-        actionToResourceBundle.put(fallBackKey, ResourceBundle.getBundle(BUNDLE_NAME, Locale.ENGLISH));
-    }
-
     /**
-     * Link all <code>parameters</code> to the <code>parent</code>: when looking for parameters translation, bundle
-     * will use <code>parent</code> to find resource bundle.
-     * @param parameters The {@link Parameter parameters} to attach to <code>parent</code>.
-     * @param parent An object to be used in resource bundle search.
-     * @return A list of {@link Parameter parameters} that will use <code>parent</code> to look for message keys.
-     * @see Parameter#attach(Object)
+     * Simple cache.
      */
-    public static List<Parameter> attachToAction(List<Parameter> parameters, Object parent) {
-        return parameters.stream().map(p -> p.attach(parent)).collect(Collectors.toList());
-    }
+    private Cache<CacheKey, String> cache = CacheBuilder
+            .newBuilder()
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .maximumSize(1000)
+            .build();
 
     /**
      * Set global Documentation portal URL.
@@ -104,103 +122,35 @@ public class ActionsBundle implements MessagesBundle {
     }
 
     /**
-     * Format the message template with provided arguments
-     * @param template The string template
-     * @param args The arguments
-     */
-    private String formatMessage(final String template, final Object... args) {
-        final MessageFormat messageFormat = new MessageFormat(template);
-        return messageFormat.format(args);
-    }
-
-    /**
-     * Get the message from bundle or fallback bundle.
-     * If message is not present, null is returned
-     */
-    private String getOptionalMessage(Object action, Locale locale, String code, Object... args) {
-        final ResourceBundle bundle = findBundle(action, locale);
-        // We can put some cache here if default internal caching it is not enough
-        if (bundle.containsKey(code)) {
-            return formatMessage(bundle.getString(code), args);
-        } else if(actionToResourceBundle.get(fallBackKey).containsKey(code)) {
-            return formatMessage(actionToResourceBundle.get(fallBackKey).getString(code), args);
-        }
-        return null;
-    }
-
-    /**
-     * Get the message from bundle or fallback bundle.
-     * Ig message is not present, a TalendRuntimeException is thrown
-     */
-    private String getMandatoryMessage(Object action, Locale locale, String code, Object... args) {
-        final String message = getOptionalMessage(action, locale, code, args);
-        if (message == null) {
-            LOGGER.info("Unable to find key '{}' using context '{}'.", code, action);
-            throw new TalendRuntimeException(BaseErrorCodes.MISSING_I18N);
-        }
-        return message;
-    }
-
-    private ResourceBundle findBundle(Object action, Locale locale) {
-        if (action == null) {
-            return actionToResourceBundle.get(fallBackKey);
-        }
-        if (actionToResourceBundle.containsKey(action.getClass())) {
-            final ResourceBundle resourceBundle = actionToResourceBundle.get(action.getClass());
-            LOGGER.trace("Cache hit for action '{}': '{}'", action, resourceBundle);
-            return resourceBundle;
-        }
-        // Lookup for resource bundle in package hierarchy
-        final Package actionPackage = action.getClass().getPackage();
-        String currentPackageName = actionPackage.getName();
-        ResourceBundle bundle = null;
-        while (currentPackageName.contains(".")) {
-            try {
-                bundle = ResourceBundle.getBundle(currentPackageName + '.' + ACTIONS_MESSAGES, locale);
-                break; // Found, exit lookup
-            } catch (MissingResourceException e) {
-                LOGGER.debug("No action resource bundle found for action '{}' at '{}'", action, currentPackageName, e);
-            }
-            currentPackageName = StringUtils.substringBeforeLast(currentPackageName, ".");
-        }
-        if (bundle == null) {
-            LOGGER.debug("Choose default action resource bundle for action '{}'", action);
-            bundle = ResourceBundle.getBundle(BUNDLE_NAME, locale);
-        }
-        actionToResourceBundle.putIfAbsent(action.getClass(), bundle);
-        return bundle;
-    }
-
-    /**
      * Fetches action label at {@code action.<action_name>.label} in the dataprep actions resource bundle. If message does not
-     * exist, code will lookup in {@link #fallBackKey} resource bundle (i.e. Data Prep one) for message.
+     * exist, code will lookup in fallback resource bundle (i.e. Data Prep one) for message.
      */
-    public String actionLabel(Object action, Locale locale, String actionName, Object... values) {
+    public static String actionLabel(Object action, Locale locale, String actionName, Object... values) {
         final String actionLabelKey = ACTION_PREFIX + actionName + LABEL_SUFFIX;
-        return getMandatoryMessage(action, locale, actionLabelKey, values);
+        return INSTANCE.getMandatoryMessage(action, locale, actionLabelKey, values);
     }
 
     /**
      * Fetches action description at {@code action.<action_name>.desc} in the dataprep actions resource bundle. If message does
-     * not exist, code will lookup in {@link #fallBackKey} resource bundle (i.e. Data Prep one) for message.
+     * not exist, code will lookup in fallback resource bundle (i.e. Data Prep one) for message.
      */
-    public String actionDescription(Object action, Locale locale, String actionName, Object... values) {
+    public static String actionDescription(Object action, Locale locale, String actionName, Object... values) {
         final String actionDescriptionKey = ACTION_PREFIX + actionName + DESCRIPTION_SUFFIX;
-        return getMandatoryMessage(action, locale, actionDescriptionKey, values);
+        return INSTANCE.getMandatoryMessage(action, locale, actionDescriptionKey, values);
     }
 
     /**
      * Fetches action doc url at {@code action.<action_name>.url} in the dataprep actions resource bundle.
      * If there is no doc for this action, an empty string is returned.
      */
-    public String actionDocUrl(Object action, Locale locale, String actionName) {
+    public static String actionDocUrl(Object action, Locale locale, String actionName) {
         final String actionDocUrlKey = ACTION_PREFIX + actionName + URL_SUFFIX;
-        final String docUrl = getOptionalMessage(action, locale, actionDocUrlKey);
+        final String docUrl = INSTANCE.getOptionalMessage(action, locale, actionDocUrlKey);
 
         if (docUrl == null) {
-            final String docParameters = getOptionalMessage(action, locale, ACTION_PREFIX + actionName + URL_PARAMETERS_SUFFIX);
-            if (documentationUrlBase != null && docParameters != null) {
-                return documentationUrlBase + docParameters;
+            final String docParameters = INSTANCE.getOptionalMessage(action, locale, ACTION_PREFIX + actionName + URL_PARAMETERS_SUFFIX);
+            if (INSTANCE.documentationUrlBase != null && docParameters != null) {
+                return INSTANCE.documentationUrlBase + docParameters;
             }
             return StringUtils.EMPTY;
         }
@@ -208,30 +158,39 @@ public class ActionsBundle implements MessagesBundle {
     }
 
     /**
-     * Fetches parameter label at {@code parameter.<parameter_name>.label} in the dataprep actions resource bundle. If message
-     * does not exist, code will lookup in {@link #fallBackKey} resource bundle (i.e. Data Prep one) for message.
+     * Fetches action label at {@code action.<action_name>.label} in the dataprep actions resource bundle. If message does not
+     * exist, code will lookup in fallback resource bundle (i.e. Data Prep one) for message.
      */
-    public String parameterLabel(Object action, Locale locale, String parameterName, Object... values) {
+    public static String categoryName(Object action, Locale locale, String categoryName, Object... values) {
+        final String categoryLabelKey = CATEGORY_PREFIX + categoryName + LABEL_SUFFIX;
+        return INSTANCE.getMandatoryMessage(action, locale, categoryLabelKey, values);
+    }
+
+    /**
+     * Fetches parameter label at {@code parameter.<parameter_name>.label} in the dataprep actions resource bundle. If message
+     * does not exist, code will lookup in fallback resource bundle (i.e. Data Prep one) for message.
+     */
+    public static String parameterLabel(Object action, Locale locale, String parameterName, Object... values) {
         final String parameterLabelKey = PARAMETER_PREFIX + parameterName + LABEL_SUFFIX;
-        return getMandatoryMessage(action, locale, parameterLabelKey, values);
+        return INSTANCE.getMandatoryMessage(action, locale, parameterLabelKey, values);
     }
 
     /**
      * Fetches parameter description at {@code parameter.<parameter_name>.desc} in the dataprep actions resource bundle. If
-     * message does not exist, code will lookup in {@link #fallBackKey} resource bundle (i.e. Data Prep one) for message.
+     * message does not exist, code will lookup in fallback resource bundle (i.e. Data Prep one) for message.
      */
-    public String parameterDescription(Object action, Locale locale, String parameterName, Object... values) {
+    public static String parameterDescription(Object action, Locale locale, String parameterName, Object... values) {
         final String parameterDescriptionKey = PARAMETER_PREFIX + parameterName + DESCRIPTION_SUFFIX;
-        return getMandatoryMessage(action, locale, parameterDescriptionKey, values);
+        return INSTANCE.getMandatoryMessage(action, locale, parameterDescriptionKey, values);
     }
 
     /**
      * Fetches choice at {@code choice.<choice_name>} in the dataprep actions resource bundle. If message does not exist, code
-     * will lookup in {@link #fallBackKey} resource bundle (i.e. Data Prep one) for message.
+     * will lookup in fallback resource bundle (i.e. Data Prep one) for message.
      */
-    public String choice(Object action, Locale locale, String choiceName, Object... values) {
+    public static String choice(Object action, Locale locale, String choiceName, Object... values) {
         final String choiceKey = CHOICE_PREFIX + choiceName;
-        return getMandatoryMessage(action, locale, choiceKey, values);
+        return INSTANCE.getMandatoryMessage(action, locale, choiceKey, values);
     }
 
     @Override
@@ -246,7 +205,111 @@ public class ActionsBundle implements MessagesBundle {
 
     @Override
     public String getString(Locale locale, String code, Object... args) {
-        return getMandatoryMessage(fallBackKey, locale, code, args);
+        return getMandatoryMessage(this, locale, code, args);
+    }
+
+    /**
+     * Format the message template with provided arguments
+     *
+     * @param template The string template
+     * @param args The arguments
+     */
+    private String formatMessage(final String template, final Object... args) {
+        final MessageFormat messageFormat = new MessageFormat(template);
+        return messageFormat.format(args);
+    }
+
+    /**
+     * Get the message from bundle or fallback bundle.
+     * If message is not present, null is returned
+     */
+    private String getOptionalMessage(Object action, Locale locale, String code, Object... args) {
+        String messageFormat = getBundleValue(action, locale, code);
+        return  messageFormat == null ? null : formatMessage(messageFormat, args);
+    }
+
+    private String getBundleValue(Object action, Locale locale, String code) {
+        CacheKey cacheKey = new CacheKey(action, locale, code);
+        String bundleMessage = cache.getIfPresent(cacheKey);
+        if (bundleMessage == null) {
+            final ResourceBundle bundle = findBundleContainingKey(action, locale, code, getBundlesFallbackList(action));
+            if (Objects.nonNull(bundle)) {
+                bundleMessage = bundle.getString(code);
+                cache.put(cacheKey, bundleMessage);
+            } else {
+                bundleMessage = null;
+            }
+        }
+        return bundleMessage;
+    }
+
+    /**
+     * Get the message from bundle or fallback bundle.
+     * Ig message is not present, a TalendRuntimeException is thrown
+     */
+    private String getMandatoryMessage(Object action, Locale locale, String code, Object... args) {
+        final String message = getOptionalMessage(action, locale, code, args);
+        if (message == null) {
+            throw new TalendRuntimeException(BaseErrorCodes.MISSING_I18N, ExceptionContext.withBuilder() .put("code", code).put("action", action).build());
+        }
+        return message;
+    }
+
+    /**
+     * Searches the list of bundles and returns the first that contains the key. <bold>warning:</bold> if the key is found
+     * in a bundle in a fallback language before being present in another bundle in the correct language the first will be
+     * returned.
+     */
+    private ResourceBundle findBundleContainingKey(Object action, Locale locale, String key, Collection<String> bundleFallbacks) {
+        ResourceBundle bundle = null;
+        Iterator<String> iterator = bundleFallbacks.iterator();
+        while (iterator.hasNext() && bundle == null) {
+            String packageName = iterator.next();
+            try {
+                ResourceBundle searchedBundle = ResourceBundle.getBundle(packageName + '.' + ACTIONS_MESSAGES, //
+                        locale, //
+                        ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES)
+                );
+                if (searchedBundle.containsKey(key)) {
+                    bundle = searchedBundle;
+                }
+            } catch (MissingResourceException e) {
+                LOGGER.debug("No action resource bundle found for action '{}' at '{}'", action, packageName);
+            }
+        }
+        return bundle;
+    }
+
+    /**
+     * Create the list of bundle names fallback to search for i18n keys:
+     * <ul>
+     * <li> first add the full package hierarchy of the action class</li>
+     * <li> then add the full package hierarchy of this bundle class</li>
+     * <li> and last but not least, add the default {@link #BUNDLE_NAME}</li>
+     * </ul>
+     */
+    private Collection<String> getBundlesFallbackList(Object action) {
+        LinkedHashSet<String> packageHierarchy = new LinkedHashSet<>();
+        if (Objects.nonNull(action)) {
+            packageHierarchy.addAll(Arrays.asList(getPackageHierarchy(action.getClass())));
+        }
+
+        packageHierarchy.addAll(Arrays.asList(getPackageHierarchy(this.getClass())));
+        packageHierarchy.add(BUNDLE_NAME);
+        return packageHierarchy;
+    }
+
+    /**
+     * Extract the full package hierarchy of a class.
+     */
+    private String[] getPackageHierarchy(Class<?> clazz) {
+        String packageName = clazz.getPackage().getName();
+        String[] hierarchy = new String[StringUtils.countMatches(packageName, ".") + 1];
+        for (int i = 0; i < hierarchy.length; i++) {
+            hierarchy[i] = packageName;
+            packageName = StringUtils.substringBeforeLast(packageName, ".");
+        }
+        return hierarchy;
     }
 
     private void setDocumentationUrlBase(String documentationUrlBase) {
@@ -255,5 +318,34 @@ public class ActionsBundle implements MessagesBundle {
 
     private String getDocumentationUrlBase() {
         return documentationUrlBase;
+    }
+
+    private static class CacheKey {
+
+        private final Object action;
+
+        private final Locale locale;
+
+        private final String code;
+
+        private CacheKey(Object action, Locale locale, String code) {
+            this.action = action;
+            this.locale = locale;
+            this.code = code;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CacheKey cacheKey = (CacheKey) o;
+            return Objects.equals(action, cacheKey.action) && Objects.equals(locale, cacheKey.locale) && Objects.equals(code,
+                    cacheKey.code);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(action, locale, code);
+        }
     }
 }

@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,6 +13,7 @@
 
 package org.talend.dataprep.api.service.command.transformation;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import static org.springframework.http.HttpStatus.OK;
 import static org.talend.dataprep.command.Defaults.pipeStream;
 
@@ -29,7 +30,7 @@ import org.talend.dataprep.exception.error.APIErrorCodes;
  * Return all actions that can be performed on lines.
  */
 @Component
-@Scope("request")
+@Scope(SCOPE_PROTOTYPE)
 public class LineActions extends GenericCommand<InputStream> {
 
     /**

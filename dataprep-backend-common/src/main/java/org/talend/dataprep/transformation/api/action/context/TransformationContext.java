@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.apache.commons.lang.ClassUtils;
@@ -95,7 +96,7 @@ public final class TransformationContext implements Serializable {
         final Collection<ActionContext> allActionsContexts = getAllActionsContexts();
         LOGGER.debug("cleaning up {} action context(s) ", allActionsContexts.size());
         for (ActionContext currentContext : allActionsContexts) {
-            currentContext.getContextEntries().forEach(contextEntry -> {
+            currentContext.getContextEntries().stream().filter(Objects::nonNull).forEach(contextEntry -> {
                 try {
                     try {
                         final Method destroy = ClassUtils.getPublicMethod(contextEntry.getClass(), "destroy", new Class[0]);

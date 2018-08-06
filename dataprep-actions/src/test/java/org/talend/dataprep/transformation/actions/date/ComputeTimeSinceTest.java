@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,17 +12,20 @@
 //  ============================================================================
 package org.talend.dataprep.transformation.actions.date;
 
-import static java.time.temporal.ChronoUnit.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
-import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValueBuilder.value;
-import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValuesBuilder.builder;
-import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
-import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.OTHER_COLUMN_MODE;
-import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.SELECTED_COLUMN_PARAMETER;
-import static org.talend.dataprep.transformation.actions.date.ComputeTimeSince.*;
+import org.apache.commons.lang.StringUtils;
+import org.assertj.core.data.MapEntry;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.parameters.Parameter;
+import org.talend.dataprep.parameters.SelectParameter;
+import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
+import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
+import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,35 +34,46 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
-import org.apache.commons.lang.StringUtils;
-import org.assertj.core.data.MapEntry;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.talend.dataprep.api.action.ActionDefinition;
-import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.preparation.Action;
-import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.parameters.Parameter;
-import org.talend.dataprep.parameters.SelectParameter;
-import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
-import org.talend.dataprep.transformation.actions.category.ActionCategory;
-import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MONTHS;
+import static java.time.temporal.ChronoUnit.YEARS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
+import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValueBuilder.value;
+import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest.ValuesBuilder.builder;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.OTHER_COLUMN_MODE;
+import static org.talend.dataprep.transformation.actions.common.OtherColumnParameters.SELECTED_COLUMN_PARAMETER;
+import static org.talend.dataprep.transformation.actions.date.ComputeTimeSince.Behavior;
+import static org.talend.dataprep.transformation.actions.date.ComputeTimeSince.SINCE_WHEN_PARAMETER;
+import static org.talend.dataprep.transformation.actions.date.ComputeTimeSince.SPECIFIC_DATE_MODE;
+import static org.talend.dataprep.transformation.actions.date.ComputeTimeSince.SPECIFIC_DATE_PARAMETER;
+import static org.talend.dataprep.transformation.actions.date.ComputeTimeSince.TIME_UNIT_PARAMETER;
 
 /**
  * Test class for ComputeTimeSince action. Creates one consumer, and test it.
  *
  * @see ComputeTimeSince
  */
-public class ComputeTimeSinceTest extends BaseDateTest {
-
-    /** The action to test. */
-    private ComputeTimeSince action = new ComputeTimeSince();
+public class ComputeTimeSinceTest extends BaseDateTest<ComputeTimeSince> {
 
     private Map<String, String> parameters;
+
+    public ComputeTimeSinceTest() {
+        super(new ComputeTimeSince());
+    }
 
     @Before
     public void init() throws IOException {
@@ -77,23 +91,51 @@ public class ComputeTimeSinceTest extends BaseDateTest {
 
     @Test
     public void testCategory() throws Exception {
-        Assert.assertThat(action.getCategory(), is(ActionCategory.DATE.getDisplayName()));
+        Assert.assertThat(action.getCategory(Locale.US), is(ActionCategory.DATE.getDisplayName(Locale.US)));
+    }
+
+    @Override
+    protected CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_ENABLED;
     }
 
     @Test
     public void testParameters() throws Exception {
-        final List<Parameter> parameters = action.getParameters();
-        Assert.assertThat(parameters.size(), is(6));
+        final List<Parameter> parameters = action.getParameters(Locale.US);
+        Assert.assertThat(parameters.size(), is(7));
 
         // Test on items label for TDP-2943:
-        final SelectParameter selectParameter = (SelectParameter) parameters.get(5);
+        final SelectParameter selectParameter = (SelectParameter) parameters.get(6);
         assertEquals("Now", selectParameter.getItems().get(0).getLabel());
         assertEquals("Specific date", selectParameter.getItems().get(1).getLabel());
         assertEquals("Other column", selectParameter.getItems().get(2).getLabel());
     }
 
     @Test
-    public void should_compute_years() throws IOException {
+    public void test_apply_inplace() throws IOException {
+        //given
+        final String date = "01/01/2010";
+        final String result = computeTimeSince(date, "MM/dd/yyyy", YEARS);
+
+        final DataSetRow row = getDefaultRow("statistics_MM_dd_yyyy.json");
+        row.set("0001", date);
+
+        final Map<String, String> expectedValues = new HashMap<>();
+        expectedValues.put("0000", "lorem bacon");
+        expectedValues.put("0001", result);
+        expectedValues.put("0002", "Bacon");
+
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "false");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        //then
+        assertEquals(expectedValues, row.values());
+    }
+
+    @Test
+    public void test_apply_in_newcolumn() throws IOException {
         //given
         final String date = "01/01/2010";
         final String result = computeTimeSince(date, "MM/dd/yyyy", YEARS);
@@ -340,9 +382,6 @@ public class ComputeTimeSinceTest extends BaseDateTest {
         assertEquals(expected, row.getRowMetadata().getColumns());
     }
 
-    /**
-     * @see Action#getRowAction()
-     */
     @Test
     public void should_update_metadata_twice_diff_units() throws IOException {
         //given
@@ -548,8 +587,9 @@ public class ComputeTimeSinceTest extends BaseDateTest {
 
     @Test
     public void should_have_expected_behavior() {
-        assertEquals(1, action.getBehavior().size());
-        assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.METADATA_CREATE_COLUMNS));
+        assertEquals(2, action.getBehavior().size());
+        assertTrue(action.getBehavior().contains(Behavior.METADATA_CREATE_COLUMNS));
+        assertTrue(action.getBehavior().contains(Behavior.NEED_STATISTICS_PATTERN));
     }
 
 }

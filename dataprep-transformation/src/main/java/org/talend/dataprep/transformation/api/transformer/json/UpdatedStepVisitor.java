@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -47,20 +47,20 @@ class UpdatedStepVisitor extends Visitor {
             @Override
             public void visitAction(ActionNode actionNode) {
                 final ActionContext.ActionStatus status = actionNode.getActionContext().getActionStatus();
-                final Step step = stepNode.getStep();
+                final String step = stepNode.getStep();
                 switch (status) {
-                case NOT_EXECUTED:
-                case CANCELED:
-                    LOGGER.debug("Not updating metadata for {} (action ended with status {}).", step.getId(), status);
-                    step.setRowMetadata(null);
-                    break;
-                case OK:
-                case DONE:
-                    LOGGER.debug("Keeping metadata {} (action ended with status {}).", step.getId(), status);
-                    break;
+                    case NOT_EXECUTED:
+                    case CANCELED:
+                        LOGGER.debug("Not updating metadata for {} (action ended with status {}).", step, status);
+                        preparationUpdater.invalidate(step);
+                        break;
+                    case OK:
+                    case DONE:
+                        LOGGER.debug("Keeping metadata {} (action ended with status {}).", step, status);
+                        preparationUpdater.update(step, actionNode.getActionContext().getRowMetadata());
+                        break;
                 }
 
-                preparationUpdater.update(step.id(), stepNode.getRowMetadata());
             }
         });
         super.visitStepNode(stepNode);

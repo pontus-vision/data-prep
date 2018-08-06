@@ -1,7 +1,7 @@
 <!--
   ~ ============================================================================
   ~
-  ~  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  ~  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
   ~
   ~  This source code is available under agreement available at
   ~  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -19,7 +19,7 @@
         <label class="param-name"
              data-prep-tooltip="{{::columnParamCtrl.parameter.description}}"
              ng-if="::(columnParamCtrl.label !== 'false')">
-            {{::columnParamCtrl.parameter.label}}:
+            {{::columnParamCtrl.parameter.label}}<span translate-once="COLON"></span>
         </label>
         <div class="param-input" ng-switch="!!columnParamCtrl.isReadonly">
             <div ng-switch-when="true">

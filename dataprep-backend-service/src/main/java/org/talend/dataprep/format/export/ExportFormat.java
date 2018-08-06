@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,12 +12,14 @@
 
 package org.talend.dataprep.format.export;
 
-import java.util.List;
+import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toMap;
+
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
 import org.talend.dataprep.i18n.DataprepBundle;
-import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.Parameterizable;
 
 /**
@@ -54,16 +56,30 @@ public abstract class ExportFormat extends Parameterizable {
      * @param extension the file extension.
      * @param needParameters if the type needs parameters.
      * @param defaultExport if it's the default format.
-     * @param parameters the list of parameters.
      */
-    public ExportFormat(final String name, final String mimeType, final String extension, final boolean needParameters,
-            final boolean defaultExport, final List<Parameter> parameters) {
-        super(parameters, needParameters);
+    public ExportFormat(final String name, final String mimeType, final String extension, final boolean needParameters, final boolean defaultExport) {
+        super(needParameters);
         this.name = name;
         this.mimeType = mimeType;
         this.extension = extension;
         this.defaultExport = defaultExport;
         this.enabled = true;
+    }
+
+    /**
+     * Clean input parameters, removing all non export format parameters and removing the prefix.
+     *
+     * @param params export parameters from the frontend
+     * @return cleaned parameters
+     */
+    public static Map<String, String> cleanParameters(Map<String, String> params) {
+        return params.entrySet().stream() //
+                .filter(e -> nonNull(e.getValue())) //
+                .filter(e -> e.getKey().startsWith(PREFIX)) //
+                .collect(toMap( //
+                        k -> k.getKey().substring(PREFIX.length()),
+                        Map.Entry::getValue) //
+                );
     }
 
     /**

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,7 +13,12 @@
 
 package org.talend.dataprep.transformation.actions.column;
 
+import static org.talend.dataprep.transformation.actions.category.ActionScope.COLUMN_METADATA;
+
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -29,7 +34,7 @@ import org.talend.dataprep.transformation.api.action.context.ActionContext;
 /**
  * Deletes a column from a dataset. This action is available from column headers</b>
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + DeleteColumn.DELETE_COLUMN_ACTION_NAME)
+@Action(DeleteColumn.DELETE_COLUMN_ACTION_NAME)
 public class DeleteColumn extends AbstractActionMetadata implements ColumnAction {
 
     /**
@@ -50,18 +55,26 @@ public class DeleteColumn extends AbstractActionMetadata implements ColumnAction
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.COLUMNS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.COLUMNS.getDisplayName(locale);
     }
 
-    /**
-     * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
-     */
     @Override
-    public void applyOnColumn(DataSetRow row, ActionContext context) {
-        final String columnId = context.getColumnId();
+    public List<String> getActionScope() {
+        return Collections.singletonList(COLUMN_METADATA.getDisplayName());
+    }
+
+    @Override
+    public void compile(ActionContext actionContext) {
+        super.compile(actionContext);
+        final String columnId = actionContext.getColumnId();
         LOGGER.debug("DeleteColumn for columnId {}", columnId);
-        context.getRowMetadata().deleteColumnById(columnId);
+        actionContext.getRowMetadata().deleteColumnById(columnId);
+    }
+
+    @Override
+    public void applyOnColumn(DataSetRow row, ActionContext actionContext) {
+        final String columnId = actionContext.getColumnId();
         row.deleteColumnById(columnId);
     }
 

@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -46,9 +46,9 @@ export default function DatagridColumnService($rootScope, $compile, $translate,
 	let originalColumns = [];
 
 	const gridHeaderPreviewTemplate =
-		'<div class="grid-header <%= diffClass %>">' +
-		'   <div class="grid-header-title dropdown-button ng-binding"><%= name || "&nbsp;" %></div>' +
-		'   <div class="grid-header-type ng-binding"><%= simpleType %></div>' +
+		'<div class="grid-header <%- diffClass %>">' +
+		'   <div class="grid-header-title dropdown-button ng-binding"><%- name || "&nbsp;" %></div>' +
+		'   <div class="grid-header-type ng-binding"><%- simpleType %></div>' +
 		'</div>' +
 		'<div class="quality-bar"><div class="record-unknown"></div></div>';
 
@@ -85,7 +85,7 @@ export default function DatagridColumnService($rootScope, $compile, $translate,
 			_.template(gridHeaderPreviewTemplate)({
 				name: col.name,
 				diffClass: DatagridStyleService.getColumnPreviewStyle(col),
-				simpleType: col.domainLabel || ConverterService.simplifyType(col.type),
+				simpleType: col.domainLabel || ConverterService.simplifyTypeLabel(col.type),
 			}) :
 			'';
 		const translatedMsg = $translate.instant('APPLY_TO_ALL_CELLS');
@@ -250,8 +250,14 @@ export default function DatagridColumnService($rootScope, $compile, $translate,
 	 * @description Destroy the angular scope and header element
 	 */
 	function destroyHeader(headerDefinition) {
-		headerDefinition.scope.$destroy();
-		headerDefinition.header.remove();
+		if (headerDefinition) {
+			if (headerDefinition.scope) {
+				headerDefinition.scope.$destroy();
+			}
+			if (headerDefinition.header) {
+				headerDefinition.header.remove();
+			}
+		}
 	}
 
 	/**

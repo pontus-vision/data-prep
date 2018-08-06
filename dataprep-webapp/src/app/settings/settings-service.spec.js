@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -35,7 +35,7 @@ describe('Settings service', () => {
 		let $httpBackend;
 
 		beforeEach(inject(($rootScope, $injector, RestURLs) => {
-			RestURLs.register({ serverUrl: '' }, settings.uris);
+			RestURLs.register(settings.uris);
 			$httpBackend = $injector.get('$httpBackend');
 		}));
 
@@ -45,28 +45,48 @@ describe('Settings service', () => {
 				.expectGET(RestURLs.settingsUrl)
 				.respond(200, settings);
 
-			expect(appSettings).toEqual({ views: [], actions: [], uris: [], help: [] });
+			expect(appSettings).toEqual({
+				actions: {},
+				analytics: {},
+				context: {},
+				help: {},
+				uris: {},
+				views: {},
+			});
 
 			// when
 			SettingsService.refreshSettings();
 			$httpBackend.flush();
 
 			// then
-			expect(appSettings).toEqual(settings);
+			expect(appSettings).toEqual({
+				...settings,
+				analytics: {},
+			});
 		}));
 	});
 
 	describe('setSettings', () => {
 		it('should merge settings', inject((appSettings, SettingsService) => {
-			expect(appSettings).toEqual({ views: [], actions: [], uris: [], help: [] });
+
+			expect(appSettings).toEqual({
+				actions: {},
+				analytics: {},
+				context: {},
+				help: {},
+				uris: {},
+				views: {},
+			});
 
 			const newSettings = {
+				actions: {},
+				analytics: {},
+				context: {},
+				help: {},
+				uris: {},
 				views: {
 					myCustomView: {}
 				},
-				actions: [],
-				uris: [],
-				help: []
 			};
 
 			// when
@@ -80,19 +100,17 @@ describe('Settings service', () => {
 	describe('clearSettings', () => {
 		it('should reset settings', inject((appSettings, SettingsService) => {
 			// given
-			appSettings.views.push({});
-			appSettings.actions.push({});
-			appSettings.uris.push({});
-			appSettings.help.push({});
+			SettingsService.setSettings(settings);
 
 			// when
 			SettingsService.clearSettings();
 
 			// then
-			expect(appSettings.views).toEqual([]);
-			expect(appSettings.actions).toEqual([]);
-			expect(appSettings.uris).toEqual([]);
-			expect(appSettings.help).toEqual([]);
+			expect(appSettings.views).toEqual({});
+			expect(appSettings.actions).toEqual({});
+			expect(appSettings.uris).toEqual({});
+			expect(appSettings.help).toEqual({});
+			expect(appSettings.analytics).toEqual({});
 		}));
 	});
 });

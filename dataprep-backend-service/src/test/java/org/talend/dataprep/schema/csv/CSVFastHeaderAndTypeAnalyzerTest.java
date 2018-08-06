@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -18,26 +18,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.talend.dataprep.api.type.Type;
+import org.talend.dataprep.test.LocalizationRule;
 
 public class CSVFastHeaderAndTypeAnalyzerTest {
 
-    private Locale previousLocale;
-
-    @Before
-    public void setUp() throws Exception {
-        previousLocale = Locale.getDefault();
-        Locale.setDefault(Locale.ENGLISH);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        Locale.setDefault(previousLocale);
-    }
+    @Rule
+    public LocalizationRule rule = new LocalizationRule(Locale.US);
 
     @Test(expected = IllegalArgumentException.class)
     public void should_not_construct_object_with_null_sample(){
@@ -79,7 +69,6 @@ public class CSVFastHeaderAndTypeAnalyzerTest {
         List<Type> expectedTypes = Arrays.asList(Type.INTEGER, Type.STRING, Type.STRING, Type.DOUBLE, Type.BOOLEAN, Type.STRING);
         Assert.assertFalse(analysis.isFirstLineAHeader());
         Assert.assertArrayEquals(expectedTypes.toArray(), analysis.getHeaders().stream().map( p -> p.getValue()).toArray());
-
     }
 
     @Test
@@ -204,5 +193,20 @@ public class CSVFastHeaderAndTypeAnalyzerTest {
         // then
         List<String> expectedHeaders = Arrays.asList("COL1", "COL2");
         Assert.assertArrayEquals(expectedHeaders.toArray(), analysis.getHeaders().stream().map( p -> p.getKey()).toArray());
+    }
+
+    // When having a special pattern character as separator we had a PatternSyntaxException from java.util.Scanner
+    // we do not want user to use a RegEx pattern as separator
+    @Test
+    public void testNonPatternNeutralSeparator_TDP_5123() {
+        // given
+        List<String> list = Collections.singletonList("0001+Toto+Hello+1,000.02+false+");
+        Separator separator = new Separator('+');
+
+        // when
+        new CSVFastHeaderAndTypeAnalyzer(list, separator);
+
+        // then
+        // no PatternSyntaxException
     }
 }

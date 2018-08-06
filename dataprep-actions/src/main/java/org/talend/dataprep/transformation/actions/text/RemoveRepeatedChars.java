@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,75 +12,101 @@
 // ============================================================================
 package org.talend.dataprep.transformation.actions.text;
 
-import java.util.*;
-
-import javax.annotation.Nonnull;
-
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.ParameterType;
-import org.talend.dataprep.parameters.SelectParameter;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 import org.talend.dataquality.converters.DuplicateCharEraser;
 
+import javax.annotation.Nonnull;
+import java.util.*;
+
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.talend.dataprep.api.type.Type.STRING;
+import static org.talend.dataprep.parameters.Parameter.parameter;
+import static org.talend.dataprep.parameters.SelectParameter.selectParameter;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
+
 /**
  * Remove consecutive repeated characters for a Text.
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + RemoveRepeatedChars.ACTION_NAME)
+@Action(RemoveRepeatedChars.ACTION_NAME)
 public class RemoveRepeatedChars extends AbstractActionMetadata implements ColumnAction {
 
-    /** Action name. */
+    /**
+     * Action name.
+     */
     public static final String ACTION_NAME = "remove_repeated_chars";
+
+    /**
+     * The selected remmove type within the provided list.
+     */
+    static final String REMOVE_TYPE = "remove_type";
+
+    /**
+     * Keys used in the values of different parameters.
+     */
+    static final String CUSTOM = "custom";
+
+    /**
+     * Custom repeated char
+     */
+    static final String CUSTOM_REPEAT_CHAR_PARAMETER = "custom_repeat_chars";
+
+    static final String NEW_COLUMN_SUFFIX = "_without_consecutive";
+
+    /**
+     * Remove repeated white spaces(" ","\n","\r","\t","\f").
+     */
+    private static final String WHITESPACE = "whitespace";
 
     private static final String DUPLICATE_CHAR_ERASER_KEY = "duplicate_char_eraser_key";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RemoveRepeatedChars.class);
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
 
-    /** The selected remmove type within the provided list.*/
-    protected static final String REMOVE_TYPE = "remove_type";
-
-    /** Keys used in the values of different parameters. */
-    protected static final String CUSTOM = "custom";
-
-    /** Remove repeated white spaces(" ","\n","\r","\t","\f"). */
-    protected static final String WHITESPACE = "whitespace";
-
-    /** Custom repeated char  */
-    protected static final String CUSTOM_REPEAT_CHAR_PARAMETER = "custom_repeat_chars";
+    protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
+        return singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX).withType(STRING));
+    }
 
     @Override
     @Nonnull
-    public List<Parameter> getParameters() {
-        final List<Parameter> parameters = super.getParameters();
-        parameters.add(SelectParameter.Builder.builder()
+    public List<Parameter> getParameters(Locale locale) {
+        final List<Parameter> parameters = super.getParameters(locale);
+        parameters.add(ActionsUtils.getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
+        parameters.add(selectParameter(locale)
                 .name(REMOVE_TYPE)
                 .item(WHITESPACE, WHITESPACE)
-                .item(CUSTOM, CUSTOM, new Parameter(CUSTOM_REPEAT_CHAR_PARAMETER, ParameterType.STRING, StringUtils.EMPTY))
+                .item(CUSTOM, CUSTOM, parameter(locale).setName(CUSTOM_REPEAT_CHAR_PARAMETER)
+                        .setType(ParameterType.STRING)
+                        .setDefaultValue(EMPTY)
+                        .build(this))
                 .canBeBlank(false)
                 .defaultValue(WHITESPACE)
-                .build());
-        return ActionsBundle.attachToAction(parameters, this);
+                .build(this));
+        return parameters;
     }
 
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
-        if (context.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(context, getAdditionalColumns(context));
+        }
+        if (context.getActionStatus() == OK) {
             Map<String, String> parameters = context.getParameters();
-            if (CUSTOM.equals(parameters.get(REMOVE_TYPE))) {//for custom repeated chart
+            if (CUSTOM.equals(parameters.get(REMOVE_TYPE))) { //for custom repeated chart
                 String customChars = parameters.get(CUSTOM_REPEAT_CHAR_PARAMETER);
                 context.get(DUPLICATE_CHAR_ERASER_KEY, p -> new DuplicateCharEraser(customChars));
-            } else {//for repeated whitespace.
+            } else { //for repeated whitespace.
                 context.get(DUPLICATE_CHAR_ERASER_KEY, p -> new DuplicateCharEraser());
             }
         }
@@ -91,11 +117,12 @@ public class RemoveRepeatedChars extends AbstractActionMetadata implements Colum
         final String columnId = context.getColumnId();
         final String originalValue = row.get(columnId);
         if (StringUtils.isEmpty(originalValue)) {
+            row.set(ActionsUtils.getTargetColumnId(context), originalValue);
             return;
         }
         final DuplicateCharEraser duplicateCharEraser = context.get(DUPLICATE_CHAR_ERASER_KEY);
         String cleanValue = duplicateCharEraser.removeRepeatedChar(originalValue);
-        row.set(columnId, cleanValue);
+        row.set(ActionsUtils.getTargetColumnId(context), cleanValue);
     }
 
     @Override
@@ -104,8 +131,8 @@ public class RemoveRepeatedChars extends AbstractActionMetadata implements Colum
     }
 
     @Override
-    public String getCategory() {
-        return ActionCategory.STRINGS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return ActionCategory.STRINGS.getDisplayName(locale);
     }
 
     @Override

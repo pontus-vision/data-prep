@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -19,18 +19,29 @@ import static org.junit.Assert.assertThat;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
+import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
 /**
  * Base class for all round tests.
  */
-public abstract class AbstractRoundTest extends AbstractMetadataBaseTest {
+public abstract class AbstractRoundTest<T extends AbstractActionMetadata> extends AbstractMetadataBaseTest<T> {
+
+    protected AbstractRoundTest(T action) {
+        super(action);
+    }
+
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
+    }
 
     protected void testCommon(String input, String expected) {
         testCommon(input, expected, null);
@@ -47,7 +58,7 @@ public abstract class AbstractRoundTest extends AbstractMetadataBaseTest {
         }
 
         // when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(getAction(), getParameters()));
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, getParameters()));
 
         // then
         assertEquals(expected, row.get("0000"));
@@ -61,7 +72,7 @@ public abstract class AbstractRoundTest extends AbstractMetadataBaseTest {
         List<String> expectedParameters = getExpectedParametersName();
 
         // when
-        final List<Parameter> parameters = getAction().getParameters();
+        final List<Parameter> parameters = action.getParameters(Locale.US);
 
         // then
         assertThat(parameters.size(), is(expectedParameters.size()));
@@ -69,8 +80,6 @@ public abstract class AbstractRoundTest extends AbstractMetadataBaseTest {
     }
 
     protected abstract List<String> getExpectedParametersName();
-
-    protected abstract AbstractRound getAction();
 
     protected abstract Map<String, String> getParameters();
 }

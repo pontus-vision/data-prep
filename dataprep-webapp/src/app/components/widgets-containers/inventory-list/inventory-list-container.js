@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,6 +11,7 @@
 
  ============================================================================*/
 
+import template from './inventory-list.html';
 import InventoryListCtrl from './inventory-list-controller';
 
 /**
@@ -18,22 +19,7 @@ import InventoryListCtrl from './inventory-list-controller';
  * @restrict E
  */
 const InventoryListContainer = {
-	template: `
-		<div ng-if="$ctrl.isLoading" class="fetch-loader-wrapper">
-			<div class="fetch-loader">
-				<span class="fetch-loader-icon continuous-rotate"><icon name="'talend-dataprep'"></icon></span>
-				<span translate-once="LOADING"></span>
-			</div>
-		</div>
-		<pure-list
-			ng-if="!$ctrl.isLoading"
-			id="$ctrl.id"
-			display-mode="$ctrl.displayMode"
-			list="$ctrl.listProps"
-			toolbar="$ctrl.toolbarProps"
-			watch-depth="reference"
-		/>
-	`,
+	templateUrl: template,
 	bindings: {
 		id: '<',
 		displayMode: '<',

@@ -1,15 +1,15 @@
-//  ============================================================================
+// ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.math;
 
@@ -23,11 +23,14 @@ import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
@@ -36,6 +39,7 @@ import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
 
@@ -44,17 +48,21 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see NumericOperations
  */
-public class NumericOperationsTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private NumericOperations action = new NumericOperations();
+public class NumericOperationsTest extends AbstractMetadataBaseTest<NumericOperations> {
 
     /** The action parameters. */
     private Map<String, String> parameters;
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    public NumericOperationsTest() {
+        super(new NumericOperations());
+    }
 
     @Before
     public void setUp() throws Exception {
+        action = new NumericOperations();
         final InputStream parametersSource = NumericOperationsTest.class.getResourceAsStream("numericOpsAction.json");
         parameters = ActionMetadataTestUtils.parseParameters(parametersSource);
     }
@@ -66,10 +74,10 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testActionParameters() throws Exception {
-        final List<Parameter> parameters = action.getParameters();
-        assertEquals(6, parameters.size());
-        assertTrue(parameters.stream().filter(p -> StringUtils.equals(p.getName(), "operator")).findFirst().isPresent());
-        assertTrue(parameters.stream().filter(p -> StringUtils.equals(p.getName(), "mode")).findFirst().isPresent());
+        final List<Parameter> parameters = action.getParameters(Locale.US);
+        assertEquals(7, parameters.size());
+        assertTrue(parameters.stream().anyMatch(p -> StringUtils.equals(p.getName(), "operator")));
+        assertTrue(parameters.stream().anyMatch(p -> StringUtils.equals(p.getName(), "mode")));
     }
 
     @Test
@@ -81,7 +89,11 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.MATH.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.MATH.getDisplayName(Locale.US)));
+    }
+
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
     }
 
     @Test
@@ -109,33 +121,41 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
         assertEquals("", action.compute(null, "/", "2"));
         assertEquals("", action.compute("3", null, "2"));
         assertEquals("", action.compute("3", "/", null));
+
+        // percentage
+        assertEquals("2.03", action.compute("3%", "+", "2"));
+        assertEquals("0.06", action.compute("3%", "x", "2"));
+        assertEquals("-1.97", action.compute("3%", "-", "2"));
+        assertEquals("0.02", action.compute("4%", "/", "2"));
+        // should be a wrong value, so it returns an empty string
+        assertEquals("", action.compute("5%56", "*", "2"));
     }
 
     @Test
     public void testComputeScaleAndRoundMultiply() {
         assertEquals("6.66", action.compute("3.33", "x", "2"));
-        assertEquals("36.22", action.compute("18.1111", "x", "2"));
+        assertEquals("36.2222", action.compute("18.1111", "x", "2"));
     }
 
     @Test
     public void testComputeScaleAndRoundDivide() {
         assertEquals("1.5", action.compute("3", "/", "2"));
         assertEquals("2", action.compute("18", "/", "9"));
-        assertEquals("2.11", action.compute("19", "/", "9"));
-        assertEquals("211.11", action.compute("1900", "/", "9"));
-        assertEquals("21111.11", action.compute("190000", "/", "9"));
+        assertEquals("2.111111111111111", action.compute("19", "/", "9"));
+        assertEquals("211.111111111111111", action.compute("1900", "/", "9"));
+        assertEquals("21111.111111111111111", action.compute("190000", "/", "9"));
     }
 
     @Test
     public void testComputeScaleAndRoundAdd() {
         assertEquals("5.33", action.compute("3.33", "+", "2"));
-        assertEquals("20.11", action.compute("18.1111", "+", "2"));
+        assertEquals("20.1111", action.compute("18.1111", "+", "2"));
     }
 
     @Test
     public void testComputeScaleAndRoundSubstract() {
         assertEquals("1.33", action.compute("3.33", "-", "2"));
-        assertEquals("16.11", action.compute("18.1111", "-", "2"));
+        assertEquals("16.1111", action.compute("18.1111", "-", "2"));
     }
 
     @Test
@@ -143,7 +163,7 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
         assertEquals("5.1", action.compute("3", "+", "2.1"));
         assertEquals("6.3", action.compute("3", "x", "2.1"));
         assertEquals("0.9", action.compute("3", "-", "2.1"));
-        assertEquals("1.9", action.compute("4", "/", "2.1"));
+        assertEquals("1.904761904761905", action.compute("4", "/", "2.1"));
     }
 
     @Test
@@ -157,10 +177,28 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
         assertEquals("2400", action.compute("1.2E3", "x", "2"));
         assertEquals("2400", action.compute("2", "x", "1.2E3"));
         assertEquals("2640", action.compute("2.2", "x", "1.2E3"));
+
     }
 
     @Test
-    public void should_apply_on_column() {
+    public void test_apply_in_newcolumn() {
+        // given
+        DataSetRow row = getRow("5", "3", "Done !");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        DataSetRow rowExpected = getRow("5", "3", "Done !", "8");
+        assertEquals(rowExpected, row);
+        final ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0000 + 0001").type(Type.DOUBLE).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_inplace() {
         // given
         DataSetRow row = getRow("5", "3", "Done !");
 
@@ -168,7 +206,7 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
         // then
-        DataSetRow expected = getRow("5", "3", "Done !", "8");
+        DataSetRow expected = getRow("8", "3", "Done !");
         assertEquals(expected, row);
     }
 
@@ -176,6 +214,7 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
     public void should_apply_on_created_column() {
         // given
         DataSetRow row = getRow("5", "3");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
@@ -188,7 +227,6 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
         assertEquals(expected, row);
     }
 
-
     @Test
     public void should_apply_on_column_constant() {
         // given
@@ -197,6 +235,7 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
         parameters.remove(NumericOperations.SELECTED_COLUMN_PARAMETER);
         parameters.put(NumericOperations.MODE_PARAMETER, NumericOperations.CONSTANT_MODE);
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -216,6 +255,7 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
                 .build();
         parameters.remove(NumericOperations.OPERAND_PARAMETER);
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -237,6 +277,7 @@ public class NumericOperationsTest extends AbstractMetadataBaseTest {
         parameters.remove(NumericOperations.SELECTED_COLUMN_PARAMETER);
         parameters.put(NumericOperations.MODE_PARAMETER, NumericOperations.CONSTANT_MODE);
         parameters.put(ImplicitParameters.COLUMN_ID.getKey().toLowerCase(), "0000");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
 
         // when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));

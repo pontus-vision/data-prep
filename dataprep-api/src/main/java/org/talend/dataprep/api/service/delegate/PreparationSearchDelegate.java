@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -18,28 +18,27 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.talend.dataprep.api.service.api.EnrichedPreparation;
+import org.talend.dataprep.api.preparation.PreparationDTO;
 import org.talend.dataprep.api.service.command.preparation.PreparationSearchByName;
 import org.talend.dataprep.conversions.BeanConversionService;
-import org.talend.dataprep.preparation.service.UserPreparation;
 
 /**
  * A {@link SearchDelegate} implementation to search in preparations.
  */
 @Component
-public class PreparationSearchDelegate extends AbstractSearchDelegate<EnrichedPreparation> {
+public class PreparationSearchDelegate extends AbstractSearchDelegate<PreparationDTO> {
 
     @Autowired
     private BeanConversionService beanConversionService;
 
     @Override
     public String getSearchCategory() {
-        return "preparations";
+        return "preparation";
     }
 
     @Override
     public String getSearchLabel() {
-        return "preparations";
+        return "preparation";
     }
 
     @Override
@@ -48,10 +47,8 @@ public class PreparationSearchDelegate extends AbstractSearchDelegate<EnrichedPr
     }
 
     @Override
-    public Stream<EnrichedPreparation> search(String query, boolean strict) {
+    public Stream<PreparationDTO> search(String query, boolean strict) {
         final PreparationSearchByName command = getCommand(PreparationSearchByName.class, query, strict);
-        return toStream(UserPreparation.class, mapper, command) //
-                .map(userPreparation -> beanConversionService.convert(userPreparation, EnrichedPreparation.class));
+        return toStream(PreparationDTO.class, mapper, command);
     }
-
 }

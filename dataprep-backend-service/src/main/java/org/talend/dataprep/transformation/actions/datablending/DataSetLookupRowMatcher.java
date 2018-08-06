@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -12,62 +12,43 @@
 
 package org.talend.dataprep.transformation.actions.datablending;
 
-import static org.apache.commons.lang.StringUtils.EMPTY;
-import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_ID;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.command.dataset.DataSetGet;
-import org.talend.dataprep.exception.TDPException;
-import org.talend.dataprep.exception.error.TransformationErrorCodes;
+import org.talend.dataprep.dataset.adapter.DatasetClient;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-/**
- *
- */
+import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_ID;
+
 @Component
-@Scope("prototype")
+@Scope(SCOPE_PROTOTYPE)
 public class DataSetLookupRowMatcher implements DisposableBean, LookupRowMatcher {
 
     /** This class' logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSetLookupRowMatcher.class);
 
-    /** The dataprep ready jackson builder. */
     @Autowired
-    @Lazy // needed to prevent a circular dependency
-    private ObjectMapper mapper;
-
-    /** The Spring application context. */
-    @Autowired
-    private ApplicationContext context;
+    private DatasetClient datasetClient;
 
     /** The dataset id to lookup. */
     private String datasetId;
-
-    /** The dataset lookup input stream. */
-    private InputStream input;
 
     /** Lookup row iterator. */
     private Iterator<DataSetRow> lookupIterator;
@@ -78,6 +59,15 @@ public class DataSetLookupRowMatcher implements DisposableBean, LookupRowMatcher
     /** Cache of dataset row. */
     private Map<String, DataSetRow> cache = new HashMap<>();
 
+    private String joinOnColumn;
+
+    private List<LookupSelectedColumnParameter> selectedColumns;
+
+    private Stream<DataSetRow> records;
+
+    DataSetLookupRowMatcher() {
+    }
+
     /**
      * Default constructor.
      *
@@ -85,6 +75,20 @@ public class DataSetLookupRowMatcher implements DisposableBean, LookupRowMatcher
      */
     public DataSetLookupRowMatcher(Map<String, String> parameters) {
         this.datasetId = parameters.get(LOOKUP_DS_ID.getKey());
+        joinOnColumn = parameters.get(Lookup.Parameters.LOOKUP_JOIN_ON.getKey());
+        selectedColumns = Lookup.getColsToAdd(parameters);
+    }
+
+    void setJoinOnColumn(String joinOnColumn) {
+        this.joinOnColumn = joinOnColumn;
+    }
+
+    void setSelectedColumns(List<LookupSelectedColumnParameter> selectedColumns) {
+        this.selectedColumns = selectedColumns;
+    }
+
+    void setLookupIterator(Iterator<DataSetRow> lookupIterator) {
+        this.lookupIterator = lookupIterator;
     }
 
     /**
@@ -92,20 +96,11 @@ public class DataSetLookupRowMatcher implements DisposableBean, LookupRowMatcher
      */
     @PostConstruct
     private void init() {
-
-        final DataSetGet dataSetGet = context.getBean(DataSetGet.class, datasetId, true, true);
-
         LOGGER.debug("opening {}", datasetId);
-
-        this.input = dataSetGet.execute();
-        try {
-            JsonParser jsonParser = mapper.getFactory().createParser(input);
-            DataSet lookup = mapper.readerFor(DataSet.class).readValue(jsonParser);
-            this.lookupIterator = lookup.getRecords().iterator();
-            this.emptyRow = getEmptyRow(lookup.getMetadata().getRowMetadata().getColumns());
-        } catch (IOException e) {
-            throw new TDPException(TransformationErrorCodes.UNABLE_TO_READ_LOOKUP_DATASET, e);
-        }
+        DataSet lookup = datasetClient.getDataSet(datasetId, true);
+        records = lookup.getRecords();
+        this.lookupIterator = records.iterator();
+        this.emptyRow = getEmptyRow(lookup.getMetadata().getRowMetadata().getColumns());
     }
 
     /**
@@ -113,11 +108,7 @@ public class DataSetLookupRowMatcher implements DisposableBean, LookupRowMatcher
      */
     @Override
     public void destroy() {
-        try {
-            input.close();
-        } catch (IOException e) {
-            LOGGER.warn("Error cleaning LookupRowMatcher", e);
-        }
+        records.close();
         LOGGER.debug("connection to {} closed", datasetId);
     }
 
@@ -142,19 +133,33 @@ public class DataSetLookupRowMatcher implements DisposableBean, LookupRowMatcher
         }
 
         // if the value is not cached, let's update the cache
+        List<ColumnMetadata> filteredColumns = null;
         while (lookupIterator.hasNext()) {
             DataSetRow nextRow = lookupIterator.next();
             final String nextRowJoinValue = nextRow.get(joinOn);
 
             // update the cache no matter what so that the next joinValue may be already cached !
+            if (filteredColumns == null) {
+                final List<String> selectedColumnIds = selectedColumns
+                        .stream() //
+                        .map(LookupSelectedColumnParameter::getId) //
+                        .collect(Collectors.toList());
+                filteredColumns = nextRow
+                        .getRowMetadata() //
+                        .getColumns() //
+                        .stream() //
+                        .filter(c -> !joinOnColumn.equals(c.getId()) && selectedColumnIds.contains(c.getId())) //
+                        .collect(Collectors.toList());
+            }
+
             if (!cache.containsKey(nextRowJoinValue)) {
-                cache.put(nextRowJoinValue, nextRow.clone());
+                cache.put(nextRowJoinValue, nextRow.filter(filteredColumns).clone());
                 LOGGER.trace("row found and cached for {} -> {}", nextRowJoinValue, nextRow.values());
             }
 
             // if matching row is found, let's stop here
             if (StringUtils.equals(joinValue, nextRowJoinValue)) {
-                return nextRow;
+                return cache.get(nextRowJoinValue);
             }
         }
 

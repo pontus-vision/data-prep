@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -22,16 +22,12 @@ import BOOTSTRAP_MODAL from 'angular-ui-bootstrap/src/modal/index-nocss';
 import TalendBadge from './badge/widget-badge-component';
 import ResizableInput from './resizable-input/resizable-input-directive';
 import TalendButtonDropdown from './button-dropdown/widget-button-dropdown-directive';
-import TalendButtonLoader from './button-loader/widget-button-loader-directive';
 import TalendButtonSwitch from './button-switch/widget-button-switch-directive';
 import BoxplotChart from './charts/boxplot-chart/boxplot-chart-directive';
 import HorizontalBarchart from './charts/horizontal-barchart/horizontal-barchart-directive';
 import RangeSliderCtrl from './charts/range-slider/range-slider-controller';
 import RangeSlider from './charts/range-slider/range-slider-directive';
 import VerticalBarchart from './charts/vertical-barchart/vertical-barchart-directive';
-import TalendConfirmService from './confirm/widget-confirm-service';
-import TalendConfirmCtrl from './confirm/widget-confirm-controller';
-import TalendConfirm from './confirm/widget-confirm-directive';
 import TalendDatetimePicker from './datetimepicker/widget-datetimepicker-directive';
 import TalendDropdown from './dropdown/widget-dropdown-directive';
 import TalendEditableRegexCtrl from './editable-regex/widget-editable-regex-controller';
@@ -70,8 +66,6 @@ angular.module(MODULE_NAME, [
 
     .directive('talendButtonDropdown', TalendButtonDropdown)
 
-    .directive('talendButtonLoader', TalendButtonLoader)
-
     .directive('talendButtonSwitch', TalendButtonSwitch)
 
     .directive('boxplotChart', BoxplotChart)
@@ -79,10 +73,6 @@ angular.module(MODULE_NAME, [
     .controller('RangeSliderCtrl', RangeSliderCtrl)
     .directive('rangeSlider', RangeSlider)
     .directive('verticalBarchart', VerticalBarchart)
-
-    .service('TalendConfirmService', TalendConfirmService)
-    .controller('TalendConfirmCtrl', TalendConfirmCtrl)
-    .directive('talendConfirm', TalendConfirm)
 
     .directive('talendDatetimePicker', TalendDatetimePicker)
 

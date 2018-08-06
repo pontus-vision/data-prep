@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -16,7 +16,7 @@ import settings from '../../../../mocks/Settings.mock';
 
 const preparations = [
 	{
-		id: '1',
+		id: 1,
 		type: 'preparation',
 		name: 'JSO prep 1',
 		author: 'jsomsanith',
@@ -40,9 +40,10 @@ const preparations = [
 			],
 			actions: [],
 		},
+		className: 'list-item-preparation',
 	},
 	{
-		id: '2',
+		id: 2,
 		type: 'preparation',
 		name: 'JSO prep 2',
 		author: 'jsomsanith',
@@ -65,12 +66,13 @@ const preparations = [
 			],
 			actions: [],
 		},
+		className: 'list-item-preparation',
 	},
 ];
 
 const folders = [
 	{
-		id: 'Lw==',
+		id: 3,
 		type: 'folder',
 		name: 'JSO folder 1',
 		author: 'jsomsanith',
@@ -86,9 +88,10 @@ const folders = [
 			creationDate: 1495305349058340,
 			lastModificationDate: 1495305349058340,
 		},
+		className: 'list-item-folder',
 	},
 	{
-		id: 'Lw==2',
+		id: 4,
 		type: 'folder',
 		name: 'JSO folder 2',
 		author: 'jsomsanith',
@@ -104,12 +107,13 @@ const folders = [
 			creationDate: 1495305349058340,
 			lastModificationDate: 1495305349058340,
 		},
+		className: 'list-item-folder',
 	},
 ];
 
 const datasets = [
 	{
-		id: '1',
+		id: 5,
 		type: 'dataset',
 		name: 'AMAA dataset 1',
 		author: 'amaalej',
@@ -128,6 +132,7 @@ const datasets = [
 			lastModificationDate: 1427447300300,
 			actions: [],
 		},
+		className: 'list-item-dataset',
 	}
 ];
 
@@ -175,7 +180,7 @@ describe('Inventory list container', () => {
 	}));
 
 	describe('render', () => {
-		beforeEach(() => {
+		beforeEach(()=> {
 			// given
 			scope.displayMode = 'table';
 			scope.sortBy = 'name';
@@ -184,41 +189,31 @@ describe('Inventory list container', () => {
 
 			// when
 			createElement();
+			scope.isLoading = false;
 			scope.items = preparations;
 			scope.folders = folders;
 			scope.$digest();
 		});
 
-		it('should render loader', () => {
-			// when
-			scope.isLoading = true;
-			scope.$digest();
-
+		it('should render folders', inject(()=> {
 			// then
-			expect(element.find('.fetch-loader').length).toBe(1);
-			expect(element.find('.tc-list-display-table').length).toBe(0);
-		});
+			const rows = element.find('.list-item-folder');
+			expect(rows.length).toBe(2);
 
-		it('should render toolbar', () => {
-			// then
-			expect(element.find('div[role="toolbar"]').length).toBe(1);
-		});
+			expect(rows.eq(0).find('button').eq(0).text()).toBe('JSO folder 1');
+			expect(rows.eq(1).find('button').eq(0).text()).toBe('JSO folder 2');
 
-		it('should render folders', () => {
-			// then
-			const rows = element.find('.tc-list-display-table').eq(0).find('tbody tr');
-			expect(rows.length).toBe(4);
-			expect(rows.eq(0).find('td').eq(0).text()).toBe('JSO folder 1');
-			expect(rows.eq(1).find('td').eq(0).text()).toBe('JSO folder 2');
-		});
+		}));
 
-		it('should render preparations', () => {
+		it('should render preparations', inject(() => {
 			// then
-			const rows = element.find('.tc-list-display-table').eq(0).find('tbody tr');
-			expect(rows.length).toBe(4);
-			expect(rows.eq(2).find('td').eq(0).text()).toBe('JSO prep 1');
-			expect(rows.eq(3).find('td').eq(0).text()).toBe('JSO prep 2');
-		});
+			const rows = element.find('.list-item-preparation');
+			expect(rows.length).toBe(2);
+
+			expect(rows.eq(0).find('button').eq(0).text()).toBe('JSO prep 1');
+			expect(rows.eq(1).find('button').eq(0).text()).toBe('JSO prep 2');
+
+		}));
 	});
 
 	describe('folder actions', () => {
@@ -231,6 +226,7 @@ describe('Inventory list container', () => {
 
 			// when
 			createElement();
+			scope.isLoading = false;
 			scope.items = preparations;
 			scope.folders = folders;
 			scope.$digest();
@@ -240,7 +236,6 @@ describe('Inventory list container', () => {
 			inject((SettingsActionsService) => {
 				// given
 				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
-
 				// when
 				element.find('#list-actions-preparation\\:folder\\:create').click();
 
@@ -258,7 +253,7 @@ describe('Inventory list container', () => {
 				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
 
 				// when
-				element.find('#list-0-title').click();
+				element.find('#list-0-title-cell-btn').click();
 
 				// then
 				expect(SettingsActionsService.dispatch.calls.count()).toBe(2);
@@ -269,38 +264,18 @@ describe('Inventory list container', () => {
 			})
 		);
 
-		it('should dispatch folder edit on action click',
-			inject((SettingsActionsService) => {
-				// given
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
-
-				// when
-				element.find('#list-0-inventory\\:edit').click();
-
+		it('should have edit action for folder',
+			() => {
 				// then
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(2);
-				const lastCallArgs = SettingsActionsService.dispatch.calls.argsFor(1)[0];
-				expect(lastCallArgs.id).toBe('inventory:edit');
-				expect(lastCallArgs.type).toBe('@@inventory/EDIT');
-				expect(lastCallArgs.payload.model).toBe(folders[0].model);
-			})
+				expect(element.find('#list-0-inventory\\:edit').length).toBe(1);
+			}
 		);
 
-		it('should dispatch folder remove on action click',
-			inject((SettingsActionsService) => {
-				// given
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
-
-				// when
-				element.find('#list-0-preparation\\:folder\\:remove').click();
-
+		it('should have remove action for folder',
+			() => {
 				// then
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(2);
-				const lastCallArgs = SettingsActionsService.dispatch.calls.argsFor(1)[0];
-				expect(lastCallArgs.id).toBe('preparation:folder:remove');
-				expect(lastCallArgs.type).toBe('@@preparation/FOLDER_REMOVE');
-				expect(lastCallArgs.payload.model).toBe(folders[0].model);
-			})
+				expect(element.find('#list-0-preparation\\:folder\\:remove').length).toBe(1);
+			}
 		);
 	});
 
@@ -314,6 +289,7 @@ describe('Inventory list container', () => {
 
 			// when
 			createElement();
+			scope.isLoading = false;
 			scope.items = preparations;
 			scope.folders = folders;
 			scope.$digest();
@@ -335,55 +311,25 @@ describe('Inventory list container', () => {
 			})
 		);
 
-		it('should dispatch preparation edit on action click',
-			inject((SettingsActionsService) => {
-				// given
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
-
+		it('should have edit action for preparation',
+			() => {
 				// when
-				element.find('#list-2-inventory\\:edit').click();
-
-				// then
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(2);
-				const lastCallArgs = SettingsActionsService.dispatch.calls.argsFor(1)[0];
-				expect(lastCallArgs.id).toBe('inventory:edit');
-				expect(lastCallArgs.type).toBe('@@inventory/EDIT');
-				expect(lastCallArgs.payload.model).toBe(preparations[0].model);
-			})
+				expect(element.find('#list-2-inventory\\:edit').length).toBe(1);
+			}
 		);
 
-		it('should dispatch preparation copy/move on action click',
-			inject((SettingsActionsService) => {
-				// given
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
-
-				// when
-				element.find('#list-2-preparation\\:copy-move').click();
-
+		it('should have copy/move action for preparation',
+			() => {
 				// then
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(2);
-				const lastCallArgs = SettingsActionsService.dispatch.calls.argsFor(1)[0];
-				expect(lastCallArgs.id).toBe('preparation:copy-move');
-				expect(lastCallArgs.type).toBe('@@preparation/COPY_MOVE');
-				expect(lastCallArgs.payload.model).toBe(preparations[0].model);
-			})
+				expect(element.find('#list-2-preparation\\:copy-move').length).toBe(1);
+			}
 		);
 
-		it('should dispatch preparation remove on action click',
-			inject((SettingsActionsService) => {
-				// given
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
-
-				// when
-				element.find('#list-2-preparation\\:remove').click();
-
+		it('should have remove action for preparation',
+			() => {
 				// then
-				expect(SettingsActionsService.dispatch.calls.count()).toBe(2);
-				const lastCallArgs = SettingsActionsService.dispatch.calls.argsFor(1)[0];
-				expect(lastCallArgs.id).toBe('preparation:remove');
-				expect(lastCallArgs.type).toBe('@@preparation/REMOVE');
-				expect(lastCallArgs.payload.model).toBe(preparations[0].model);
-			})
+				expect(element.find('#list-2-preparation\\:remove').length).toBe(1);
+			}
 		);
 
 		it('should dispatch preparation playground on title click',
@@ -392,7 +338,7 @@ describe('Inventory list container', () => {
 				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
 
 				// when
-				element.find('#list-2-title').click();
+				element.find('#list-2-title-cell-btn').click();
 
 				// then
 				expect(SettingsActionsService.dispatch.calls.count()).toBe(2);
@@ -409,7 +355,7 @@ describe('Inventory list container', () => {
 				expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
 
 				// when
-				element.find('#list-sort-order')[0].click();
+				element.find('.tc-list-cell-name').eq(0).click();
 
 				// then
 				expect(SettingsActionsService.dispatch.calls.count()).toBe(2);
@@ -426,7 +372,7 @@ describe('Inventory list container', () => {
 			expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
 
 			// when
-			element.find('thead tr th button').eq(0).click();
+			element.find('.tc-list-cell-name').eq(0).click();
 
 			// then
 			const lastCallArgs = SettingsActionsService.dispatch.calls.argsFor(1)[0];
@@ -445,14 +391,14 @@ describe('Inventory list container', () => {
 
 			// when
 			createElement();
+			scope.isLoading = false;
 			scope.items = datasets;
 			scope.$digest();
 		});
 
 		it('should render favorite action', () => {
 			// then
-			const rows = element.find('.tc-list-display-table').eq(0).find('tbody tr');
-			expect(rows.eq(0).find('td').eq(1).find('#list-0-dataset\\:favorite').length).toBe(1);
+			expect(element.find('#list-0-dataset\\:favorite').length).toBe(1);
 		});
 
 		it('should dispatch favorite toggle', inject((SettingsActionsService) => {
@@ -473,7 +419,7 @@ describe('Inventory list container', () => {
 			expect(SettingsActionsService.dispatch.calls.count()).toBe(1);
 
 			// when
-			element.find('thead tr th button').eq(0).click();
+			element.find('.tc-list-cell-name').eq(0).click();
 
 			// then
 			const lastCallArgs = SettingsActionsService.dispatch.calls.argsFor(1)[0];
@@ -483,11 +429,11 @@ describe('Inventory list container', () => {
 
  		it('should have an invisible and screen reader compatible header', inject(() => {
 			// when
-			const actionsHeaderChildren = element.find('thead tr th').eq(1).children();
+			const actionsHeaderChildren = element.find('.tc-list-cell-statusActions');
 
 			// then
-			expect(actionsHeaderChildren.length).toBe(1);
-			expect(actionsHeaderChildren[0].tagName).toBe('SPAN');
+			expect(actionsHeaderChildren.length).toBe(2);
+			expect(actionsHeaderChildren[0].tagName).toBe('DIV');
 			expect(actionsHeaderChildren.hasClass('sr-only'));
  		}));
 	});

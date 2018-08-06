@@ -1,5 +1,5 @@
 // ============================================================================
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -21,12 +21,15 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.RowMetadata;
-import org.talend.dataprep.api.preparation.PreparationMessage;
-import org.talend.dataprep.api.preparation.Step;
+import org.talend.dataprep.api.preparation.PreparationDTO;
+import org.talend.dataprep.cache.CacheKeyGenerator;
 import org.talend.dataprep.cache.ContentCache;
+import org.talend.dataprep.cache.TransformationMetadataCacheKey;
 import org.talend.dataprep.dataset.StatisticsAdapter;
 import org.talend.dataprep.quality.AnalyzerService;
 import org.talend.dataprep.transformation.api.action.ActionParser;
@@ -35,11 +38,10 @@ import org.talend.dataprep.transformation.api.transformer.ExecutableTransformer;
 import org.talend.dataprep.transformation.api.transformer.Transformer;
 import org.talend.dataprep.transformation.api.transformer.TransformerWriter;
 import org.talend.dataprep.transformation.api.transformer.configuration.Configuration;
-import org.talend.dataprep.transformation.cache.CacheKeyGenerator;
-import org.talend.dataprep.transformation.cache.TransformationMetadataCacheKey;
 import org.talend.dataprep.transformation.format.WriterRegistrationService;
 import org.talend.dataprep.transformation.pipeline.ActionRegistry;
 import org.talend.dataprep.transformation.pipeline.Pipeline;
+import org.talend.dataprep.transformation.pipeline.RowMetadataFallbackProvider;
 import org.talend.dataprep.transformation.pipeline.Signal;
 import org.talend.dataprep.transformation.pipeline.model.WriterNode;
 import org.talend.dataprep.transformation.service.StepMetadataRepository;
@@ -75,25 +77,34 @@ public class PipelineTransformer implements Transformer {
     private TransformationRowMetadataUtils transformationRowMetadataUtils;
 
     @Autowired
-    private StepMetadataRepository preparationUpdater;
+    private StepMetadataRepository stepMetadataRepository;
+
+    @Autowired
+    private Optional<Tracer> tracer;
 
     @Override
     public ExecutableTransformer buildExecutable(DataSet input, Configuration configuration) {
+
         final RowMetadata rowMetadata = input.getMetadata().getRowMetadata();
 
         // prepare the fallback row metadata
-        RowMetadata fallBackRowMetadata = transformationRowMetadataUtils.getMatchingEmptyRowMetadata(rowMetadata);
+        RowMetadataFallbackProvider rowMetadataFallbackProvider = new RowMetadataFallbackProvider(rowMetadata);
 
-        final TransformerWriter writer = writerRegistrationService.getWriter(configuration.formatId(), configuration.output(),
-                configuration.getArguments());
+        final TransformerWriter writer = writerRegistrationService.getWriter(configuration.formatId(),
+                configuration.output(), configuration.getArguments());
         final ConfiguredCacheWriter metadataWriter = new ConfiguredCacheWriter(contentCache, DEFAULT);
-        final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator.generateMetadataKey(configuration.getPreparationId(),
-                configuration.stepId(), configuration.getSourceType());
-        final PreparationMessage preparation = configuration.getPreparation();
-        final Function<Step, RowMetadata> rowMetadataSupplier = s -> Optional.ofNullable(s.getRowMetadata()) //
-                .map(id -> preparationUpdater.get(id)) //
+        final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator.generateMetadataKey(
+                configuration.getPreparationId(), configuration.stepId(), configuration.getSourceType());
+        final PreparationDTO preparation = configuration.getPreparation();
+        // function that from a step gives the rowMetadata associated to the previous/parent step
+        final Function<String, RowMetadata> stepRowMetadataSupplier = s -> Optional
+                .ofNullable(s) //
+                .map(id -> stepMetadataRepository.get(id)) //
                 .orElse(null);
-        final Pipeline pipeline = Pipeline.Builder.builder() //
+
+        final Pipeline pipeline = Pipeline.Builder
+                .builder() //
+                .withRowMetadataFallbackProvider(rowMetadataFallbackProvider) //
                 .withAnalyzerService(analyzerService) //
                 .withActionRegistry(actionRegistry) //
                 .withPreparation(preparation) //
@@ -103,9 +114,9 @@ public class PipelineTransformer implements Transformer {
                 .withFilter(configuration.getFilter()) //
                 .withLimit(configuration.getLimit()) //
                 .withFilterOut(configuration.getOutFilter()) //
-                .withOutput(() -> new WriterNode(writer, metadataWriter, metadataKey, fallBackRowMetadata)) //
+                .withOutput(() -> new WriterNode(writer, metadataWriter, metadataKey, rowMetadataFallbackProvider)) //
                 .withStatisticsAdapter(adapter) //
-                .withStepMetadataSupplier(rowMetadataSupplier) //
+                .withStepMetadataSupplier(stepRowMetadataSupplier) //
                 .withGlobalStatistics(configuration.isGlobalStatistics()) //
                 .allowMetadataChange(configuration.isAllowMetadataChange()) //
                 .build();
@@ -115,15 +126,22 @@ public class PipelineTransformer implements Transformer {
 
             @Override
             public void execute() {
+                final Optional<Span> span = tracer.map(t -> {
+                    final Span pipelineSpan = t.createSpan("transformer-pipeline");
+                    pipelineSpan.tag("preparation id", configuration.getPreparationId());
+                    pipelineSpan.tag("arguments", configuration.getArguments().toString());
+                    return pipelineSpan;
+                });
                 try {
                     LOGGER.debug("Before transformation: {}", pipeline);
                     pipeline.execute(input);
                 } finally {
                     LOGGER.debug("After transformation: {}", pipeline);
+                    span.ifPresent(s -> tracer.ifPresent(t -> t.close(s)));
                 }
 
                 if (preparation != null) {
-                    final UpdatedStepVisitor visitor = new UpdatedStepVisitor(preparationUpdater);
+                    final UpdatedStepVisitor visitor = new UpdatedStepVisitor(stepMetadataRepository);
                     pipeline.accept(visitor);
                 }
             }

@@ -1,6 +1,6 @@
 //  ============================================================================
 //
-//  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 //  This source code is available under agreement available at
 //  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,16 +13,6 @@
 
 package org.talend.dataprep.transformation.actions.math;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
-import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
-import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
-import static org.talend.dataprep.transformation.actions.math.ChangeNumberFormat.*;
-
-import java.io.IOException;
-import java.util.*;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.dataprep.api.action.ActionDefinition;
@@ -32,19 +22,31 @@ import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.ActionMetadataTestUtils;
 import org.talend.dataprep.transformation.actions.category.ActionCategory;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
+
+import java.io.IOException;
+import java.util.*;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
+import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
+import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getRow;
+import static org.talend.dataprep.transformation.actions.math.ChangeNumberFormat.*;
 
 /**
  * Unit test for the ChangeNumberFormat action.
  *
  * @see ChangeNumberFormat
  */
-public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private ChangeNumberFormat action = new ChangeNumberFormat();
+public class ChangeNumberFormatTest extends AbstractMetadataBaseTest<ChangeNumberFormat> {
 
     private Map<String, String> parameters;
+
+    public ChangeNumberFormatTest() {
+        super(new ChangeNumberFormat());
+    }
 
     @Before
     public void init() throws IOException {
@@ -59,7 +61,7 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testParameters() throws Exception {
-        assertThat(action.getParameters().size(), is(6));
+        assertThat(action.getParameters(Locale.US).size(), is(7));
     }
 
     @Test
@@ -67,6 +69,11 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
         assertThat(action.adapt((ColumnMetadata) null), is(action));
         ColumnMetadata column = column().name("myColumn").id(0).type(Type.STRING).build();
         assertThat(action.adapt(column), is(action));
+    }
+
+    @Override
+    public CreateNewColumnPolicy getCreateNewColumnPolicy() {
+        return CreateNewColumnPolicy.VISIBLE_DISABLED;
     }
 
     @Test
@@ -78,11 +85,63 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.NUMBERS.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.NUMBERS.getDisplayName(Locale.US)));
     }
 
     @Test
-    public void should_process_row_US() throws Exception {
+    public void should_accept_column() {
+        assertTrue(action.acceptField(getColumn(Type.NUMERIC)));
+    }
+
+    @Test
+    public void should_not_accept_column() {
+        assertFalse(action.acceptField(getColumn(Type.DATE)));
+        assertFalse(action.acceptField(getColumn(Type.STRING)));
+        assertFalse(action.acceptField(getColumn(Type.BOOLEAN)));
+    }
+
+    @Test
+    public void should_have_expected_behavior() {
+        assertEquals(1, action.getBehavior().size());
+        assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.VALUES_COLUMN));
+    }
+
+    @Test
+    public void test_apply_in_newcolumn() throws Exception {
+        // given
+        final DataSetRow row = getRow("toto", "0012.50", "tata");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        final DataSetRow expectedRow = getRow("toto", "0012.50", "tata", "12.5");
+        assertEquals(expectedRow.values(), row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0001_formatted").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_in_newcolumn_with_empty_value() throws Exception {
+        // given
+        final DataSetRow row = getRow("toto", "", "tata");
+        parameters.put(ActionsUtils.CREATE_NEW_COLUMN, "true");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        final DataSetRow expectedRow = getRow("toto", "", "tata", "");
+        assertEquals(expectedRow.values(), row.values());
+        ColumnMetadata expected = ColumnMetadata.Builder.column().id(3).name("0001_formatted").type(Type.STRING).build();
+        ColumnMetadata actual = row.getRowMetadata().getById("0003");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void test_apply_inplace() throws Exception {
         // given
         final DataSetRow row = getRow("toto", "0012.50", "tata");
 
@@ -91,6 +150,19 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
 
         // then
         final DataSetRow expectedRow = getRow("toto", "12.5", "tata");
+        assertEquals(expectedRow.values(), row.values());
+    }
+
+    @Test
+    public void should_process_row_percentage() throws Exception {
+        // given
+        final DataSetRow row = getRow("toto", "12.50%", "tata");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        final DataSetRow expectedRow = getRow("toto", "0.12", "tata");
         assertEquals(expectedRow.values(), row.values());
     }
 
@@ -199,6 +271,34 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
     }
 
     @Test
+    public void should_do_nothing_from_wrong_pattern() throws Exception {
+        // given
+        final DataSetRow row = getRow("toto", "1'012.50", "tata");
+        parameters.put(TARGET_PATTERN, "wrong_pattern");
+
+        // when --> IllegalArgumentException
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        final DataSetRow expectedRow = getRow("toto", "1'012.50", "tata");
+        assertEquals(expectedRow.values(), row.values());
+    }
+
+    @Test
+    public void should_do_nothing_from_wrong_custom_separator() throws Exception {
+        // given
+        final DataSetRow row = getRow("toto", "1'012.50", "tata");
+        parameters.put(FROM_SEPARATORS, CUSTOM);
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        final DataSetRow expectedRow = getRow("toto", "1'012.50", "tata");
+        assertEquals(expectedRow.values(), row.values());
+    }
+
+    @Test
     public void should_process_row_from_CH_2() throws Exception {
         // given
         final DataSetRow row = getRow("toto", "1'012.50", "tata");
@@ -255,23 +355,33 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
 
     @Test
     public void should_process_row_alt_pattern() throws Exception {
-        final Locale previous = Locale.getDefault();
-        try {
-            // given
-            Locale.setDefault(Locale.US);
-            final DataSetRow row = getRow("toto", "0012", "tata");
-            parameters.put(TARGET_PATTERN, CUSTOM);
-            parameters.put(TARGET_PATTERN + "_" + CUSTOM, "#.000");
+        // given
+        final DataSetRow row = getRow("toto", "0012", "tata");
+        parameters.put(TARGET_PATTERN, CUSTOM);
+        parameters.put(TARGET_PATTERN + "_" + CUSTOM, "#.000");
 
-            // when
-            ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
-            // then
-            final DataSetRow expectedRow = getRow("toto", "12.000", "tata");
-            assertEquals(expectedRow.values(), row.values());
-        } finally {
-            Locale.setDefault(previous);
-        }
+        // then
+        final DataSetRow expectedRow = getRow("toto", "12.000", "tata");
+        assertEquals(expectedRow.values(), row.values());
+
+    }
+
+    @Test
+    public void should_process_row_alt_pattern_percentage() throws Exception {
+        // given
+        final DataSetRow row = getRow("toto", "0.12", "tata");
+        parameters.put(TARGET_PATTERN, CUSTOM);
+        parameters.put(TARGET_PATTERN + "_" + CUSTOM, "#%");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        final DataSetRow expectedRow = getRow("toto", "12%", "tata");
+        assertEquals(expectedRow.values(), row.values());
     }
 
     @Test
@@ -360,23 +470,17 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
 
     @Test
     public void test_TDP_1108_empty_pattern() throws Exception {
-        final Locale previous = Locale.getDefault();
-        try {
-            // given
-            Locale.setDefault(Locale.US);
-            final DataSetRow row = getRow("toto", "012.50", "tata");
-            parameters.put(TARGET_PATTERN, "custom");
-            parameters.put(TARGET_PATTERN + "_" + CUSTOM, "");
+        // given
+        final DataSetRow row = getRow("toto", "012.50", "tata");
+        parameters.put(TARGET_PATTERN, "custom");
+        parameters.put(TARGET_PATTERN + "_" + CUSTOM, "");
 
-            // when
-            ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
-            // then
-            final DataSetRow expectedRow = getRow("toto", "12.5", "tata");
-            assertEquals(expectedRow.values(), row.values());
-        } finally {
-            Locale.setDefault(previous);
-        }
+        // then
+        final DataSetRow expectedRow = getRow("toto", "12.5", "tata");
+        assertEquals(expectedRow.values(), row.values());
     }
 
     @Test
@@ -396,7 +500,6 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
      * Format number does not work if there is a null or an invalid in the column.
      * Values after a null or an invalid value (which is not a number) were not formatted by the transformation.
      * Have look at https://jira.talendforge.org/browse/TDP-1361
-     * @throws Exception
      */
     @Test
     public void TDP_1361() throws Exception {
@@ -418,24 +521,6 @@ public class ChangeNumberFormatTest extends AbstractMetadataBaseTest {
         assertEquals(expectedRow1.values(), row1.values());
         assertEquals(expectedRow2.values(), row2.values());
         assertEquals(expectedRow3.values(), row3.values());
-    }
-
-    @Test
-    public void should_accept_column() {
-        assertTrue(action.acceptField(getColumn(Type.NUMERIC)));
-    }
-
-    @Test
-    public void should_not_accept_column() {
-        assertFalse(action.acceptField(getColumn(Type.DATE)));
-        assertFalse(action.acceptField(getColumn(Type.STRING)));
-        assertFalse(action.acceptField(getColumn(Type.BOOLEAN)));
-    }
-
-    @Test
-    public void should_have_expected_behavior() {
-        assertEquals(1, action.getBehavior().size());
-        assertTrue(action.getBehavior().contains(ActionDefinition.Behavior.VALUES_COLUMN));
     }
 
 }

@@ -1,7 +1,7 @@
 <!--
   ~ ============================================================================
   ~
-  ~  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  ~  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
   ~
   ~  This source code is available under agreement available at
   ~  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -23,7 +23,10 @@
               title="{{editableTextCtrl.textTitle}}"
               ng-click="editableTextCtrl.onTextClick({event: $event})"
               ng-bind="editableTextCtrl.text"></span>
-        <button class="btn btn-link edit-btn" data-icon="a" ng-click="editableTextCtrl.edit()"></button>
+        <button class="btn btn-link edit-btn"
+                data-icon="a"
+                data-feature="preparation.playground.rename"
+                ng-click="editableTextCtrl.edit()"></button>
     </div>
 
     <form class="editable-text-container" ng-show="editableTextCtrl.editionMode" ng-submit="editableTextCtrl.validate()">

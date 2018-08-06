@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import 'moment';
 import moment from 'moment-jdateformatparser';
 
 const SPECIAL_JAVA_PATTERNS = [
@@ -148,7 +147,7 @@ function patternOccurrenceWorker(parameters) {
 		patternFrequency.filteredOccurrences = !filteredRecords ?
 			patternFrequency.occurrences :
 			_.chain(filteredRecords)
-				.pluck(columnId)
+				.map(columnId)
 				.filter(matchingFn)
 				.groupBy(value => value)
 				.mapValues('length')

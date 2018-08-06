@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -22,6 +22,8 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.talend.dataprep.api.service.settings.actions.api.ActionSettings;
+import org.talend.dataprep.api.service.settings.context.api.ContextSettings;
+import org.talend.dataprep.api.service.settings.analytics.api.AnalyticsSettings;
 import org.talend.dataprep.api.service.settings.help.api.HelpSettings;
 import org.talend.dataprep.api.service.settings.uris.api.UriSettings;
 import org.talend.dataprep.api.service.settings.views.api.ViewSettings;
@@ -56,6 +58,18 @@ public class AppSettingsService {
     @Autowired(required = false)
     private AppSettingsConfigurer<HelpSettings>[] helpConfigurers;
 
+    @Autowired
+    private AppSettingsProvider<ContextSettings>[] contextProviders;
+
+    @Autowired(required = false)
+    private AppSettingsConfigurer<ContextSettings>[] contextConfigurers;
+
+    @Autowired
+    private AppSettingsProvider<AnalyticsSettings>[] analyticsProviders;
+
+    @Autowired(required = false)
+    private AppSettingsConfigurer<AnalyticsSettings>[] analyticsConfigurers;
+
     public AppSettingsConfigurer<ActionSettings>[] getActionsConfigurers() {
         return actionsConfigurers;
     }
@@ -73,10 +87,12 @@ public class AppSettingsService {
         // populate appSettings actions dictionary (key: actionId, value: action)
         getSettingsStream(actionsProviders, actionsConfigurers) //
                 .filter(ActionSettings::isEnabled)
+                .map(ActionSettings::translate)
                 .forEach(action -> appSettings.getActions().put(action.getId(), action));
 
         // populate appSettings views dictionary (key: viewId, value: view)
         getSettingsStream(viewsProviders, viewsConfigurers) //
+                .map(ViewSettings::translate)
                 .forEach(view -> appSettings.getViews().put(view.getId(), view));
 
         // populate appSettings uris (key: uriName, value: uriValue)
@@ -86,6 +102,14 @@ public class AppSettingsService {
         // populate appSettings documentation (key: documentationProperty, value: documentationValue)
         getSettingsStream(helpProviders, helpConfigurers) //
                 .forEach(help -> appSettings.getHelp().put(help.getId(), help.getValue()));
+
+        // populate appSettings context (key: contextProperty, value: contextValue)
+        getSettingsStream(contextProviders, contextConfigurers) //
+                .forEach(context -> appSettings.getContext().put(context.getId(), context.getValue()));
+
+        // populate appSettings analytics
+        getSettingsStream(analyticsProviders, analyticsConfigurers) //
+                .forEach(analytics -> appSettings.getAnalytics().put(analytics.getId(), analytics.getValue()));
 
         return appSettings;
     }
@@ -112,20 +136,21 @@ public class AppSettingsService {
     /**
      * Get all the configured settings as a stream
      *
-     * @param providers   The array of settings providers
+     * @param providers The array of settings providers
      * @param configurers The array of settings configurers
      * @param <T> ActionSettings | ViewSettings
      * @return The stream of configured settings
      */
     private <T> Stream<T> getSettingsStream(final AppSettingsProvider<T>[] providers,
-                                            final AppSettingsConfigurer<T>[] configurers) {
+            final AppSettingsConfigurer<T>[] configurers) {
         // build a stream
         // * from static actions
         // * each action goes through all the actions configurers
         Stream<T> settingsStream = getStaticSettingsStream(providers);
         if (configurers != null) {
             for (final AppSettingsConfigurer<T> configurer : configurers) {
-                settingsStream = settingsStream.map(configure(configurer));
+                settingsStream = settingsStream //
+                        .map(configure(configurer)); //
             }
         }
         return settingsStream;

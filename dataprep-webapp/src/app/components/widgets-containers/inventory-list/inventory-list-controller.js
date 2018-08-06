@@ -1,6 +1,6 @@
 /*  ============================================================================
 
- Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+ Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
  This source code is available under agreement available at
  https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -11,18 +11,23 @@
 
  ============================================================================*/
 
-const NO_OP = () => {};
+const NO_OP = () => {
+};
 const DROPDOWN_ACTION = 'dropdown';
 const SPLITDROPDOWN_ACTION = 'splitDropdown';
 const ACTION_TYPE = 'actions';
+const LOADING_TIMEOUT_VALUE = 400;
 
 export default class InventoryListCtrl {
-	constructor($element, $translate, appSettings, SettingsActionsService, state) {
+	constructor($element, $translate, $timeout, appSettings, state, InventoryListService, SettingsActionsService, StateService) {
 		'ngInject';
 
 		this.$element = $element;
 		this.$translate = $translate;
+		this.$timeout = $timeout;
 		this.appSettings = appSettings;
+		this.stateService = StateService;
+		this.InventoryListService = InventoryListService;
 		this.SettingsActionsService = SettingsActionsService;
 		this.state = state;
 
@@ -39,6 +44,7 @@ export default class InventoryListCtrl {
 			const action = this.appSettings.actions[didMountActionCreator];
 			this.SettingsActionsService.dispatch(action);
 		}
+		this._setLoading(true);
 	}
 
 	$postLink() {
@@ -62,6 +68,24 @@ export default class InventoryListCtrl {
 			this.toolbarProps = this.changeSort(this.toolbarProps, field, isDescending);
 			this.listProps = this.changeSort(this.listProps, field, isDescending);
 		}
+		if (changes.isLoading) {
+			if (this.isLoading) {
+				this.loadingTimeout = this.$timeout(() => {
+					this._setLoading(true);
+				}, LOADING_TIMEOUT_VALUE);
+			}
+			else {
+				this.$timeout.cancel(this.loadingTimeout);
+				this._setLoading(false);
+			}
+		}
+	}
+
+	_setLoading(bool) {
+		this.listProps = {
+			...this.listProps,
+			inProgress: bool,
+		};
 	}
 
 	changeSort(subProps, field, isDescending) {
@@ -97,6 +121,7 @@ export default class InventoryListCtrl {
 			...listSettings,
 			titleProps: this.getListTitleProps(listSettings.titleProps),
 			sort: this.getSortProps(listSettings.sort),
+			inProgress: this.isLoading,
 		};
 	}
 
@@ -158,12 +183,16 @@ export default class InventoryListCtrl {
 			};
 		}
 
-		return {
+		const titleProps = {
 			...titleSettings,
 			onClick,
 			onEditCancel: this.getTitleActionDispatcher(this.viewKey, 'onEditCancel'),
 			onEditSubmit: this.getTitleActionDispatcher(this.viewKey, 'onEditSubmit'),
 		};
+
+		const listSettings = this.appSettings.views[this.viewKey].list;
+		const action = this.appSettings.actions[listSettings.titleProps.onClick];
+		return this.SettingsActionsService.adaptDataAttributes(titleProps, action);
 	}
 
 	getActionDispatcher(actionName) {
@@ -196,21 +225,24 @@ export default class InventoryListCtrl {
 		if (actionSettings.displayMode) {
 			baseAction.displayMode = actionSettings.displayMode;
 		}
-		return baseAction;
+		return this.SettingsActionsService.adaptDataAttributes(baseAction, actionSettings);
 	}
 
 	createDropdownItemAction(item, actionName) {
 		const itemOnClick = this.getActionDispatcher(actionName);
 		const itemAction = this.createBaseAction(actionName, true);
 		itemAction.onClick = event => itemOnClick(event, item);
-		return itemAction;
+		return this.SettingsActionsService.adaptDataAttributes(itemAction);
 	}
 
 	createDropdownActions(items, actionName) {
 		return items.map((item) => {
 			const itemAction = this.createDropdownItemAction(item, actionName);
 			itemAction.label = item.label || item.name;
-			return itemAction;
+			if (item.locationType) {
+				itemAction['data-feature'] = `dataset.${item.locationType}.add`;
+			}
+			return this.SettingsActionsService.adaptDataAttributes(itemAction);
 		});
 	}
 
@@ -227,7 +259,7 @@ export default class InventoryListCtrl {
 					// dropdown static actions are applied to the host model
 					// ex: dataset > "create new preparation action" is applied to the dataset
 					const staticActions = actionSettings.staticActions.map(
-						staticAction => this.createDropdownItemAction(hostModel, staticAction)
+						staticAction => this.createDropdownItemAction(hostModel, staticAction),
 					);
 					// dropdown dynamic action is the unique action on each item click
 					// ex: dataset > "open preparation x" is applied to "preparation x"
@@ -252,24 +284,34 @@ export default class InventoryListCtrl {
 	}
 
 	adaptItemActions(item, actions, index) {
-		const adaptedActions = this.adaptActions(actions, item);
-		adaptedActions.forEach((action) => {
-			action.id = `${this.id}-${index}-${action.id}`;
-		});
+		let adaptedActions = this.adaptActions(actions, item);
+		if (adaptedActions) {
+			adaptedActions = adaptedActions.map(action => ({
+				...action,
+				...this.InventoryListService.adaptAction(action, item),
+				id: `${this.id}-${index}-${action.id}`,
+			}));
+		}
 		return adaptedActions;
 	}
 
 	adaptItemsActions(items) {
 		const actionsColumns = this.listProps.columns.filter(column => column.type === ACTION_TYPE);
+		const persistentActionsKey = this.listProps.titleProps.persistentActionsKey;
 		return items.map((item, index) => {
-			const actions = this.adaptItemActions(item, item.actions, index);
 			const adaptedItem = {
 				...item,
-				actions,
+				actions: this.adaptItemActions(item, item.actions, index),
 			};
+
+			if (persistentActionsKey) {
+				adaptedItem[persistentActionsKey] = this.adaptItemActions(item, item[persistentActionsKey], index);
+			}
+
 			actionsColumns.forEach(({ key }) => {
 				adaptedItem[key] = this.adaptItemActions(item, item[key], index);
 			});
+
 			return adaptedItem;
 		});
 	}

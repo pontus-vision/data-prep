@@ -6,10 +6,7 @@ import static org.talend.dataprep.transformation.actions.AbstractMetadataBaseTes
 import static org.talend.dataprep.transformation.actions.ActionMetadataTestUtils.getColumn;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
@@ -29,10 +26,7 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see ClearMatching
  */
-public class ClearMatchingTest extends AbstractMetadataBaseTest {
-
-    /** The action to test. */
-    private ClearMatching action = new ClearMatching();
+public class ClearMatchingTest extends AbstractMetadataBaseTest<ClearMatching> {
 
     private Map<String, String> parameters;
 
@@ -40,6 +34,7 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest {
      * Default constructor.
      */
     public ClearMatchingTest() throws IOException {
+        super(new ClearMatching());
         parameters = ActionMetadataTestUtils
                 .parseParameters(ClearInvalidTest.class.getResourceAsStream("clearEqualsAction.json"));
     }
@@ -51,11 +46,21 @@ public class ClearMatchingTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() throws Exception {
-        assertThat(action.getCategory(), is(ActionCategory.DATA_CLEANSING.getDisplayName()));
+        assertThat(action.getCategory(Locale.US), is(ActionCategory.DATA_CLEANSING.getDisplayName(Locale.US)));
+    }
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.INVISIBLE_DISABLED;
     }
 
     @Test
-    public void should_clear_because_equals() throws Exception {
+    public void test_apply_in_newcolumn() throws Exception {
+        // Nothing to test, this action is always applied in place
+    }
+
+    @Test
+    public void test_apply_inplace() throws Exception {
         // given
         final Map<String, String> firstRowValues = new HashMap<>();
         firstRowValues.put("0000", "David Bowie");

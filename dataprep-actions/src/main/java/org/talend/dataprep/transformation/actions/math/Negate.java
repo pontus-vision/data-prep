@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,28 +15,24 @@ package org.talend.dataprep.transformation.actions.math;
 import static org.talend.daikon.number.BigDecimalParser.toBigDecimal;
 import static org.talend.dataprep.transformation.actions.math.Negate.NEGATE_NAME;
 
-import java.util.Map;
-
 import org.talend.dataprep.api.action.Action;
-import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
 /**
  * Create a new column with negate value
  */
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + NEGATE_NAME)
+@Action(NEGATE_NAME)
 public class Negate extends AbstractMathNoParameterAction {
 
-    protected static final String NEGATE_NAME = "negate_numbers";
+    public static final String NEGATE_NAME = "negate_numbers";
 
     @Override
     protected String calculateResult(String columnValue, ActionContext context) {
-        return Double.toString(-toBigDecimal(columnValue).doubleValue());
+        return toBigDecimal(columnValue).negate().toString();
     }
 
-    @Override
-    protected String getColumnNameSuffix(Map<String, String> parameters) {
-        return "negate";
+    protected String getSuffix(ActionContext context) {
+        return "_negate";
     }
 
     @Override

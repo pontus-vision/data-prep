@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -24,7 +24,7 @@ import org.talend.dataprep.api.service.settings.actions.api.ActionSettings;
 public interface SearchActions {
     ActionSettings SEARCH_TOGGLE = builder()
             .id("search:toggle")
-            .name("Toggle search input")
+            .name("search.toggle")
             .icon("talend-search")
             .type("@@search/TOGGLE")
             .build();

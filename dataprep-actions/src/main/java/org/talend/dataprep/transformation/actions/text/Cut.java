@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,34 +13,38 @@
 
 package org.talend.dataprep.transformation.actions.text;
 
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.talend.dataprep.api.type.Type.STRING;
+import static org.talend.dataprep.parameters.Parameter.parameter;
 import static org.talend.dataprep.parameters.ParameterType.REGEX;
 import static org.talend.dataprep.transformation.actions.category.ActionCategory.STRINGS;
+import static org.talend.dataprep.transformation.actions.common.ActionsUtils.getColumnCreationParameter;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.CANCELED;
+import static org.talend.dataprep.transformation.api.action.context.ActionContext.ActionStatus.OK;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.talend.dataprep.api.action.Action;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
-import org.talend.dataprep.i18n.ActionsBundle;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.transformation.actions.common.AbstractActionMetadata;
+import org.talend.dataprep.transformation.actions.common.ActionsUtils;
 import org.talend.dataprep.transformation.actions.common.ColumnAction;
 import org.talend.dataprep.transformation.actions.common.ReplaceOnValueHelper;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
 
-@Action(AbstractActionMetadata.ACTION_BEAN_PREFIX + Cut.CUT_ACTION_NAME)
+@Action(Cut.CUT_ACTION_NAME)
 public class Cut extends AbstractActionMetadata implements ColumnAction {
 
     /**
      * The action name.
      */
     public static final String CUT_ACTION_NAME = "cut"; //$NON-NLS-1$
+
+    protected static final String NEW_COLUMN_SUFFIX = "_cut";
 
     /**
      * The pattern "where to cut" parameter name
@@ -49,21 +53,28 @@ public class Cut extends AbstractActionMetadata implements ColumnAction {
 
     public static final String REGEX_HELPER_KEY = "regex_helper";
 
+    private static final boolean CREATE_NEW_COLUMN_DEFAULT = false;
+
     @Override
     public String getName() {
         return CUT_ACTION_NAME;
     }
 
     @Override
-    public String getCategory() {
-        return STRINGS.getDisplayName();
+    public String getCategory(Locale locale) {
+        return STRINGS.getDisplayName(locale);
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        final List<Parameter> parameters = super.getParameters();
-        parameters.add(new Parameter(PATTERN_PARAMETER, REGEX, EMPTY));
-        return ActionsBundle.attachToAction(parameters, this);
+    public List<Parameter> getParameters(Locale locale) {
+        final List<Parameter> parameters = super.getParameters(locale);
+        parameters.add(getColumnCreationParameter(locale, CREATE_NEW_COLUMN_DEFAULT));
+        parameters.add(parameter(locale).setName(PATTERN_PARAMETER).setType(REGEX).setDefaultValue(EMPTY).build(this));
+        return parameters;
+    }
+
+    protected List<ActionsUtils.AdditionalColumn> getAdditionalColumns(ActionContext context) {
+        return singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX).withType(STRING));
     }
 
     @Override
@@ -74,7 +85,10 @@ public class Cut extends AbstractActionMetadata implements ColumnAction {
     @Override
     public void compile(ActionContext actionContext) {
         super.compile(actionContext);
-        if (actionContext.getActionStatus() == ActionContext.ActionStatus.OK) {
+        if (ActionsUtils.doesCreateNewColumn(actionContext.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
+            ActionsUtils.createNewColumn(actionContext, getAdditionalColumns(actionContext));
+        }
+        if (actionContext.getActionStatus() == OK) {
             final Map<String, String> parameters = actionContext.getParameters();
             String rawParam = parameters.get(PATTERN_PARAMETER);
 
@@ -82,31 +96,28 @@ public class Cut extends AbstractActionMetadata implements ColumnAction {
             try {
                 actionContext.get(REGEX_HELPER_KEY, p -> regexParametersHelper.build(rawParam, false));
             } catch (IllegalArgumentException e) {
-                actionContext.setActionStatus(ActionContext.ActionStatus.CANCELED);
+                actionContext.setActionStatus(CANCELED);
             }
         }
     }
 
-    /**
-     * @see ColumnAction#applyOnColumn(DataSetRow, ActionContext)
-     */
     @Override
     public void applyOnColumn(DataSetRow row, ActionContext context) {
         final String columnId = context.getColumnId();
         final String toCut = row.get(columnId);
         if (toCut != null) {
             final ReplaceOnValueHelper replaceOnValueParameter = context.get(REGEX_HELPER_KEY);
-
+            String value;
             if (replaceOnValueParameter.matches(toCut)) {
                 if (replaceOnValueParameter.getOperator().equals(ReplaceOnValueHelper.REGEX_MODE)) {
-                    String value = toCut.replaceAll(replaceOnValueParameter.getToken(), ""); //$NON-NLS-1$
-                    row.set(columnId, value);
+                    value = toCut.replaceAll(replaceOnValueParameter.getToken(), ""); //$NON-NLS-1$
                 } else {
-                    String value = toCut.replace(replaceOnValueParameter.getToken(), ""); //$NON-NLS-1$
-                    row.set(columnId, value);
-
+                    value = toCut.replace(replaceOnValueParameter.getToken(), ""); //$NON-NLS-1$
                 }
+            } else {
+                value = toCut;
             }
+            row.set(ActionsUtils.getTargetColumnId(context), value);
         }
     }
 

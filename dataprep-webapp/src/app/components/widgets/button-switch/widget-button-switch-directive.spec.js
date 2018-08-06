@@ -1,6 +1,6 @@
 /*  ============================================================================
 
-  Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 
   This source code is available under agreement available at
   https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -19,8 +19,8 @@ describe('Button Switch directive', function () {
     var createElement;
 
     var values = [
-        { id: 'name', name: 'NAME_SORT' },
-        { id: 'date', name: 'DATE_SORT' },
+        { id: 'name', name: 'Name' },
+        { id: 'date', name: 'Date' },
         { id: 'owner', name: 'OWNER_SORT' },
     ];
 

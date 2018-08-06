@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -15,8 +15,10 @@ package org.talend.dataprep.api.service.settings.actions.provider;
 
 import org.talend.dataprep.api.service.settings.actions.api.ActionSettings;
 
+import java.util.ArrayList;
+
+import static org.talend.dataprep.api.service.settings.actions.api.ActionDropdownSettings.dropdownBuilder;
 import static org.talend.dataprep.api.service.settings.actions.api.ActionSettings.*;
-import static org.talend.dataprep.api.service.settings.actions.api.ActionSplitDropdownSettings.splitDropdownBuilder;
 
 /**
  * Actions that triggers windows (modal, new tab, ...) settings
@@ -25,16 +27,21 @@ import static org.talend.dataprep.api.service.settings.actions.api.ActionSplitDr
 public interface WindowActions {
     ActionSettings ONBOARDING_PREPARATION = builder()
             .id("onboarding:preparation")
-            .name("Guided tour")
+            .name("onboarding.preparation")
             .icon("talend-board")
             .type("@@onboarding/START_TOUR")
             .payload(PAYLOAD_METHOD_KEY, "startTour")
             .payload(PAYLOAD_ARGS_KEY, new String[]{"preparation"})
             .build();
 
+    ActionSettings DIVIDER = builder()
+            .id("divider")
+            .divider(true)
+            .build();
+
     ActionSettings ONBOARDING_PLAYGROUND = builder()
             .id("onboarding:playground")
-            .name("Guided tour")
+            .name("onboarding.playground")
             .icon("talend-board")
             .type("@@onboarding/START_TOUR")
             .payload(PAYLOAD_METHOD_KEY, "startTour")
@@ -43,7 +50,7 @@ public interface WindowActions {
 
     ActionSettings MODAL_ABOUT = builder()
             .id("modal:about")
-            .name("About Data Preparation")
+            .name("modal.about")
             .icon("talend-info-circle")
             .type("@@modal/SHOW")
             .payload(PAYLOAD_METHOD_KEY, "toggleAbout")
@@ -51,31 +58,29 @@ public interface WindowActions {
 
     ActionSettings MODAL_FEEDBACK = builder()
             .id("modal:feedback")
-            .name("Feedback")
+            .name("modal.feedback")
             .icon("talend-bubbles")
             .type("@@modal/SHOW")
             .payload(PAYLOAD_METHOD_KEY, "showFeedback")
             .build();
 
-    ActionSettings HEADERBAR_HELP = splitDropdownBuilder()
-            .id("headerbar:help")
-            .name("Help")
-            .icon("talend-question-circle")
-            .type("@@headerbar/HELP")
-            .action("external:help")
+    ActionSettings HEADERBAR_INFORMATION = dropdownBuilder()
+            .id("headerbar:information")
+            .name("headerbar.information")
+            .icon("talend-information")
+            .staticActions(new ArrayList<>())
             .build();
 
-    ActionSettings PLAYGROUND_HEADERBAR_HELP = splitDropdownBuilder()
-            .id("playground:headerbar:help")
-            .name("Help")
-            .icon("talend-question-circle")
-            .type("@@headerbar/HELP")
-            .action("external:help")
+    ActionSettings HEADERBAR_INFORMATION_PLAYGROUND = dropdownBuilder()
+            .id("headerbar:playground:information")
+            .name("headerbar.information")
+            .icon("talend-information")
+            .staticActions(new ArrayList<>())
             .build();
 
     ActionSettings EXTERNAL_DOCUMENTATION = builder()
             .id("external:documentation")
-            .name("Documentation")
+            .name("external.documentation")
             .icon("talend-question-circle")
             .type("@@external/OPEN_WINDOW")
             .payload(PAYLOAD_METHOD_KEY, "open")

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // https://github.com/Talend/data-prep/blob/master/LICENSE
@@ -13,15 +13,20 @@
 
 package org.talend.dataprep.transformation.actions.datablending;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.talend.dataprep.transformation.actions.common.ImplicitParameters.COLUMN_ID;
-import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.*;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_DS_ID;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_JOIN_ON;
+import static org.talend.dataprep.transformation.actions.datablending.Lookup.Parameters.LOOKUP_SELECTED_COLS;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -47,10 +52,11 @@ import org.talend.dataprep.transformation.api.action.ActionTestWorkbench;
  *
  * @see Lookup
  */
-public class LookupTest extends AbstractMetadataBaseTest {
+public class LookupTest extends AbstractMetadataBaseTest<Lookup> {
 
-    /** The action to test. */
-    private Lookup action = new Lookup();
+    public LookupTest() {
+        super(new Lookup());
+    }
 
     @Test
     public void testAccept() throws Exception {
@@ -64,7 +70,12 @@ public class LookupTest extends AbstractMetadataBaseTest {
 
     @Test
     public void testCategory() {
-        assertEquals("data_blending", action.getCategory());
+        assertEquals("data blending", action.getCategory(Locale.US));
+    }
+
+    @Override
+    protected  CreateNewColumnPolicy getCreateNewColumnPolicy(){
+        return CreateNewColumnPolicy.NA;
     }
 
     @Test
@@ -80,7 +91,7 @@ public class LookupTest extends AbstractMetadataBaseTest {
                 "lookup_selected_cols");
 
         // when
-        final List<Parameter> parameters = action.getParameters();
+        final List<Parameter> parameters = action.getParameters(Locale.US);
 
         // then
         Assertions.assertThat(parameters) //
@@ -99,7 +110,7 @@ public class LookupTest extends AbstractMetadataBaseTest {
         final Lookup actual = action.adapt(ds);
 
         // when
-        final List<Parameter> parameters = actual.getParameters();
+        final List<Parameter> parameters = actual.getParameters(Locale.US);
         assertEquals("great dataset", getParamValue(parameters, "lookup_ds_name"));
         assertEquals("ds#123", getParamValue(parameters, "lookup_ds_id"));
     }
@@ -119,8 +130,8 @@ public class LookupTest extends AbstractMetadataBaseTest {
         Assert.assertEquals(expected, row);
 
         // and (check metadata)
-        checkMergedMetadata(row.getRowMetadata().getById("0003"), "State", "string", "US_STATE");
         checkMergedMetadata(row.getRowMetadata().getById("0004"), "Capital", "string", "CITY");
+        checkMergedMetadata(row.getRowMetadata().getById("0003"), "State", "string", "US_STATE");
     }
 
     @Test
@@ -137,14 +148,22 @@ public class LookupTest extends AbstractMetadataBaseTest {
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
 
         // then (check values)
-        DataSetRow expected = ActionMetadataTestUtils.getRow("Dallas", "TX", "Dallas Mavericks", "American Airlines Center",
-                "32.790556°N 96.810278°W");
+        DataSetRow expected = ActionMetadataTestUtils.getRow("Dallas", "TX", "Dallas Mavericks",
+                "American Airlines Center", "32.790556°N 96.810278°W");
         Assert.assertEquals(expected, row);
 
         // and (check metadata)
-        checkMergedMetadata(row.getRowMetadata().getById("0002"), "Team", "string", "");
-        checkMergedMetadata(row.getRowMetadata().getById("0003"), "Stadium", "string", "");
         checkMergedMetadata(row.getRowMetadata().getById("0004"), "Coordinates", "string", "");
+        checkMergedMetadata(row.getRowMetadata().getById("0003"), "Stadium", "string", "");
+        checkMergedMetadata(row.getRowMetadata().getById("0002"), "Team", "string", "");
+
+        // and
+        final String[] orderedValues = row.order().toArray(DataSetRow.SKIP_TDP_ID);
+        assertEquals("Dallas", orderedValues[0]);
+        assertEquals("TX", orderedValues[1]);
+        assertEquals("Dallas Mavericks", orderedValues[2]);
+        assertEquals("American Airlines Center", orderedValues[3]);
+        assertEquals("32.790556°N 96.810278°W", orderedValues[4]);
     }
 
     @Test
@@ -162,8 +181,8 @@ public class LookupTest extends AbstractMetadataBaseTest {
         Assert.assertEquals(expected, row);
 
         // and (metadata)
-        checkMergedMetadata(row.getRowMetadata().getById("0003"), "State", "string", "US_STATE");
         checkMergedMetadata(row.getRowMetadata().getById("0004"), "Capital", "string", "CITY");
+        checkMergedMetadata(row.getRowMetadata().getById("0003"), "State", "string", "US_STATE");
 
     }
 
@@ -182,8 +201,8 @@ public class LookupTest extends AbstractMetadataBaseTest {
         Assert.assertEquals(expected, row);
 
         // and (metadata)
-        checkMergedMetadata(row.getRowMetadata().getById("0003"), "State", "string", "US_STATE");
         checkMergedMetadata(row.getRowMetadata().getById("0004"), "Capital", "string", "CITY");
+        checkMergedMetadata(row.getRowMetadata().getById("0003"), "State", "string", "US_STATE");
     }
 
     @Test
