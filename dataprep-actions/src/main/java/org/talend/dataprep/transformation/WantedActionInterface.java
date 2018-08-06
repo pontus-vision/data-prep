@@ -65,6 +65,16 @@ public interface WantedActionInterface {
         public String category;
         public List<Parameter> parameters;
 
+        public ActionForm(String name, String label, String description, String documentationUrl, String category,
+                List<Parameter> parameters) {
+            this.name = name;
+            this.label = label;
+            this.description = description;
+            this.documentationUrl = documentationUrl;
+            this.category = category;
+            this.parameters = parameters;
+        }
+
         public String getName() {
             return name;
         }
@@ -81,6 +91,7 @@ public interface WantedActionInterface {
             return documentationUrl;
         }
 
+        // Might be a Category object with an immutable name and a localized label.
         public String getCategory() {
             return category;
         }
@@ -143,8 +154,8 @@ public interface WantedActionInterface {
         // ID is an arbitrary identifier, modeled by 4 digits as string in old ColumnMetadata
         int getId();
         // display name of the column, might be changed
-        String getName();
-        void setName(String name);
+        String getLabel();
+        void setLabel(String name);
         // type may also be changed...
         Type getType();
         // setting type should set forced
@@ -199,8 +210,14 @@ public interface WantedActionInterface {
             return value;
         }
 
+        // Validity has only meaning relative to a type. Considering a getType() method returning a DQ type with utility methods
         public Boolean isValid() {
             return valid;
+        }
+
+        // access to info in cell column as Type
+        public Column getColumn() {
+            return null;
         }
     }
 

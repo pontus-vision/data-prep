@@ -1,16 +1,20 @@
 package org.talend.dataprep;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.transformation.ActionAdapter;
+import org.talend.dataprep.transformation.WantedActionInterface;
 import org.talend.dataprep.transformation.pipeline.ActionRegistry;
 
 public class ClassPathActionRegistry implements ActionRegistry {
@@ -19,7 +23,7 @@ public class ClassPathActionRegistry implements ActionRegistry {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClassPathActionRegistry.class);
 
-    private final Map<String, Class<? extends ActionDefinition>> nameToActionClass = new TreeMap<>();
+    private final Map<String, ActionDefinition> nameToAction = new HashMap<>();
 
     public ClassPathActionRegistry(String... actionPackages) {
         synchronized (lock) { // Reflections is not thread safe (see https://github.com/ronmamo/reflections/issues/81).
@@ -28,56 +32,48 @@ public class ClassPathActionRegistry implements ActionRegistry {
                 Reflections reflections = new Reflections(actionPackage);
                 final Set<Class<? extends ActionDefinition>> allActions = reflections.getSubTypesOf(ActionDefinition.class);
                 LOGGER.debug("Found {} possible action class(es) in '{}'", allActions.size(), actionPackage);
-                for (Class<? extends ActionDefinition> action : allActions) {
-                    try {
-                        if (!Modifier.isAbstract(action.getModifiers())) {
-                            final Constructor<?>[] constructors = action.getConstructors();
-                            for (Constructor<?> constructor : constructors) {
-                                if(constructor.getParameters().length == 0) {
-                                    final ActionDefinition actionMetadata = action.newInstance();
-                                    nameToActionClass.put(actionMetadata.getName(), action);
-                                    break;
-                                }
-                            }
-                        } else {
-                            LOGGER.debug("Skip class '{}' (abstract class).", action.getName());
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Unable to register action '{}'", action.getName(), e);
-                    }
-                }
+                instantiateAllClasses(allActions.stream())
+                        .forEach(action -> nameToAction.put(action.getName(), action));
+
+                final Set<Class<? extends WantedActionInterface>> allActionsV2 = reflections.getSubTypesOf(WantedActionInterface.class);
+                LOGGER.debug("Found {} possible action class(es) in '{}'", allActionsV2.size(), actionPackage);
+                instantiateAllClasses(allActionsV2.stream())
+                        .map(ActionAdapter::new)
+                        .forEach(action -> nameToAction.put(action.getName(), action));
             }
         }
-        LOGGER.info("{} actions registered for usage.", nameToActionClass.size());
+        LOGGER.info("{} actions registered for usage.", nameToAction.size());
     }
 
-    private ActionDefinition getDefinition(Class<? extends ActionDefinition> aClass) {
-        try {
-            return aClass.newInstance();
-        } catch (Exception e) {
-            LOGGER.error("Unable to return action definition '{}'", aClass.getName(), e);
-            return null;
-        }
+    private static <T> Stream<T> instantiateAllClasses(Stream<Class<? extends T>> classes) {
+        return classes
+                .filter(c -> !Modifier.isAbstract(c.getModifiers()))
+                .filter(c -> !Modifier.isInterface(c.getModifiers()))
+                .flatMap(c -> Stream.of((Constructor<T>[]) c.getConstructors())) // Method documentation says it is safe
+                .filter(constructor -> constructor.getParameters().length == 0)
+                .map(c -> {
+                    try {
+                        return c.newInstance();
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                        LOGGER.error("Unable to register action '{}'", c.getDeclaringClass().getName(), e);
+                        return null;
+                    }
+                }).filter(Objects::nonNull);
     }
 
     @Override
     public ActionDefinition get(String name) {
-        final Class<? extends ActionDefinition> aClass = nameToActionClass.get(name);
+        final ActionDefinition aClass = nameToAction.get(name);
         if (aClass == null) {
             LOGGER.error("Action definition '{}' does not exist.", name);
             return null;
         } else {
-            return getDefinition(aClass);
+            return aClass;
         }
     }
 
     @Override
-    public Stream<Class<? extends ActionDefinition>> getAll() {
-        return nameToActionClass.values().stream();
-    }
-
-    @Override
     public Stream<ActionDefinition> findAll() {
-        return nameToActionClass.values().stream().map(this::getDefinition);
+        return nameToAction.values().stream();
     }
 }

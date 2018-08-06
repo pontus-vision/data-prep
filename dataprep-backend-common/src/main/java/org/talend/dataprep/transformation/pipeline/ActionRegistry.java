@@ -14,11 +14,6 @@ public interface ActionRegistry {
     ActionDefinition get(String name);
 
     /**
-     * @return All the {@link ActionDefinition} as <b>instances</b>.
-     */
-    Stream<Class<? extends ActionDefinition>> getAll();
-
-    /**
      * @return All the {@link ActionDefinition} as <b>classes</b>.
      */
     Stream<ActionDefinition> findAll();

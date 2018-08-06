@@ -23,8 +23,8 @@ import java.util.function.Function;
 
 import org.apache.avro.generic.GenericRecord;
 import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.api.action.ActionForm;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.parameters.Parameter;
@@ -52,28 +52,33 @@ public class ActionAdapter implements InternalActionDefinition {
     // FRONT REPRESENTATION
 
     @Override
-    public String getCategory() {
-        return delegate.getActionForm(context, Locale.getDefault()).getCategory();
+    public String getCategory(Locale locale) {
+        return delegate.getActionForm(emptyContext(), locale).getCategory();
     }
 
     @Override
-    public String getLabel() {
-        return delegate.getActionForm(context, Locale.getDefault()).getLabel();
+    public String getLabel(Locale locale) {
+        return delegate.getActionForm(emptyContext(), locale).getLabel();
     }
 
     @Override
-    public String getDescription() {
-        return delegate.getActionForm(context, Locale.getDefault()).getDescription();
+    public String getDescription(Locale locale) {
+        return delegate.getActionForm(emptyContext(), locale).getDescription();
     }
 
     @Override
-    public String getDocUrl() {
-        return delegate.getActionForm(context, Locale.getDefault()).getDocumentationUrl();
+    public String getDocUrl(Locale locale) {
+        return delegate.getActionForm(emptyContext(), locale).getDocumentationUrl();
     }
 
     @Override
-    public List<Parameter> getParameters() {
-        return delegate.getActionForm(context, Locale.getDefault()).getParameters();
+    public List<Parameter> getParameters(Locale locale) {
+        return delegate.getActionForm(emptyContext(), locale).getParameters();
+    }
+
+    @Override
+    public ActionForm getActionForm(Locale locale) {
+        return new ActionFormAdapter(delegate.getActionForm(emptyContext(), locale));
     }
 
     // OPTIMIZATION
@@ -123,7 +128,7 @@ public class ActionAdapter implements InternalActionDefinition {
             }
 
             @Override
-            public WantedActionInterface.Metadata getMetadata(){
+            public WantedActionInterface.Dataset getDataset(){
                 return null;
             }
 
@@ -133,7 +138,7 @@ public class ActionAdapter implements InternalActionDefinition {
             }
 
             @Override
-            public DataSet getDataset(String name) {
+            public WantedActionInterface.Dataset getDataset(String name) {
                 return null;
             }
         });
@@ -212,6 +217,93 @@ public class ActionAdapter implements InternalActionDefinition {
         return false;
     }
 
+    private static class ActionFormAdapter extends ActionForm {
+
+        private final WantedActionInterface.ActionForm delegate;
+
+        private ActionFormAdapter(WantedActionInterface.ActionForm delegate) {
+            this.delegate = delegate;
+        }
+
+        public String getName() {
+            return delegate.getName();
+        }
+
+        public void setName(String name) {
+        }
+
+        public List<Parameter> getParameters() {
+            return delegate.getParameters();
+        }
+
+        public void setParameters(List<Parameter> parameters) {
+        }
+
+        public String getDescription() {
+            return delegate.getDescription();
+        }
+
+        public void setDescription(String description) {
+        }
+
+        public String getAlternateDescription() {
+            // TODO should have alt desc
+            return delegate.getDescription();
+        }
+
+        public void setAlternateDescription(String alternateDescription) {
+        }
+
+        public String getCategory() {
+            return delegate.getCategory();
+        }
+
+        public void setCategory(String category) {
+        }
+
+        public String getAlternateCategory() {
+            return delegate.getCategory();
+        }
+
+        public void setAlternateCategory(String alternateCategory) {
+        }
+
+        public String getLabel() {
+            return delegate.getLabel();
+        }
+
+        public void setLabel(String label) {
+        }
+
+        public String getAlternateLabel() {
+            return delegate.getLabel();
+        }
+
+        public void setAlternateLabel(String alternateLabel) {
+        }
+
+        public String getDocUrl() {
+            return delegate.getDocumentationUrl();
+        }
+
+        public void setDocUrl(String docUrl) {
+        }
+
+        public List<String> getActionScope() {
+            return emptyList();
+        }
+
+        public void setActionScope(List<String> actionScope) {
+        }
+
+        public boolean isDynamic() {
+            return false;
+        }
+
+        public void setDynamic(boolean dynamic) {
+        }
+    }
+
     private static class ColumnAdapter implements WantedActionInterface.Column {
 
         private final ColumnMetadata column;
@@ -224,12 +316,12 @@ public class ActionAdapter implements InternalActionDefinition {
         }
 
         @Override
-        public String getName() {
+        public String getLabel() {
             return column.getName();
         }
 
         @Override
-        public void setName(String name) {
+        public void setLabel(String name) {
             column.setName(name);
         }
 
@@ -278,7 +370,7 @@ public class ActionAdapter implements InternalActionDefinition {
         }
 
         @Override
-        public WantedActionInterface.Metadata getMetadata() {
+        public WantedActionInterface.Dataset getDataset() {
             return null;
         }
 
@@ -288,7 +380,41 @@ public class ActionAdapter implements InternalActionDefinition {
         }
 
         @Override
-        public DataSet getDataset(String name) {
+        public WantedActionInterface.Dataset getDataset(String name) {
+            return null;
+        }
+    }
+
+    private WantedActionInterface.ActionContext emptyContext() {
+        return EmptyActionContext.EMPTY_ACTION_CONTEXT;
+    }
+
+    private static class EmptyActionContext implements WantedActionInterface.ActionContext {
+
+        private static final WantedActionInterface.ActionContext EMPTY_ACTION_CONTEXT = new EmptyActionContext();
+
+        @Override
+        public WantedActionInterface.Row getSelectedRow() {
+            return null;
+        }
+
+        @Override
+        public WantedActionInterface.Column getSelectedColumn() {
+            return null;
+        }
+
+        @Override
+        public WantedActionInterface.Dataset getDataset() {
+            return null;
+        }
+
+        @Override
+        public Map<String, String> getParameters() {
+            return null;
+        }
+
+        @Override
+        public WantedActionInterface.Dataset getDataset(String name) {
             return null;
         }
     }

@@ -6,12 +6,21 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.transformation.ActionAdapter;
+import org.talend.dataprep.transformation.WantedActionInterface;
+
+import static java.util.stream.Collectors.toList;
 
 @Component
 public class SpringActionRegistry implements ActionRegistry { // NOSONAR
 
-    @Autowired(required = false)
     private List<ActionDefinition> actions;
+
+    @Autowired(required = false)
+    public SpringActionRegistry(List<ActionDefinition> actions, List<WantedActionInterface> actionsV2) {
+        this.actions = actions;
+        actions.addAll(actionsV2.stream().map(ActionAdapter::new).collect(toList()));
+    }
 
     @Override
     public ActionDefinition get(String name) {
@@ -21,11 +30,6 @@ public class SpringActionRegistry implements ActionRegistry { // NOSONAR
             }
         }
         return null;
-    }
-
-    @Override
-    public Stream<Class<? extends ActionDefinition>> getAll() {
-        return actions.stream().map(ActionDefinition::getClass);
     }
 
     @Override
