@@ -105,6 +105,7 @@ public class UpgradeService {
 
         LOG.info("Global upgrade process starting");
 
+        int alreadyApplied = 0;
         int numberOfTasksApplied = 0;
         for (UpgradeTask task : tasks) {
 
@@ -120,6 +121,7 @@ public class UpgradeService {
 
             if (repository.isAlreadyApplied(targetId, taskId)) {
                 LOG.debug("{} already applied, let's skip it", taskId);
+                alreadyApplied++;
             } else {
                 LOG.debug("apply upgrade {}", taskId);
                 try {
@@ -132,7 +134,7 @@ public class UpgradeService {
                 numberOfTasksApplied++;
             }
         }
-        LOG.info("Global upgrade process finished, {}/{} upgrade(s) performed", numberOfTasksApplied, tasks.size());
+        LOG.info("Global upgrade process finished, {}/{} upgrade(s) performed ({} already applied).", numberOfTasksApplied, tasks.size(), alreadyApplied);
     }
 
     public void upgradeUser(String userId) {
