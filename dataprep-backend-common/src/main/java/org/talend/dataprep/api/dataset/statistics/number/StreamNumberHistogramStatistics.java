@@ -93,6 +93,10 @@ public class StreamNumberHistogramStatistics {
      * @param d the value to add to this histogram
      */
     public void add(double d) {
+        if (Double.isInfinite(d)) {
+            return;
+        }
+
         // So far, we have not met n different values
         if ((singulars != null) && (singulars.size() < numberOfBins || singulars.containsKey(d))) {
             singularAdd(d);

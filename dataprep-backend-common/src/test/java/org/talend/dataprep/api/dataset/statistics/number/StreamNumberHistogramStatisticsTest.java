@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
 import org.talend.dataquality.statistics.numeric.histogram.Range;
@@ -297,5 +298,29 @@ public class StreamNumberHistogramStatisticsTest {
         assertEquals(6196.0, histogram.getMin(), 0);
         assertEquals(1.10000000007712E14, histogram.getMax(), 0);
         assertEquals(32, histogram.getNumberOfBins());
+    }
+
+    // TDP-5987 Manage infinity values in dataSet cells
+    @Test(timeout = 5000L)
+    public void shouldManageInfinity() {
+        // given
+        final StreamNumberHistogramStatistics histogram = new StreamNumberHistogramStatistics();
+        IntStream.range(0, 101).forEach(histogram::add);
+        histogram.add(Double.POSITIVE_INFINITY);
+
+        // expected
+        assertEquals(101, histogram.getNumberOfValues());
+        assertEquals(50.0, histogram.getMean(), 0);
+        assertEquals(0.0, histogram.getMin(), 0);
+        assertEquals(100.0, histogram.getMax(), 0);
+        assertEquals(32, histogram.getNumberOfBins());
+
+        ArrayList<Range> ranges = new ArrayList<>(histogram.getHistogram().keySet());
+        assertEquals(26, ranges.size());
+        int i = 0;
+        for (Range range: ranges) {
+            assertEquals(i * 4, range.getLower(), 0.1);
+            assertEquals(++i * 4, range.getUpper(), 0.1);
+        }
     }
 }
