@@ -48,7 +48,7 @@ public class AddLanguageToActionExtractDatePartTest extends Base_2_4_0_PE_Test {
                 .filter(a -> ExtractDateTokens.ACTION_NAME.equals(a.getName())).findAny();
 
         assertTrue(extractDatePart.isPresent());
-        assertEquals(Locale.getDefault().getLanguage(), extractDatePart.get().getParameters().get(ExtractDateTokens.LANGUAGE));
+        assertEquals(Locale.getDefault().getLanguage(), extractDatePart.get().getParameters().get(ExtractDateTokens.LANGUAGE_PARAMETER));
 
     }
 

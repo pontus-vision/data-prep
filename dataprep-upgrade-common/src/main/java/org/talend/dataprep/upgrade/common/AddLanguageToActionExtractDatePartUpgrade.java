@@ -31,7 +31,7 @@ public class AddLanguageToActionExtractDatePartUpgrade {
 
     private static void updateAction(Action action) {
         if (ExtractDateTokens.ACTION_NAME.equals(action.getName())) {
-            action.getParameters().put(ExtractDateTokens.LANGUAGE, Locale.getDefault().getLanguage());
+            action.getParameters().put(ExtractDateTokens.LANGUAGE_PARAMETER, Locale.getDefault().getLanguage());
         }
     }
 }
