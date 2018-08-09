@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 import org.talend.dataprep.transformation.actions.datamasking.MaskDataByDomain;
 import org.talend.dataprep.transformation.actions.date.ChangeDatePattern;
 import org.talend.dataprep.transformation.actions.date.ComputeTimeSince;
-import org.talend.dataprep.transformation.actions.date.ExtractDateTokens;
+import org.talend.dataprep.transformation.actions.date.ExtractDateTokensOrdered;
 import org.talend.dataprep.transformation.actions.net.ExtractEmailDomain;
 import org.talend.dataprep.transformation.actions.net.ExtractUrlTokens;
 import org.talend.dataprep.transformation.actions.phonenumber.ExtractPhoneInformation;
@@ -41,7 +41,7 @@ public class TypeDomainRules extends BasicRules {
      */
     @Bean
     public static SuggestionEngineRule dateRule() {
-        return forActions(ExtractDateTokens.ACTION_NAME, ChangeDatePattern.ACTION_NAME, ComputeTimeSince.TIME_SINCE_ACTION_NAME) //
+        return forActions(ExtractDateTokensOrdered.ACTION_NAME, ChangeDatePattern.ACTION_NAME, ComputeTimeSince.TIME_SINCE_ACTION_NAME) //
                 .when(IS_DATE) //
                 .then(columnMetadata -> MEDIUM) //
                 .build();

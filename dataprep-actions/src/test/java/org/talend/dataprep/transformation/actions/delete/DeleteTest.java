@@ -25,6 +25,7 @@ import java.util.*;
 
 import org.junit.Test;
 import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.api.action.ActionForm;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.transformation.actions.AbstractMetadataBaseTest;
 import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
@@ -71,8 +72,9 @@ public class DeleteTest extends AbstractMetadataBaseTest<Delete> {
         final ActionDefinition adaptedAction = action.adapt(LINE);
 
         //then
-        assertThat(adaptedAction.getDescription(Locale.US), is("Delete this row"));
-        assertThat(adaptedAction.getLabel(Locale.US), is("Delete row"));
+        ActionForm actionForm = adaptedAction.getActionForm(Locale.US);
+        assertThat(actionForm.getDescription(), is("Delete this row"));
+        assertThat(actionForm.getLabel(), is("Delete row"));
 
         assertThat( adaptedAction, not(is(action)) );
     }
@@ -83,8 +85,9 @@ public class DeleteTest extends AbstractMetadataBaseTest<Delete> {
         final ActionDefinition adaptedAction = action.adapt(COLUMN);
 
         //then
-        assertThat(adaptedAction.getDescription(Locale.US), is("Delete this column"));
-        assertThat(adaptedAction.getLabel(Locale.US), is("Delete column"));
+        ActionForm actionForm = adaptedAction.getActionForm(Locale.US);
+        assertThat(actionForm.getDescription(), is("Delete this column"));
+        assertThat(actionForm.getLabel(), is("Delete column"));
     }
 
     @Test

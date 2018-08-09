@@ -675,7 +675,7 @@
     "docUrl": ""
   },
   {
-    "name": "extract_date_tokens",
+    "name": "extract_date_tokens_ordered",
     "category": "dates",
     "parameters": [
       {

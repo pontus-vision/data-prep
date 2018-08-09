@@ -107,6 +107,7 @@ import org.talend.dataprep.metrics.VolumeMetered;
 import org.talend.dataprep.quality.AnalyzerService;
 import org.talend.dataprep.security.PublicAPI;
 import org.talend.dataprep.security.SecurityProxy;
+import org.talend.dataprep.transformation.actions.category.ActionScope;
 import org.talend.dataprep.transformation.actions.category.ScopeCategory;
 import org.talend.dataprep.transformation.actions.common.RunnableAction;
 import org.talend.dataprep.transformation.aggregation.AggregationService;
@@ -698,6 +699,7 @@ public class TransformationService extends BaseTransformationService {
         // look for all actions applicable to the column type
         return actionRegistry
                 .findAll() //
+                .filter(am -> !am.getActionScope().contains(ActionScope.HIDDEN_IN_ACTION_LIST.getDisplayName()))
                 .filter(am -> am.acceptScope(COLUMN) && am.acceptField(column)) //
                 .map(am -> suggestionEngine.score(am, column)) //
                 .filter(s -> s.getScore() > 0) // Keep only strictly positive score (negative and 0 indicates not

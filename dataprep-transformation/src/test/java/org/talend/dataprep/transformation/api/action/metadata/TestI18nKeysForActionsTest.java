@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.api.action.ActionForm;
 import org.talend.dataprep.parameters.Item;
 import org.talend.dataprep.parameters.Parameter;
 import org.talend.dataprep.parameters.SelectParameter;
@@ -46,15 +47,13 @@ public class TestI18nKeysForActionsTest extends TransformationBaseTest {
             assertNotNull(name);
             assertNotEquals("", name);
 
-            actionMetadata.getLabel(Locale.US);
-            actionMetadata.getDescription(Locale.US);
+            ActionForm actionForm = actionMetadata.getActionForm(Locale.US);
 
-            String toString = actionMetadata.getName() + "," + actionMetadata.getCategory(Locale.US) + "," + actionMetadata.getLabel(
-                    Locale.US)
-                    + "," + actionMetadata.getDescription(Locale.US);
+            String toString = actionMetadata.getName() + "," + actionMetadata.getCategory(Locale.US) + ","
+                    + actionForm.getLabel() + "," + actionForm.getDescription();
             LOGGER.info(toString);
 
-            for (Parameter param : actionMetadata.getParameters(Locale.US)) {
+            for (Parameter param : actionForm.getParameters()) {
                 assertParameter(param);
             }
         }
