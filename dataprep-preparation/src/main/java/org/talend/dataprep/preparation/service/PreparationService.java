@@ -388,7 +388,7 @@ public class PreparationService {
         Preparation copy = new Preparation(original);
         copy.setId(UUID.randomUUID().toString());
         copy.setDataSetName(original.getDataSetName());
-        copy.setFolderId(original.getFolderId());
+        copy.setFolderId(destination);
         copy.setName(newName);
         final long now = System.currentTimeMillis();
         copy.setCreationDate(now);
