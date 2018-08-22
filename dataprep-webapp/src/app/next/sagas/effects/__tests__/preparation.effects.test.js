@@ -1,5 +1,4 @@
-import { call } from 'redux-saga/effects';
-import api from '@talend/react-cmf';
+import { all, call } from 'redux-saga/effects';
 import { HTTPError } from '@talend/react-cmf/lib/sagas/http';
 import { Map } from 'immutable';
 import * as effects from '../../effects/preparation.effects';
@@ -327,21 +326,16 @@ describe('preparation', () => {
 			expect(gen.next().done).toBeTruthy();
 		});
 	});
-
-	describe('openFolder', () => {
-		it('should dispatch the appropriate action', () => {
-			api.saga.putActionCreator = jest.fn();
-			const gen = effects.openFolder({ id: 'test' });
-
-			gen.next();
-
-			expect(api.saga.putActionCreator).toHaveBeenCalledWith('preparation:fetch', {
-				folderId: {
-					id: 'test',
-				},
-			});
-
-			expect(gen.next().done).toBeTruthy();
+	describe('refresh', () => {
+		it('should fetch the new preparations list and folders', () => {
+			const payload = { folderId: 'folderId' };
+			const gen = effects.refresh(payload);
+			expect(gen.next(payload).value).toEqual(
+				all([
+					call(effects.fetch, payload),
+					call(effects.fetchFolder, payload),
+				])
+			);
 		});
 	});
 });
