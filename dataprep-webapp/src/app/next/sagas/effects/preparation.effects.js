@@ -1,5 +1,5 @@
 import { all, call, put, select } from 'redux-saga/effects';
-import api, { actions } from '@talend/react-cmf';
+import { actions } from '@talend/react-cmf';
 import { Map } from 'immutable';
 
 import i18next from '../../../i18n';
@@ -20,7 +20,7 @@ export function* cancelRename(payload) {
 
 export function* fetch(payload) {
 	const defaultFolderId = 'Lw==';
-	const folderId = payload.folderId || defaultFolderId;
+	const folderId = (payload && payload.folderId) || defaultFolderId;
 	yield put(actions.collections.addOrReplace('currentFolderId', folderId));
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	const { data } = yield call(http.get, `${uris.get('apiFolders')}/${folderId}/preparations`);
@@ -124,10 +124,27 @@ export function* refresh(payload) {
 	]);
 }
 
+export function* refreshCurrentFolder() {
+	const currentFolderId = yield select(state => state.cmf.collections.get('currentFolderId'));
+	yield call(refresh, { folderId: currentFolderId });
+}
+
 export function* rename(payload) {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	yield call(http.put, `${uris.get('apiPreparations')}/${payload.id}`, { name: payload.name });
-	yield call(fetch);
+	yield call(refreshCurrentFolder);
+}
+
+export function* removePreparation(id) {
+	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
+	yield call(http.delete, `${uris.get('apiPreparations')}/${id}`);
+	yield call(refreshCurrentFolder);
+}
+
+export function* removeFolder(id) {
+	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
+	yield call(http.delete, `${uris.get('apiFolders')}/${id}`);
+	yield call(refreshCurrentFolder);
 }
 
 export function* setTitleEditionMode(payload) {
@@ -172,7 +189,7 @@ export function* fetchFolder(payload) {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	const { data } = yield call(
 		http.get,
-		`${uris.get('apiFolders')}/${payload.folderId || defaultFolderId}`,
+		`${uris.get('apiFolders')}/${(payload && payload.folderId) || defaultFolderId}`,
 	);
 	yield put(
 		actions.components.mergeState(
