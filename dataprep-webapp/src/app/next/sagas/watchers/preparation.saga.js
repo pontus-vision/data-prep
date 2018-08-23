@@ -3,6 +3,8 @@ import {
 	PREPARATION_COPY,
 	PREPARATION_MOVE,
 	RENAME_PREPARATION,
+	REMOVE_PREPARATION,
+	REMOVE_FOLDER,
 	FETCH_PREPARATIONS,
 	OPEN_COPY_MODAL,
 	OPEN_MOVE_MODAL,
@@ -31,6 +33,20 @@ function* rename() {
 	while (true) {
 		const { payload } = yield take(RENAME_PREPARATION);
 		yield call(effects.rename, payload);
+	}
+}
+
+function* removePreparation() {
+	while (true) {
+		const { payload } = yield take(REMOVE_PREPARATION);
+		yield call(effects.removePreparation, payload);
+	}
+}
+
+function* removeFolder() {
+	while (true) {
+		const { payload } = yield take(REMOVE_FOLDER);
+		yield call(effects.removeFolder, payload);
 	}
 }
 
@@ -87,6 +103,8 @@ export default {
 	'preparation:copy': copy,
 	'preparation:move': move,
 	'preparation:fetch': fetch,
+	'preparation:remove': removePreparation,
+	'preparation:folder:remove': removeFolder,
 	'preparation:rename:submit': rename,
 	'preparation:rename:cancel': cancelRename,
 	'preparation:rename': setTitleEditionMode,

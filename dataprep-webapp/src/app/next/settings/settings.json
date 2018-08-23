@@ -176,6 +176,19 @@
       },
       "actionCreator": "preparation:rename"
     },
+    "preparation:remove": {
+      "id": "preparation:remove",
+      "icon": "talend-trash",
+      "label": {
+        "i18n": {
+          "key": "tdp-cmf:PREPARATION_REMOVE",
+          "options": {
+            "defaultValue": "Remove"
+          }
+        }
+      },
+      "actionCreator": "preparation:remove"
+    },
     "preparation:duplicate": {
       "id": "preparation:duplicate",
       "label": {
@@ -436,6 +449,7 @@
           ],
           "items": [
             "preparation:rename",
+            "preparation:remove",
             "preparation:copy:open",
             "preparation:move:open"
           ],
