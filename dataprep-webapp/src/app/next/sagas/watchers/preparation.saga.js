@@ -8,7 +8,6 @@ import {
 	OPEN_MOVE_MODAL,
 	CLOSE_COPY_MOVE_MODAL,
 	SET_TITLE_EDITION_MODE,
-	OPEN_PREPARATION_CREATOR,
 	CANCEL_RENAME_PREPARATION,
 } from '../../constants/actions';
 import * as effects from '../effects/preparation.effects';
@@ -55,13 +54,6 @@ function* setTitleEditionMode() {
 	}
 }
 
-function* openPreparationCreatorModal() {
-	while (true) {
-		yield take(OPEN_PREPARATION_CREATOR);
-		yield call(effects.openPreparationCreatorModal);
-	}
-}
-
 function* openCopyModal() {
 	while (true) {
 		const { payload } = yield take(OPEN_COPY_MODAL);
@@ -93,5 +85,4 @@ export default {
 	'preparation:copy:open': openCopyModal,
 	'preparation:move:open': openMoveModal,
 	'preparation:copy:move:cancel': closeCopyMoveModal,
-	'preparation:creator:open': openPreparationCreatorModal,
 };
