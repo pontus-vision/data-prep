@@ -23,8 +23,3 @@
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
-
-// https://github.com/cypress-io/cypress/issues/95#issuecomment-347607198
-Cypress.on('window:before:load', (win) => {
-	win.fetch = null;
-});
