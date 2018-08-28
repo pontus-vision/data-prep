@@ -58,13 +58,6 @@ function* setTitleEditionMode() {
 	}
 }
 
-function* openPreparationCreatorModal() {
-	while (true) {
-		yield take(actions.OPEN_PREPARATION_CREATOR);
-		yield call(effects.openPreparationCreatorModal);
-	}
-}
-
 function* openCopyModal() {
 	while (true) {
 		const { payload } = yield take(actions.OPEN_COPY_MODAL);
@@ -122,5 +115,4 @@ export default {
 	'preparation:copy:open': openCopyModal,
 	'preparation:move:open': openMoveModal,
 	'preparation:copy:move:cancel': closeCopyMoveModal,
-	'preparation:creator:open': openPreparationCreatorModal,
 };

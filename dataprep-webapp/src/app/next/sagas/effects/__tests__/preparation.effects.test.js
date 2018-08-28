@@ -43,20 +43,6 @@ describe('preparation', () => {
 		});
 	});
 
-	describe('openPreparationCreator', () => {
-		it('should update PreparationCreatorModal state in the cmf store', () => {
-			const gen = effects.openPreparationCreatorModal();
-			const effect = gen.next().value.PUT.action;
-
-			expect(effect.type).toEqual('REACT_CMF.COMPONENT_MERGE_STATE');
-			expect(effect.key).toEqual('default');
-			expect(effect.componentName).toEqual('PreparationCreatorModal');
-			expect(effect.componentState).toEqual({ show: true });
-
-			expect(gen.next().done).toBeTruthy();
-		});
-	});
-
 	describe('fetch', () => {
 		beforeEach(() => {
 			PreparationService.transform = jest.fn(() => 'rofl');
