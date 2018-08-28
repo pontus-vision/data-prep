@@ -1,4 +1,8 @@
-import { OPEN_FOLDER } from '../constants/actions';
+import {
+	OPEN_ADD_FOLDER_MODAL,
+	CLOSE_ADD_FOLDER_MODAL,
+	OPEN_FOLDER,
+	ADD_FOLDER } from '../constants/actions';
 
 function open(event, { id }) {
 	return {
@@ -10,6 +14,28 @@ function open(event, { id }) {
 	};
 }
 
+function add(event, payload) {
+	return {
+		type: ADD_FOLDER,
+		payload,
+	};
+}
+
+function openAddFolderModal() {
+	return {
+		type: OPEN_ADD_FOLDER_MODAL,
+	};
+}
+
+function closeAddFolderModal() {
+	return {
+		type: CLOSE_ADD_FOLDER_MODAL,
+	};
+}
+
 export default {
+	add,
 	open,
+	openAddFolderModal,
+	closeAddFolderModal,
 };

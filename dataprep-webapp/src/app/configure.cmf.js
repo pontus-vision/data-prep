@@ -151,6 +151,9 @@ export default function initialize(additionalConfiguration = {}) {
 		registerActionCreator('preparation:edit:cancel', actions.preparation.cancelRename);
 		registerActionCreator('preparation:open', actions.preparation.open);
 		registerActionCreator('folder:open', actions.folder.open);
+		registerActionCreator('folder:add', actions.folder.add);
+		registerActionCreator('folder:add:open', actions.folder.openAddFolderModal);
+		registerActionCreator('folder:add:close', actions.folder.closeAddFolderModal);
 		registerActionCreator('preparation:fetch', actions.preparation.fetch);
 		registerActionCreator('preparation:copy', actions.preparation.copy);
 		registerActionCreator('preparation:move', actions.preparation.move);

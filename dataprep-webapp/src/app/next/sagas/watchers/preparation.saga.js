@@ -1,101 +1,109 @@
 import { all, call, take } from 'redux-saga/effects';
-import {
-	PREPARATION_COPY,
-	PREPARATION_MOVE,
-	RENAME_PREPARATION,
-	REMOVE_PREPARATION,
-	REMOVE_FOLDER,
-	FETCH_PREPARATIONS,
-	OPEN_COPY_MODAL,
-	OPEN_MOVE_MODAL,
-	CLOSE_COPY_MOVE_MODAL,
-	SET_TITLE_EDITION_MODE,
-	OPEN_PREPARATION_CREATOR,
-	CANCEL_RENAME_PREPARATION,
-} from '../../constants/actions';
+import * as actions from '../../constants/actions';
 import * as effects from '../effects/preparation.effects';
 
 function* cancelRename() {
 	while (true) {
-		const { payload } = yield take(CANCEL_RENAME_PREPARATION);
+		const { payload } = yield take(actions.CANCEL_RENAME_PREPARATION);
 		yield call(effects.cancelRename, payload);
 	}
 }
 
 function* fetch() {
 	while (true) {
-		const { payload } = yield take(FETCH_PREPARATIONS);
+		const { payload } = yield take(actions.FETCH_PREPARATIONS);
 		yield call(effects.refresh, payload);
 	}
 }
 
 function* rename() {
 	while (true) {
-		const { payload } = yield take(RENAME_PREPARATION);
+		const { payload } = yield take(actions.RENAME_PREPARATION);
 		yield call(effects.rename, payload);
 	}
 }
 
 function* removePreparation() {
 	while (true) {
-		const { payload } = yield take(REMOVE_PREPARATION);
+		const { payload } = yield take(actions.REMOVE_PREPARATION);
 		yield call(effects.removePreparation, payload);
 	}
 }
 
 function* removeFolder() {
 	while (true) {
-		const { payload } = yield take(REMOVE_FOLDER);
+		const { payload } = yield take(actions.REMOVE_FOLDER);
 		yield call(effects.removeFolder, payload);
 	}
 }
 
 function* copy() {
 	while (true) {
-		const { payload } = yield take(PREPARATION_COPY);
+		const { payload } = yield take(actions.PREPARATION_COPY);
 		yield call(effects.copy, payload);
 	}
 }
 
 function* move() {
 	while (true) {
-		const { payload } = yield take(PREPARATION_MOVE);
+		const { payload } = yield take(actions.PREPARATION_MOVE);
 		yield call(effects.move, payload);
 	}
 }
 
 function* setTitleEditionMode() {
 	while (true) {
-		const { payload } = yield take(SET_TITLE_EDITION_MODE);
+		const { payload } = yield take(actions.SET_TITLE_EDITION_MODE);
 		yield call(effects.setTitleEditionMode, payload);
 	}
 }
 
 function* openPreparationCreatorModal() {
 	while (true) {
-		yield take(OPEN_PREPARATION_CREATOR);
+		yield take(actions.OPEN_PREPARATION_CREATOR);
 		yield call(effects.openPreparationCreatorModal);
 	}
 }
 
 function* openCopyModal() {
 	while (true) {
-		const { payload } = yield take(OPEN_COPY_MODAL);
+		const { payload } = yield take(actions.OPEN_COPY_MODAL);
 		yield all([call(effects.fetchTree), call(effects.openCopyMoveModal, payload, 'copy')]);
 	}
 }
 
 function* openMoveModal() {
 	while (true) {
-		const { payload } = yield take(OPEN_MOVE_MODAL);
+		const { payload } = yield take(actions.OPEN_MOVE_MODAL);
 		yield all([call(effects.fetchTree), call(effects.openCopyMoveModal, payload, 'move')]);
 	}
 }
 
 function* closeCopyMoveModal() {
 	while (true) {
-		yield take(CLOSE_COPY_MOVE_MODAL);
+		yield take(actions.CLOSE_COPY_MOVE_MODAL);
 		yield call(effects.closeCopyMoveModal);
+	}
+}
+
+function* openAddFolderModal() {
+	while (true) {
+		yield take(actions.OPEN_ADD_FOLDER_MODAL);
+		yield call(effects.openAddFolderModal);
+	}
+}
+
+function* closeAddFolderModal() {
+	while (true) {
+		yield take(actions.CLOSE_ADD_FOLDER_MODAL);
+		yield call(effects.closeAddFolderModal);
+	}
+}
+
+function* addFolder() {
+	while (true) {
+		yield take(actions.ADD_FOLDER);
+		yield call(effects.addFolder);
 	}
 }
 
@@ -104,6 +112,9 @@ export default {
 	'preparation:move': move,
 	'preparation:fetch': fetch,
 	'preparation:remove': removePreparation,
+	'preparation:folder:add': addFolder,
+	'preparation:folder:closeAddFolderConfirmDialog': closeAddFolderModal,
+	'preparation:folder:openAddFolderConfirmDialog': openAddFolderModal,
 	'preparation:folder:remove': removeFolder,
 	'preparation:rename:submit': rename,
 	'preparation:rename:cancel': cancelRename,

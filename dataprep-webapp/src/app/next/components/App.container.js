@@ -13,6 +13,10 @@ const initialNotificationsState = new Map({
 	notifications: new List([]),
 });
 
+const initialAddFolderState = new Map({
+	show: false,
+});
+
 export default function App(props) {
 	return (
 		<I18nextProvider i18n={i18n}>
@@ -24,6 +28,7 @@ export default function App(props) {
 					<components.AboutModal />
 					<components.PreparationCreatorModal />
 					<components.PreparationCopyMoveModal />
+					<components.FolderCreatorModal initialState={initialAddFolderState} />
 					{ props.children }
 				</div>
 			</AppLoader>
