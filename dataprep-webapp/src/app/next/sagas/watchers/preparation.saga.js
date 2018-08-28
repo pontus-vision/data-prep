@@ -95,8 +95,15 @@ function* closeAddFolderModal() {
 
 function* addFolder() {
 	while (true) {
-		yield take(actions.ADD_FOLDER);
-		yield call(effects.addFolder);
+		const { payload } = yield take(actions.ADD_FOLDER);
+		yield call(effects.addFolder, payload);
+	}
+}
+
+function* openPreparationCreatorModal() {
+	while (true) {
+		yield take(actions.OPEN_PREPARATION_CREATOR);
+		yield call(effects.openPreparationCreatorModal);
 	}
 }
 
@@ -115,4 +122,5 @@ export default {
 	'preparation:copy:open': openCopyModal,
 	'preparation:move:open': openMoveModal,
 	'preparation:copy:move:cancel': closeCopyMoveModal,
+	'preparation:creator:open': openPreparationCreatorModal,
 };

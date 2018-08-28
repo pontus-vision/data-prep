@@ -1,31 +1,33 @@
-import cmf, { cmfConnect } from '@talend/react-cmf';
-import { actionAPI } from '@talend/react-containers';
-
+import React from 'react';
+import { cmfConnect } from '@talend/react-cmf';
 import { Map } from 'immutable';
-
 import FolderCreatorModal from './FolderCreatorModal.component';
 
-export function mapStateToProps(state, props, cmfProps) {
-	const context = {
-		registry: cmf.registry.getRegistry(),
-		store: {
-			getState: () => state,
+export function FolderCreatorContainer(props) {
+	const state = props.state;
+	const validateAction = state.get('validateAction');
+	const cancelAction = state.get('cancelAction');
+	const newProps = {
+		...state.toJS(),
+		validateAction: {
+			...validateAction,
+			onClick: (event, data) => props.dispatchActionCreator(validateAction.actionCreator, event, data),
+		},
+		cancelAction: {
+			...cancelAction,
+			onClick: (event, data) => props.dispatchActionCreator(cancelAction.actionCreator, event, data),
 		},
 	};
-	const validateAction = cmfProps.state ? cmfProps.state.get('validateAction') : undefined;
-	const cancelAction = cmfProps.state ? cmfProps.state.get('cancelAction') : undefined;
-	const onChangeAction = cmfProps.state ? cmfProps.state.get('onChangeAction') : undefined;
-	const model = cmfProps.state ? cmfProps.state.get('model') : cmfProps.model;
-	return {
-		...cmfProps.state && cmfProps.state.toJS(),
-		validateAction: actionAPI.getProps(context, validateAction, model),
-		cancelAction: actionAPI.getProps(context, cancelAction, model),
-		onChangeAction: actionAPI.getProps(context, onChangeAction, model),
-	};
+
+	return <FolderCreatorModal {...newProps} />;
 }
+
+FolderCreatorContainer.displayName = 'FolderCreatorModal';
+FolderCreatorContainer.propTypes = {
+	...cmfConnect.propTypes,
+};
 
 export default cmfConnect({
 	componentId: 'default',
 	defaultState: new Map({ show: false }),
-	mapStateToProps,
-})(FolderCreatorModal);
+})(FolderCreatorContainer);

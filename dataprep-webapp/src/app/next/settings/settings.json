@@ -213,17 +213,6 @@
       "id": "preparation:edit:cancel",
       "actionCreator": "preparation:edit:cancel"
     },
-    "folder:add": {
-      "label": "Add",
-      "bsStyle": "primary",
-      "id": "folder:add",
-      "actionCreator": "folder:add"
-    },
-    "folder:add:close": {
-      "label": "Cancel",
-      "id": "folder:add:close",
-      "actionCreator": "folder:add:close"
-    },
     "folder:add:open": {
       "id": "folder:add:open",
       "icon": "talend-folder",
