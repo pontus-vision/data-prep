@@ -55,7 +55,6 @@ public class AsyncController {
         return repository.list();
     }
 
-
     @DeleteMapping(path = "/{id}")
     public AsyncExecution cancel(@PathVariable("id") String id) {
         LOGGER.debug("Cancel execution {}", id);

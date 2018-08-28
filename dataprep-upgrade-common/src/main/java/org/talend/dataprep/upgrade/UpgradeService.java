@@ -134,7 +134,8 @@ public class UpgradeService {
                 numberOfTasksApplied++;
             }
         }
-        LOG.info("Global upgrade process finished, {}/{} upgrade(s) performed ({} already applied).", numberOfTasksApplied, tasks.size(), alreadyApplied);
+        LOG.info("Global upgrade process finished, {}/{} upgrade(s) performed ({} already applied).",
+                numberOfTasksApplied, tasks.size(), alreadyApplied);
     }
 
     public void upgradeUser(String userId) {
@@ -162,7 +163,8 @@ public class UpgradeService {
             }
 
         }
-        LOG.info("Upgrade process finished for user {}, {}/{} upgrade(s) performed", userId, numberOfTasksApplied, tasks.size());
+        LOG.info("Upgrade process finished for user {}, {}/{} upgrade(s) performed", userId, numberOfTasksApplied,
+                tasks.size());
     }
 
     void setTasks(List<UpgradeTask> tasks) {
