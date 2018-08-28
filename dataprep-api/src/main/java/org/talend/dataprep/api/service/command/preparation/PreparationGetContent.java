@@ -55,7 +55,7 @@ public class PreparationGetContent extends GenericCommand<InputStream> {
      */
 
     private PreparationGetContent(String id, String version, SourceType from) {
-        super(PREPARATION_GROUP);
+        super(TRANSFORM_GROUP);
 
         execute(() -> {
             try {
