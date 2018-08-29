@@ -164,6 +164,7 @@ export function* openAddFolderModal() {
 	const state = new Map({
 		header: 'Add a folder',
 		show: true,
+		name: '',
 		validateAction: {
 			label: 'Add',
 			bsStyle: 'primary',
@@ -175,7 +176,6 @@ export function* openAddFolderModal() {
 			id: 'folder:add:close',
 			actionCreator: 'folder:add:close',
 		},
-		onChangeAction: 'folder:add:close',
 	});
 	yield put(actions.components.mergeState('FolderCreatorModal', 'default', state));
 }
@@ -184,10 +184,11 @@ export function* closeAddFolderModal() {
 	yield put(actions.components.mergeState('FolderCreatorModal', 'default', new Map({ show: false })));
 }
 
-export function* addFolder(payload) {
+export function* addFolder() {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	const currentFolderId = yield select(state => state.cmf.collections.get('currentFolderId'));
-	yield call(http.put, `${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${payload.name}`);
+	const newFolderName = yield select(state => state.cmf.components.getIn(['FolderCreatorModal', 'default', 'name']));
+	yield call(http.put, `${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${newFolderName}`);
 	yield call(refreshCurrentFolder);
 	yield call(closeAddFolderModal);
 }

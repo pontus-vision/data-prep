@@ -14,10 +14,9 @@ function open(event, { id }) {
 	};
 }
 
-function add(event, payload) {
+function add() {
 	return {
 		type: ADD_FOLDER,
-		payload,
 	};
 }
 

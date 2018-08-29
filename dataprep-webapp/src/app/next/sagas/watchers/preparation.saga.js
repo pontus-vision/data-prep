@@ -95,8 +95,8 @@ function* closeAddFolderModal() {
 
 function* addFolder() {
 	while (true) {
-		const { payload } = yield take(actions.ADD_FOLDER);
-		yield call(effects.addFolder, payload);
+		yield take(actions.ADD_FOLDER);
+		yield call(effects.addFolder);
 	}
 }
 

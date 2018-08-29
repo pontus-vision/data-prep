@@ -8,6 +8,7 @@ export function FolderCreatorContainer(props) {
 	const validateAction = state.get('validateAction');
 	const cancelAction = state.get('cancelAction');
 	const newProps = {
+		...props,
 		...state.toJS(),
 		validateAction: {
 			...validateAction,
