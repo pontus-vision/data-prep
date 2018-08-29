@@ -143,8 +143,20 @@ export function* removePreparation(id) {
 
 export function* removeFolder(id) {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
-	yield call(http.delete, `${uris.get('apiFolders')}/${id}`);
-	yield call(refreshCurrentFolder);
+	const { response } = yield call(http.delete, `${uris.get('apiFolders')}/${id}`);
+	if (response.ok) {
+		yield call(refreshCurrentFolder);
+		yield put(
+			creators.notification.success(null, {
+				title: i18next.t('tdp-app:FOLDER_REMOVE_NOTIFICATION_TITLE', {
+					defaultValue: 'Folder Remove',
+				}),
+				message: i18next.t('tdp-app:FOLDER_REMOVE_NOTIFICATION_MESSAGE', {
+					defaultValue: 'The folder has been removed.',
+				}),
+			}),
+		);
+	}
 }
 
 export function* setTitleEditionMode(payload) {
@@ -199,6 +211,16 @@ export function* addFolder() {
 		yield call(http.put, `${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${newFolderName}`);
 		yield call(refreshCurrentFolder);
 		yield call(closeAddFolderModal);
+		yield put(
+			creators.notification.success(null, {
+				title: i18next.t('tdp-app:FOLDER_ADD_NOTIFICATION_TITLE', {
+					defaultValue: 'Folder Added',
+				}),
+				message: i18next.t('tdp-app:FOLDER_ADD_NOTIFICATION_MESSAGE', {
+					defaultValue: `The folder "${newFolderName}" has been added.`,
+				}),
+			}),
+		);
 	}
 }
 
