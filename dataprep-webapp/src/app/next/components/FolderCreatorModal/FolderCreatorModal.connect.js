@@ -4,19 +4,19 @@ import { Map } from 'immutable';
 import FolderCreatorModal from './FolderCreatorModal.component';
 
 export function FolderCreatorContainer(props) {
-	const state = props.state;
-	const validateAction = state.get('validateAction');
-	const cancelAction = state.get('cancelAction');
+	const state = props.state.toJS();
 	const newProps = {
 		...props,
-		...state.toJS(),
-		validateAction: {
-			...validateAction,
-			onClick: (event, data) => props.dispatchActionCreator(validateAction.actionCreator, event, data),
-		},
-		cancelAction: {
-			...cancelAction,
-			onClick: (event, data) => props.dispatchActionCreator(cancelAction.actionCreator, event, data),
+		state: {
+			...state,
+			validateAction: {
+				...state.validateAction,
+				onClick: (event, data) => props.dispatchActionCreator(state.validateAction.actionCreator, event, data),
+			},
+			cancelAction: {
+				...state.cancelAction,
+				onClick: (event, data) => props.dispatchActionCreator(state.cancelAction.actionCreator, event, data),
+			},
 		},
 	};
 

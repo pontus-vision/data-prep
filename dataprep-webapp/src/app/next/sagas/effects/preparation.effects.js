@@ -170,6 +170,7 @@ export function* openAddFolderModal() {
 			label: 'Add',
 			bsStyle: 'primary',
 			id: 'folder:add',
+			disabled: true,
 			actionCreator: 'folder:add',
 		},
 		cancelAction: {

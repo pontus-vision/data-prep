@@ -8,12 +8,15 @@ export default class FolderCreatorModal extends React.Component {
 	}
 
 	onChange() {
-		this.props.setState({ name: this.folderNameInput.value });
+		const name = this.folderNameInput.value;
+		const validateAction = { ...this.props.state.validateAction };
+		validateAction.disabled = !name;
+		this.props.setState({ name, error: '', validateAction });
 	}
 
 	render() {
 		return (
-			<ConfirmDialog {...this.props}>
+			<ConfirmDialog {...this.props.state}>
 				<form>
 					<div className="form-group field field-string">
 						<input
@@ -21,7 +24,7 @@ export default class FolderCreatorModal extends React.Component {
 							id="add-folder-input"
 							type="text"
 							autoFocus
-							value={this.props.name}
+							value={this.props.state.name}
 							ref={(input) => {
 								this.folderNameInput = input;
 							}}
