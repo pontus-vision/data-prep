@@ -165,6 +165,7 @@ export function* openAddFolderModal() {
 		header: 'Add a folder',
 		show: true,
 		name: '',
+		error: '',
 		validateAction: {
 			label: 'Add',
 			bsStyle: 'primary',
@@ -188,9 +189,16 @@ export function* addFolder() {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	const currentFolderId = yield select(state => state.cmf.collections.get('currentFolderId'));
 	const newFolderName = yield select(state => state.cmf.components.getIn(['FolderCreatorModal', 'default', 'name']));
-	yield call(http.put, `${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${newFolderName}`);
-	yield call(refreshCurrentFolder);
-	yield call(closeAddFolderModal);
+	const { data } = yield call(http.get, `${uris.get('apiFolders')}/${currentFolderId}/preparations`);
+	const existingFolder = data.folders.filter(folder => folder.name === newFolderName).length;
+	if (existingFolder) {
+		yield put(actions.components.mergeState('FolderCreatorModal', 'default', { error: `The folder "${newFolderName}" exists already` }));
+	}
+	else {
+		yield call(http.put, `${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${newFolderName}`);
+		yield call(refreshCurrentFolder);
+		yield call(closeAddFolderModal);
+	}
 }
 
 export function* openCopyMoveModal(model, action) {
