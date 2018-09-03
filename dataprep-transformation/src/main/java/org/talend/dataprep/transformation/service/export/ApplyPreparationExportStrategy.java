@@ -64,15 +64,13 @@ public class ApplyPreparationExportStrategy extends BaseSampleExportStrategy {
 
     private Boolean technicianIdentityReleased = true;
 
+    // preparation must be applied to a dataset
     @Override
     public boolean test(ExportParameters parameters) {
-        if (parameters == null) {
-            return false;
-        }
         // Valid if both data set and preparation are set.
         return parameters.getContent() == null //
-                && !StringUtils.isEmpty(parameters.getDatasetId()) //
-                && !StringUtils.isEmpty(parameters.getPreparationId());
+                && StringUtils.isNotEmpty(parameters.getDatasetId()) //
+                && StringUtils.isNotEmpty(parameters.getPreparationId());
     }
 
     @Override

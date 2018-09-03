@@ -60,12 +60,9 @@ public class PreparationExportStrategy extends BaseSampleExportStrategy {
 
     @Override
     public boolean test(final ExportParameters parameters) {
-        if (parameters == null) {
-            return false;
-        }
         return parameters.getContent() == null //
                 && (parameters.getFrom() == null || parameters.getFrom() == HEAD) //
-                && !StringUtils.isEmpty(parameters.getPreparationId()) //
+                && StringUtils.isNotEmpty(parameters.getPreparationId()) //
                 && StringUtils.isEmpty(parameters.getDatasetId());
     }
 

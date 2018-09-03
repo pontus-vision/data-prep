@@ -43,20 +43,14 @@ public class CachedExportStrategy extends BaseSampleExportStrategy {
     @Autowired
     private CacheKeyGenerator cacheKeyGenerator;
 
+    // result of preparation applied to dataset is already in cache
     @Override
     public boolean test(ExportParameters parameters) {
-        if (parameters == null) {
-            return false;
-        }
-        if (parameters.getContent() != null) {
-            return false;
-        }
-        if (StringUtils.isEmpty(parameters.getPreparationId())) {
-            return false;
-        }
         try {
-            final TransformationCacheKey contentKey = getCacheKey(parameters);
-            return contentCache.has(contentKey);
+            return parameters.getContent() == null //
+                    && StringUtils.isNotEmpty(parameters.getPreparationId())
+                    && StringUtils.isEmpty(parameters.getDatasetId())
+                    && contentCache.has(getCacheKey(parameters));
         } catch (TDPException e) {
             LOGGER.debug("Unable to use cached export strategy.", e);
             return false;

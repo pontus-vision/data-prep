@@ -34,13 +34,11 @@ public class DataSetExportStrategy extends BaseSampleExportStrategy {
     @Autowired
     private DatasetClient datasetClient;
 
+    // dataset content directly returned
     @Override
     public boolean test(ExportParameters parameters) {
-        if (parameters == null) {
-            return false;
-        }
         return parameters.getContent() == null //
-                && !StringUtils.isEmpty(parameters.getDatasetId()) //
+                && StringUtils.isNotEmpty(parameters.getDatasetId()) //
                 && StringUtils.isEmpty(parameters.getPreparationId());
     }
 

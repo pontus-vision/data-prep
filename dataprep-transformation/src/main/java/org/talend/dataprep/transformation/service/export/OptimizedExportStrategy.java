@@ -61,17 +61,9 @@ public class OptimizedExportStrategy extends BaseSampleExportStrategy {
 
     @Override
     public boolean test(ExportParameters parameters) {
-        if (parameters == null) {
-            return false;
-        }
-        if (parameters.getContent() != null) {
-            return false;
-        }
-        if (StringUtils.isEmpty(parameters.getPreparationId())) {
-            return false;
-        }
-        final OptimizedPreparationInput optimizedPreparationInput = new OptimizedPreparationInput(parameters);
-        return optimizedPreparationInput.applicable();
+        return parameters.getContent() == null //
+                && StringUtils.isNotEmpty(parameters.getPreparationId())
+                && new OptimizedPreparationInput(parameters).applicable();
     }
 
     @Override
