@@ -141,11 +141,29 @@ export function* removePreparation(id) {
 	yield call(refreshCurrentFolder);
 }
 
-export function* removeFolder(id) {
+export function* openRemoveFolderModal(folderId) {
+	const state = new Map({
+		header: 'Remove a folder',
+		show: true,
+		children: 'You are going to permanently remove this folder. This operation cannot be undone. Do you want to proceed?',
+		validateAction: 'folder:remove',
+		cancelAction: 'folder:remove:close',
+		folderId,
+	});
+	yield put(actions.components.mergeState('CMFContainer(ConfirmDialog)', 'ConfirmDialog', state));
+}
+
+export function* closeRemoveFolderModal() {
+	yield put(actions.components.mergeState('CMFContainer(ConfirmDialog)', 'ConfirmDialog', new Map({ show: false })));
+}
+
+export function* removeFolder() {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
-	const { response } = yield call(http.delete, `${uris.get('apiFolders')}/${id}`);
+	const folderId = yield select(state => state.cmf.components.getIn(['CMFContainer(ConfirmDialog)', 'ConfirmDialog', 'folderId']));
+	const { response } = yield call(http.delete, `${uris.get('apiFolders')}/${folderId}`);
 	if (response.ok) {
 		yield call(refreshCurrentFolder);
+		yield call(closeRemoveFolderModal);
 		yield put(
 			creators.notification.success(null, {
 				title: i18next.t('tdp-app:FOLDER_REMOVE_NOTIFICATION_TITLE', {
@@ -191,21 +209,21 @@ export function* openAddFolderModal() {
 			actionCreator: 'folder:add:close',
 		},
 	});
-	yield put(actions.components.mergeState('FolderCreatorModal', 'default', state));
+	yield put(actions.components.mergeState('FolderCreatorModal', 'add_folder_modal', state));
 }
 
 export function* closeAddFolderModal() {
-	yield put(actions.components.mergeState('FolderCreatorModal', 'default', new Map({ show: false })));
+	yield put(actions.components.mergeState('FolderCreatorModal', 'add_folder_modal', new Map({ show: false })));
 }
 
 export function* addFolder() {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	const currentFolderId = yield select(state => state.cmf.collections.get('currentFolderId'));
-	const newFolderName = yield select(state => state.cmf.components.getIn(['FolderCreatorModal', 'default', 'name']));
+	const newFolderName = yield select(state => state.cmf.components.getIn(['FolderCreatorModal', 'add_folder_modal', 'name']));
 	const { data } = yield call(http.get, `${uris.get('apiFolders')}/${currentFolderId}/preparations`);
 	const existingFolder = data.folders.filter(folder => folder.name === newFolderName).length;
 	if (existingFolder) {
-		yield put(actions.components.mergeState('FolderCreatorModal', 'default', { error: `The folder "${newFolderName}" exists already` }));
+		yield put(actions.components.mergeState('FolderCreatorModal', 'add_folder_modal', { error: `The folder "${newFolderName}" exists already` }));
 	}
 	else {
 		yield call(http.put, `${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${newFolderName}`);

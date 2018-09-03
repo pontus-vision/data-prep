@@ -32,8 +32,22 @@ function* removePreparation() {
 
 function* removeFolder() {
 	while (true) {
-		const { payload } = yield take(actions.REMOVE_FOLDER);
-		yield call(effects.removeFolder, payload);
+		yield take(actions.REMOVE_FOLDER);
+		yield call(effects.removeFolder);
+	}
+}
+
+function* openRemoveFolderModal() {
+	while (true) {
+		const { payload } = yield take(actions.OPEN_REMOVE_FOLDER_MODAL);
+		yield call(effects.openRemoveFolderModal, payload);
+	}
+}
+
+function* closeRemoveFolderModal() {
+	while (true) {
+		yield take(actions.CLOSE_REMOVE_FOLDER_MODAL);
+		yield call(effects.closeRemoveFolderModal);
 	}
 }
 
@@ -112,6 +126,8 @@ export default {
 	'preparation:move': move,
 	'preparation:fetch': fetch,
 	'preparation:remove': removePreparation,
+	'preparation:closeRemoveFolderConfirmDialog': closeRemoveFolderModal,
+	'preparation:openRemoveFolderConfirmDialog': openRemoveFolderModal,
 	'preparation:folder:add': addFolder,
 	'preparation:folder:closeAddFolderConfirmDialog': closeAddFolderModal,
 	'preparation:folder:openAddFolderConfirmDialog': openAddFolderModal,

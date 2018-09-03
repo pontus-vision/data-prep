@@ -13,7 +13,7 @@ import {
 	SET_TITLE_EDITION_MODE,
 	OPEN_PREPARATION_CREATOR,
 	CANCEL_RENAME_PREPARATION,
-	REMOVE_FOLDER,
+	OPEN_REMOVE_FOLDER_MODAL,
 	REMOVE_PREPARATION,
 } from '../constants/actions';
 
@@ -68,7 +68,7 @@ function remove(event, payload) {
 	switch (payload.model.type) {
 	case TYPE_FOLDER:
 		return {
-			type: REMOVE_FOLDER,
+			type: OPEN_REMOVE_FOLDER_MODAL,
 			payload: payload.model.id,
 		};
 	case TYPE_PREPARATION:

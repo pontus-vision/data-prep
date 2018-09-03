@@ -184,6 +184,7 @@
     "preparation:remove": {
       "id": "preparation:remove",
       "icon": "talend-trash",
+      "bsStyle": "primary",
       "label": {
         "i18n": {
           "key": "tdp-cmf:PREPARATION_REMOVE",
@@ -193,6 +194,43 @@
         }
       },
       "actionCreator": "preparation:remove"
+    },
+    "folder:remove": {
+      "id": "folder:remove",
+      "bsStyle": "primary",
+      "label": {
+        "i18n": {
+          "key": "tdp-cmf:FOLDER_REMOVE",
+          "options": {
+            "defaultValue": "Remove"
+          }
+        }
+      },
+      "actionCreator": "folder:remove"
+    },
+    "folder:remove:close": {
+      "id": "folder:remove:close",
+      "label": {
+        "i18n": {
+          "key": "tdp-cmf:CLOSE_REMOVE_FOLDER_MODAL",
+          "options": {
+            "defaultValue": "Cancel"
+          }
+        }
+      },
+      "actionCreator": "folder:remove:close"
+    },
+    "folder:remove:open": {
+      "id": "folder:remove:open",
+      "label": {
+        "i18n": {
+          "key": "tdp-cmf:OPEN_REMOVE_FOLDER_MODAL",
+          "options": {
+            "defaultValue": "Remove"
+          }
+        }
+      },
+      "actionCreator": "folder:remove:open"
     },
     "preparation:duplicate": {
       "id": "preparation:duplicate",

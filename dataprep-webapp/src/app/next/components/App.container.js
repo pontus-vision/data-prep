@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet';
 import { I18nextProvider } from 'react-i18next';
 import { List, Map } from 'immutable';
 import { IconsProvider } from '@talend/react-components';
-import { Notification, ShortcutManager } from '@talend/react-containers';
+import { ConfirmDialog, Notification, ShortcutManager } from '@talend/react-containers';
 import AppLoader from '@talend/react-containers/lib/AppLoader/index';
 
 import components from './';
@@ -19,6 +19,10 @@ const initialAddFolderState = new Map({
 	show: false,
 });
 
+const initialConfirmDialogState = new Map({
+	show: false,
+});
+
 export default function App(props) {
 	return (
 		<I18nextProvider i18n={i18n}>
@@ -29,6 +33,7 @@ export default function App(props) {
 						<IconsProvider />
 						<ShortcutManager />
 						<Notification initialState={initialNotificationsState} />
+						<ConfirmDialog initialState={initialConfirmDialogState} />
 						<components.AboutModal />
 						<components.PreparationCreatorModal />
 						<components.PreparationCopyMoveModal />
