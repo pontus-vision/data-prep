@@ -62,8 +62,8 @@ public class AsyncGet<T> extends HystrixCommand<T> {
                     retryDelaySeconds = 1;
                 }
 
-                AsyncExecution asyncExecution = waitForAsyncMethodToFinish(command.getCommandGroup(), asyncMethodStatusUrl,
-                        retryDelaySeconds);
+                AsyncExecution asyncExecution =
+                        waitForAsyncMethodToFinish(command.getCommandGroup(), asyncMethodStatusUrl, retryDelaySeconds);
                 if (asyncExecution.getStatus() == AsyncExecution.Status.DONE) {
                     result = commandSupplier.get().execute();
                 } else {
@@ -106,8 +106,10 @@ public class AsyncGet<T> extends HystrixCommand<T> {
                 }
             } while (isAsyncMethodRunning && waitTimeStopWatch.elapsed(WAIT_TIME_UNIT) < WAIT_TIME);
         } else {
-            throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION,
-                    ExceptionContext.withBuilder().put("message", "Invalid async wait URL" + asyncMethodStatusUrl).build());
+            throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, ExceptionContext
+                    .withBuilder()
+                    .put("message", "Invalid async wait URL" + asyncMethodStatusUrl)
+                    .build());
         }
         return executionStatus;
     }

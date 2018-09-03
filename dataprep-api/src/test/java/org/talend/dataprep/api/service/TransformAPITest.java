@@ -169,7 +169,8 @@ public class TransformAPITest extends ApiServiceTestBase {
         // given
         final String dataSetId = testClient.createDataset("transformation/cluster_dataset.csv", "testClustering");
         final String expectedClusterParameters = IOUtils.toString(
-                this.getClass().getResourceAsStream("transformation/expected_cluster_params_double_metaphone.json"), UTF_8);
+                this.getClass().getResourceAsStream("transformation/expected_cluster_params_double_metaphone.json"),
+                UTF_8);
 
         // when
         final String actualClusterParameters = given()
@@ -189,7 +190,8 @@ public class TransformAPITest extends ApiServiceTestBase {
         final String preparationId = testClient.createPreparationFromFile("transformation/cluster_dataset.csv",
                 "testClustering", home.getId());
         final String expectedClusterParameters = IOUtils.toString(
-                this.getClass().getResourceAsStream("transformation/expected_cluster_params_double_metaphone.json"), UTF_8);
+                this.getClass().getResourceAsStream("transformation/expected_cluster_params_double_metaphone.json"),
+                UTF_8);
 
         // update cache preparation
         testClient.getPreparation(preparationId);
@@ -212,13 +214,17 @@ public class TransformAPITest extends ApiServiceTestBase {
         final String preparationId = testClient.createPreparationFromFile("transformation/cluster_dataset.csv",
                 "testClustering", home.getId());
 
-        testClient.applyAction(preparationId, createAction("uppercase").withParameter("column_id", "0002")
-                .withParameter("column_name", "firstname")
-                .withParameter("scope", "column"));
+        testClient.applyAction(preparationId,
+                createAction("uppercase")
+                        .withParameter("column_id", "0002")
+                        .withParameter("column_name", "firstname")
+                        .withParameter("scope", "column"));
 
-        testClient.applyAction(preparationId, createAction("uppercase").withParameter("column_id", "0003")
-                .withParameter("column_name", "lastname")
-                .withParameter("scope", "column"));
+        testClient.applyAction(preparationId,
+                createAction("uppercase")
+                        .withParameter("column_id", "0003")
+                        .withParameter("column_name", "lastname")
+                        .withParameter("scope", "column"));
 
         final List<String> steps =
                 given().get("/api/preparations/{preparation}/details", preparationId).jsonPath().getList("steps");
@@ -235,7 +241,8 @@ public class TransformAPITest extends ApiServiceTestBase {
         // then (actions have normalized all cluster values, so no more clusters to be returned).
         assertFalse(actualClusterParameters.isEmpty());
         String expectedJson = IOUtils.toString(
-                this.getClass().getResourceAsStream("transformation/expected_cluster_params_double_metaphone.json"), UTF_8);
+                this.getClass().getResourceAsStream("transformation/expected_cluster_params_double_metaphone.json"),
+                UTF_8);
         assertThat(actualClusterParameters, sameJSONAs(expectedJson).allowingAnyArrayOrdering());
     }
 
