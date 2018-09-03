@@ -14,8 +14,10 @@
 package org.talend.dataprep.helper;
 
 import static com.jayway.restassured.http.ContentType.JSON;
+import static org.talend.dataprep.async.AsyncExecution.Status.FAILED;
 import static org.talend.dataprep.async.AsyncExecution.Status.NEW;
 import static org.talend.dataprep.async.AsyncExecution.Status.RUNNING;
+import static org.talend.dataprep.helper.VerboseMode.NONE;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,8 +30,13 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHeaders;
+import org.apache.http.protocol.HTTP;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +66,37 @@ public class OSDataPrepAPIHelper {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private boolean enableRestAssuredDebug = false;
+    private static final String FOLDER = "folder";
+
+    private static final String VERSION = "version";
+
+    private static final String FROM = "from";
+
+    private static final String PARENT_ID = "parentId";
+
+    private static final String NEW_NAME = "newName";
+
+    private static final String DESTINATION = "destination";
+
+    private static final String PARENT_STEP_ID = "parentStepId";
+
+    private static final String NAME = "name";
+
+    private static final String PATH = "path";
+
+    private VerboseMode restAssuredDebug = NONE;
 
     @Value("${backend.api.url:http://localhost:8888}")
     private String apiBaseUrl;
+
+    @Value("${execution.context:CLOUD}")
+    private ITExecutionContext executionContext;
+
+    @PostConstruct
+    public void initExecutionContext() {
+        LOGGER.info("Start Integration Test on '{}'",
+                executionContext == ITExecutionContext.CLOUD ? "Cloud" : "On Premise");
+    }
 
     /**
      * Wraps the {@link RestAssured#given()} method so that we can add behavior
@@ -71,8 +105,18 @@ public class OSDataPrepAPIHelper {
      */
     public RequestSpecification given() {
         RequestSpecification given = RestAssured.given().baseUri(apiBaseUrl);
-        if (enableRestAssuredDebug) {
+        // just to add a line separator before log the method and the path
+        RestAssured.config().getLogConfig().defaultStream().append(System.lineSeparator());
+        switch (restAssuredDebug) {
+        case ALL:
             given = given.log().all(true);
+            break;
+        case REQUESTS_ONLY:
+            given = given.log().method().log().path();
+            break;
+        case NONE:
+        default:
+            break;
         }
         return given;
     }
@@ -91,7 +135,7 @@ public class OSDataPrepAPIHelper {
                 .when() //
                 .body(new PreparationRequest(datasetID, preparationName)) //
                 .urlEncodingEnabled(false) //
-                .queryParam("folder", homeFolderId) //
+                .queryParam(FOLDER, homeFolderId) //
                 .post("/api/preparations");
     }
 
@@ -150,7 +194,7 @@ public class OSDataPrepAPIHelper {
         return given() //
                 .contentType(JSON) //
                 .when() //
-                .queryParam("parentStepId", parentStepId)
+                .queryParam(PARENT_STEP_ID, parentStepId)
                 .post("/api/preparations/{preparationId}/steps/{stepId}/order", preparationId, stepId);
     }
 
@@ -177,10 +221,10 @@ public class OSDataPrepAPIHelper {
      */
     public Response uploadTextDataset(String filename, String datasetName) throws java.io.IOException {
         return given() //
-                .header(new Header("Content-Type", "text/plain; charset=UTF-8")) //
+                .header(new Header(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8")) //
                 .body(IOUtils.toString(OSDataPrepAPIHelper.class.getResourceAsStream(filename),
                         Charset.defaultCharset())) //
-                .queryParam("name", datasetName) //
+                .queryParam(NAME, datasetName) //
                 .when() //
                 .post("/api/datasets");
     }
@@ -195,10 +239,10 @@ public class OSDataPrepAPIHelper {
      */
     public Response uploadBinaryDataset(String filename, String datasetName) throws java.io.IOException {
         return given() //
-                .header(new Header("Content-Type", "text/plain")) //
-                .body(IOUtils.toByteArray(OSDataPrepAPIHelper.class.getResourceAsStream(filename)))
+                .header(new Header(HttpHeaders.CONTENT_TYPE, HTTP.PLAIN_TEXT_TYPE)) //
+                .body(IOUtils.toByteArray(OSDataPrepAPIHelper.class.getResourceAsStream(filename))) //
                 .when() //
-                .queryParam("name", datasetName) //
+                .queryParam(NAME, datasetName) //
                 .post("/api/datasets");
     }
 
@@ -211,11 +255,11 @@ public class OSDataPrepAPIHelper {
      */
     public Response updateDataset(String filename, String datasetName, String datasetId) throws IOException {
         return given() //
-                .header(new Header("Content-Type", "text/plain")) //
+                .header(new Header(HttpHeaders.CONTENT_TYPE, HTTP.PLAIN_TEXT_TYPE)) //
                 .body(IOUtils.toString(OSDataPrepAPIHelper.class.getResourceAsStream(filename),
                         Charset.defaultCharset())) //
                 .when() //
-                .queryParam("name", datasetName) //
+                .queryParam(NAME, datasetName) //
                 .put("/api/datasets/{datasetId}", datasetId);
     }
 
@@ -248,24 +292,31 @@ public class OSDataPrepAPIHelper {
      * @param preparationId the preparation id.
      * @param version version of the preparation
      * @param from Where to get the data from (HEAD if no value)
+     * @param tql The TQL filter to apply (pass null if you want the non-filtered preparation content)
      * @return the response.
      */
-    public Response getPreparationContent(String preparationId, String version, String from) throws IOException {
-        Response response = given() //
-                .queryParam("version", version) //
-                .queryParam("from", from) //
+    public Response getPreparationContent(String preparationId, String version, String from, String tql)
+            throws IOException {
+        RequestSpecification given = given() //
+                .queryParam(VERSION, version) //
+                .queryParam(FROM, from);
+        if (tql != null) {
+            given.queryParam("filter", tql);
+        }
+        Response response = given
                 .when() //
                 .get("/api/preparations/{preparationId}/content", preparationId);
 
         if (HttpStatus.ACCEPTED.value() == response.getStatusCode()) {
             // first time we have a 202 with a Location to see asynchronous method status
-            final String asyncMethodStatusUrl = response.getHeader("Location");
+            final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
 
             waitForAsyncMethodToFinish(asyncMethodStatusUrl);
 
             response = given() //
-                    .queryParam("version", version) //
-                    .queryParam("from", from) //
+                    .queryParam(VERSION, version) //
+                    .queryParam(FROM, from) //
+                    .queryParam("filter", tql) //
                     .when() //
                     .get("/api/preparations/{preparationId}/content", preparationId);
         }
@@ -297,13 +348,19 @@ public class OSDataPrepAPIHelper {
     }
 
     /**
-     * Get a dataset.
+     * Get a dataset content with filter.
      *
      * @param datasetId the dataset id.
+     * @param tql the TQL filter to apply (pass null in order to get the non-filtered dataset content).
      * @return the response.
      */
-    public Response getDataset(String datasetId) {
-        return given() //
+    public Response getDataset(String datasetId, String tql) throws Exception {
+        RequestSpecification given = given();
+        if (tql != null) {
+            given.queryParam("filter", tql);
+        }
+        given.queryParam("includeTechnicalProperties", "true");
+        return given //
                 .when() //
                 .get("/api/datasets/{datasetId}", datasetId);
     }
@@ -323,7 +380,7 @@ public class OSDataPrepAPIHelper {
 
         if (HttpStatus.ACCEPTED.value() == response.getStatusCode()) {
             // first time we have a 202 with a Location to see asynchronous method status
-            final String asyncMethodStatusUrl = response.getHeader("Location");
+            final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
 
             waitForAsyncMethodToFinish(asyncMethodStatusUrl);
 
@@ -390,8 +447,8 @@ public class OSDataPrepAPIHelper {
     public Response createFolder(String parentFolderId, String folder) {
         return given() //
                 .urlEncodingEnabled(false) //
-                .queryParam("parentId", parentFolderId)
-                .queryParam("path", folder)
+                .queryParam(PARENT_ID, parentFolderId) //
+                .queryParam(PATH, folder) //
                 .when() //
                 .put("/api/folders");
     }
@@ -432,9 +489,9 @@ public class OSDataPrepAPIHelper {
     public Response movePreparation(String prepId, String folderSrc, String folderDest, String prepName) {
         return given() //
                 .urlEncodingEnabled(false) //
-                .queryParam("folder", folderSrc)
-                .queryParam("destination", folderDest)
-                .queryParam("newName", prepName)
+                .queryParam(FOLDER, folderSrc) //
+                .queryParam(DESTINATION, folderDest) //
+                .queryParam(NEW_NAME, prepName)
                 .when() //
                 .put("/api/preparations/{prepId}/move", prepId);
     }
@@ -452,8 +509,8 @@ public class OSDataPrepAPIHelper {
                 .contentType(JSON) //
                 .when() //
                 .urlEncodingEnabled(false) //
-                .queryParam("newName", prepName) //
-                .queryParam("destination", folderDest) //
+                .queryParam(NEW_NAME, prepName) //
+                .queryParam(DESTINATION, folderDest) //
                 .post("/api/preparations/{id}/copy", id);
     }
 
@@ -519,8 +576,26 @@ public class OSDataPrepAPIHelper {
     public Response getDatasets(Map<String, String> queryParameters) {
         return given() //
                 .when() //
-                .queryParameters(queryParameters)
+                .queryParameters(queryParameters) //
                 .get("/api/datasets");
+    }
+
+    /**
+     * Return the list of datasets
+     *
+     * @param asyncMethodStatusUrl Map containing the parameter names and their values to send with the request.
+     * @return The response of the request.
+     */
+    public AsyncExecutionMessage getAsyncResponse(String asyncMethodStatusUrl) throws IOException {
+        return given() //
+                .when() //
+                .expect() //
+                .statusCode(200) //
+                .log() //
+                .ifError() //
+                .get(asyncMethodStatusUrl) //
+                .as(AsyncExecutionMessage.class);
+
     }
 
     /**
@@ -535,7 +610,7 @@ public class OSDataPrepAPIHelper {
 
         AsyncExecutionMessage asyncExecutionMessage = null;
 
-        while (isAsyncMethodRunning && nbLoop < 100) {
+        while (isAsyncMethodRunning && nbLoop < 1000) {
 
             String statusAsyncMethod = given()
                     .when() //
@@ -551,10 +626,14 @@ public class OSDataPrepAPIHelper {
             AsyncExecution.Status asyncStatus = asyncExecutionMessage.getStatus();
             isAsyncMethodRunning = asyncStatus == RUNNING || asyncStatus == NEW;
 
+            if (asyncStatus == FAILED) {
+                LOGGER.error("AsyncExecution failed");
+                Assert.fail("AsyncExecution failed");
+            }
             try {
-                TimeUnit.MILLISECONDS.sleep(50);
+                TimeUnit.MILLISECONDS.sleep(1000);
             } catch (InterruptedException e) {
-                LOGGER.error("cannot sleep", e);
+                LOGGER.error("Cannot Sleep", e);
                 Assert.fail();
             }
             nbLoop++;
@@ -563,20 +642,29 @@ public class OSDataPrepAPIHelper {
         return asyncExecutionMessage;
     }
 
-    public boolean isEnableRestAssuredDebug() {
-        return enableRestAssuredDebug;
-    }
-
-    public OSDataPrepAPIHelper setEnableRestAssuredDebug(boolean enableRestAssuredDebug) {
-        this.enableRestAssuredDebug = enableRestAssuredDebug;
+    public OSDataPrepAPIHelper setRestAssuredDebug(VerboseMode restAssuredDebug) {
+        this.restAssuredDebug = restAssuredDebug;
         return this;
     }
 
     public Response applyAggragate(Aggregate aggregate) throws Exception {
-        return given()
-                .header(new Header("Content-Type", "application/json")) //
+        return given() //
+                .header(new Header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)) //
                 .when() //
                 .body(mapper.writeValueAsString(aggregate)) //
                 .post("/api/aggregate");
+    }
+
+    public ITExecutionContext getExecutionContext() {
+        return executionContext;
+    }
+
+    /**
+     * Description of the Integration Test execution context. This is useful to manage url changes between OnPremise &
+     * Cloud context.
+     */
+    public enum ITExecutionContext {
+        ON_PREMISE,
+        CLOUD
     }
 }

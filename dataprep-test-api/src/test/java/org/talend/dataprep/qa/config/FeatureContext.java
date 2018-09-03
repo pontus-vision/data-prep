@@ -106,9 +106,9 @@ public class FeatureContext {
             return folderPath;
         }
         // 2 cases, following the path starts from the root or not
-        return folderPath.startsWith("/") ?
-                "/" + folderPath.substring(1).replace("/", TI_SUFFIX_UID + "/") + TI_SUFFIX_UID :
-                folderPath.replace("/", TI_SUFFIX_UID + "/") + TI_SUFFIX_UID;
+        return folderPath.startsWith("/")
+                ? "/" + folderPath.substring(1).replace("/", TI_SUFFIX_UID + "/") + TI_SUFFIX_UID
+                : folderPath.replace("/", TI_SUFFIX_UID + "/") + TI_SUFFIX_UID;
     }
 
     /**
@@ -187,7 +187,6 @@ public class FeatureContext {
     public List<String> getDatasetIds() {
         return new ArrayList<>(datasetIdByName.values());
     }
-
 
     @NotNull
     public List<String> getDatasetNames(){

@@ -90,7 +90,7 @@ public class BackgroundAnalysis {
                 try (final Stream<DataSetRow> stream = store.stream(metadata)) {
                     try (Analyzer<Analyzers.Result> analyzer = analyzerService.schemaAnalysis(columns)) {
                         computeStatistics(analyzer, columns, stream);
-                        LOGGER.debug("Base statistics analysis done for{}", dataSetId);
+                        LOGGER.debug("Base statistics analysis done for {}", dataSetId);
                         // Save base analysis
                         saveAnalyzerResults(dataSetId, analyzer);
                     }
@@ -154,7 +154,7 @@ public class BackgroundAnalysis {
         }
         // get the analyzer of the first column
         final Analyzers.Result result = results.get(0);
-        if (result.exist(ValueQualityStatistics.class)) {
+        if (metadata.getContent().getNbRecords() == 0 && result.exist(ValueQualityStatistics.class)) {
             final ValueQualityStatistics valueQualityStatistics = result.get(ValueQualityStatistics.class);
             metadata.getContent().setNbRecords(valueQualityStatistics.getCount());
         }

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.dataprep.conversions.BeanConversionService;
+import org.talend.dataprep.dataset.adapter.DatasetClient;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 
@@ -35,7 +36,7 @@ public class APIService {
     protected static final Logger LOG = LoggerFactory.getLogger(APIService.class);
 
     @Autowired
-    private ApplicationContext context;
+    protected ApplicationContext context;
 
     @Autowired
     private PoolingHttpClientConnectionManager connectionManager;
@@ -46,12 +47,15 @@ public class APIService {
     @Autowired
     protected BeanConversionService beanConversionService;
 
+    @Autowired
+    protected DatasetClient datasetClient;
+
     protected <T extends HystrixCommand> T getCommand(Class<T> clazz, Object... args) {
         try {
             return context.getBean(clazz, args);
         } catch (BeansException e) {
-            throw new TDPException(APIErrorCodes.UNABLE_TO_FIND_COMMAND, e, ExceptionContext.build().put("class", clazz)
-                    .put("args", args));
+            throw new TDPException(APIErrorCodes.UNABLE_TO_FIND_COMMAND, e,
+                    ExceptionContext.build().put("class", clazz).put("args", args));
         }
     }
 
@@ -61,4 +65,5 @@ public class APIService {
     protected PoolStats getConnectionStats() {
         return connectionManager.getTotalStats();
     }
+
 }

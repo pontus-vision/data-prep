@@ -15,18 +15,27 @@ package org.talend.dataprep.quality;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
 import org.talend.dataprep.api.dataset.row.RowMetadataUtils;
 import org.talend.dataprep.api.dataset.statistics.date.StreamDateHistogramAnalyzer;
 import org.talend.dataprep.api.dataset.statistics.date.StreamDateHistogramStatistics;
 import org.talend.dataprep.api.dataset.statistics.number.StreamNumberHistogramAnalyzer;
 import org.talend.dataprep.api.type.TypeUtils;
+import org.talend.dataprep.dataset.StatisticsAdapter;
 import org.talend.dataprep.transformation.actions.date.DateParser;
 import org.talend.dataprep.transformation.api.transformer.json.NullAnalyzer;
 import org.talend.dataquality.common.inference.Analyzer;
@@ -50,7 +59,7 @@ import org.talend.dataquality.statistics.frequency.pattern.PatternFrequencyStati
 import org.talend.dataquality.statistics.frequency.recognition.AbstractPatternRecognizer;
 import org.talend.dataquality.statistics.frequency.recognition.DateTimePatternRecognizer;
 import org.talend.dataquality.statistics.frequency.recognition.EmptyPatternRecognizer;
-import org.talend.dataquality.statistics.frequency.recognition.LatinExtendedCharPatternRecognizer;
+import org.talend.dataquality.statistics.frequency.recognition.GenericCharPatternRecognizer;
 import org.talend.dataquality.statistics.numeric.quantile.QuantileAnalyzer;
 import org.talend.dataquality.statistics.numeric.quantile.QuantileStatistics;
 import org.talend.dataquality.statistics.numeric.summary.SummaryAnalyzer;
@@ -94,22 +103,11 @@ public class AnalyzerService {
     }
 
     private static AbstractFrequencyAnalyzer buildPatternAnalyzer(List<ColumnMetadata> columns) {
-        // deal with specific date, even custom date pattern
-        final DateTimePatternRecognizer dateTimePatternFrequencyAnalyzer = new DateTimePatternRecognizer();
-        List<String> patterns = new ArrayList<>(columns.size());
-        for (ColumnMetadata column : columns) {
-            final String pattern = RowMetadataUtils.getMostUsedDatePattern(column);
-            if (StringUtils.isNotBlank(pattern)) {
-                patterns.add(pattern);
-            }
-        }
-        dateTimePatternFrequencyAnalyzer.addCustomDateTimePatterns(patterns);
-
         // warning, the order is important
         List<AbstractPatternRecognizer> patternFrequencyAnalyzers = new ArrayList<>();
         patternFrequencyAnalyzers.add(new EmptyPatternRecognizer());
-        patternFrequencyAnalyzers.add(dateTimePatternFrequencyAnalyzer);
-        patternFrequencyAnalyzers.add(new LatinExtendedCharPatternRecognizer());
+        patternFrequencyAnalyzers.add(new DateTimePatternRecognizer());
+        patternFrequencyAnalyzers.add(new GenericCharPatternRecognizer());
 
         return new CompositePatternFrequencyAnalyzer(patternFrequencyAnalyzers, TypeUtils.convert(columns));
     }
@@ -299,6 +297,18 @@ public class AnalyzerService {
      */
     public Analyzer<Analyzers.Result> schemaAnalysis(List<ColumnMetadata> columns) {
         return build(columns, Analysis.SEMANTIC, Analysis.TYPE);
+    }
+
+    public void analyzeFull(final Stream<DataSetRow> records, List<ColumnMetadata> columns) {
+        final Analyzer<Analyzers.Result> analyzer = full(columns);
+
+        analyzer.init();
+        records.map(r -> r.toArray()).forEach(analyzer::analyze);
+        analyzer.end();
+
+        final List<Analyzers.Result> analyzerResult = analyzer.getResult();
+        final StatisticsAdapter statisticsAdapter = new StatisticsAdapter(40);
+        statisticsAdapter.adapt(columns, analyzerResult);
     }
 
     public enum Analysis {

@@ -61,15 +61,16 @@ public class RemoveNonAlphaNumChars extends AbstractActionMetadata implements Co
 
     @Override
     public List<Parameter> getParameters(Locale locale) {
-        return ActionsUtils.appendColumnCreationParameter(super.getParameters(locale), locale, CREATE_NEW_COLUMN_DEFAULT);
+        return ActionsUtils.appendColumnCreationParameter(super.getParameters(locale), locale,
+                CREATE_NEW_COLUMN_DEFAULT);
     }
 
     @Override
     public void compile(ActionContext context) {
         super.compile(context);
         if (ActionsUtils.doesCreateNewColumn(context.getParameters(), CREATE_NEW_COLUMN_DEFAULT)) {
-            ActionsUtils.createNewColumn(context,
-                    singletonList(ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX)));
+            ActionsUtils.createNewColumn(context, singletonList(
+                    ActionsUtils.additionalColumn().withName(context.getColumnName() + NEW_COLUMN_SUFFIX)));
         }
     }
 
@@ -84,7 +85,22 @@ public class RemoveNonAlphaNumChars extends AbstractActionMetadata implements Co
         if (from == null) {
             return StringUtils.EMPTY;
         }
-        return from.replaceAll("[[^\\p{IsAlnum}]&&[^\\p{IsWhite_Space}]]", "");
+        final int inputSize = from.length();
+        // judge whether surrogate pair exist
+        if (inputSize == from.codePointCount(0, inputSize)) {
+            return from.replaceAll("[[^\\p{IsAlnum}]&&[^\\p{IsWhite_Space}]]", StringUtils.EMPTY);
+        } else {
+            return replaceNonAlphaNumAndSpace(from, StringUtils.EMPTY);
+        }
+    }
+
+    private String replaceNonAlphaNumAndSpace(String inputStr, String replaceStr) {
+        StringBuilder resultStr = new StringBuilder(); // $NON-NLS-1$
+        for (char str : inputStr.toCharArray()) {
+            resultStr.append((Character.isLetter(str) || Character.isDigit(str) || Character.isWhitespace(str)) ? str
+                    : replaceStr);
+        }
+        return resultStr.toString();
     }
 
     @Override

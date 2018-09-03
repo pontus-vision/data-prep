@@ -62,13 +62,14 @@ public class DateParserTest {
     public void getPatterns_should_remove_invalid_or_empty_then_sort_patterns() throws IOException {
         // given
         final DataSetRow row = ActionMetadataTestUtils.getRow("toto", "04/25/1999", "tata");
-        ActionMetadataTestUtils.setStatistics(row, "0001", getDateTestJsonAsStream("statistics_with_different_test_cases.json")); // contains
+        ActionMetadataTestUtils.setStatistics(row, "0001",
+                getDateTestJsonAsStream("statistics_with_different_test_cases.json")); // contains
                                                                                                                                   // valid,
-                                                                                                                                  // invalid,
-                                                                                                                                  // empty
-                                                                                                                                  // patterns
-        final List<PatternFrequency> patternFrequencies = row.getRowMetadata().getById("0001").getStatistics()
-                .getPatternFrequencies();
+                                                                                                                                          // invalid,
+                                                                                                                                          // empty
+                                                                                                                                          // patterns
+        final List<PatternFrequency> patternFrequencies =
+                row.getRowMetadata().getById("0001").getStatistics().getPatternFrequencies();
 
         // when
         final List<DatePattern> actual = action.getPatterns(patternFrequencies);
@@ -92,11 +93,13 @@ public class DateParserTest {
         patterns.add(new DatePattern("yyyy/MM/dd", 1));
         patterns.add(new DatePattern("MM-dd-yy", 1));
         patterns.add(new DatePattern("yy/dd/MM", 1));
+        patterns.add(new DatePattern("yy𠀃dd𠀃MM", 1));
 
         // when/then
         assertEquals(expected, dtf.format(action.parseDateFromPatterns("2015/08/17", patterns)));
         assertEquals(expected, dtf.format(action.parseDateFromPatterns("08-17-15", patterns)));
         assertEquals(expected, dtf.format(action.parseDateFromPatterns("15/17/08", patterns)));
+        assertEquals(expected, dtf.format(action.parseDateFromPatterns("15𠀃17𠀃08", patterns)));
     }
 
     /**
@@ -146,7 +149,7 @@ public class DateParserTest {
         assertThat(action.guessPattern("July 14 2015", column),
                 anyOf(is(new DatePattern("MMM d yyyy", 1)), is(new DatePattern("MMMM d yyyy", 1))));
         assertEquals(new DatePattern("MMMM d yyyy", 1), action.guessPattern("Juillet 14 2015", column));
-        assertEquals(new DatePattern("MMM d yyyy", 1), action.guessPattern("Jui 14 2015", column));
+        assertEquals(new DatePattern("MMM d yyyy", 1), action.guessPattern("Juil. 14 2015", column));
         assertEquals(new DatePattern("MMM d yyyy", 1), action.guessPattern("Jul 14 2015", column));
     }
 

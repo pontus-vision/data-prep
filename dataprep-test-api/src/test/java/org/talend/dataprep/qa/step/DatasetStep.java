@@ -2,8 +2,6 @@ package org.talend.dataprep.qa.step;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.springframework.http.HttpStatus.OK;
 import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
@@ -13,24 +11,28 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.talend.dataprep.qa.config.DataPrepStep;
-import org.talend.dataprep.qa.dto.DatasetMeta;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ResponseBody;
 
 import cucumber.api.DataTable;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import org.talend.dataprep.qa.dto.ContentMetadata;
+import org.talend.dataprep.qa.dto.Statistics;
 
 /**
  * Step dealing with dataset.
@@ -38,6 +40,12 @@ import cucumber.api.java.en.When;
 public class DatasetStep extends DataPrepStep {
 
     private static final String NB_ROW = "nbRow";
+
+    @Value("${metadata.timeout.sec}")
+    private int metadataTimeout;
+
+    @Value("${metadata.wait.time.sec}")
+    private int metadataTimeToWait;
 
     /**
      * This class' logger.
@@ -53,28 +61,28 @@ public class DatasetStep extends DataPrepStep {
     @Given("^A dataset with the following parameters exists :$") //
     public void existDataset(DataTable dataTable) throws IOException {
         Map<String, String> params = dataTable.asMap(String.class, String.class);
-        List<DatasetMeta> datasetMetas = listDatasetMeta();
+        List<ContentMetadata> datasetMetas = listDatasetMeta();
         assertEquals(1, countFilteredDatasetList(datasetMetas, params.get(DATASET_NAME_KEY), params.get(NB_ROW)));
     }
 
     @Given("^It doesn't exist any dataset with the following parameters :$") //
     public void notExistDataset(DataTable dataTable) throws IOException {
         Map<String, String> params = dataTable.asMap(String.class, String.class);
-        List<DatasetMeta> datasetMetas = listDatasetMeta();
+        List<ContentMetadata> datasetMetas = listDatasetMeta();
         assertEquals(0, countFilteredDatasetList(datasetMetas, params.get(DATASET_NAME_KEY), params.get(NB_ROW)));
     }
 
     /**
-     * Count how many {@link DatasetMeta} corresponding to the specified name & row number exists in the given
+     * Count how many {@link ContentMetadata} corresponding to the specified name & row number exists in the given
      * {@link List}.
      *
-     * @param datasetMetas the {@link List} of {@link DatasetMeta} to filter.
+     * @param datasetMetas the {@link List} of {@link ContentMetadata} to filter.
      * @param datasetName the searched dataset name.
      * @param nbRows the searched number of row.
-     * @return the number of corresponding {@link DatasetMeta}.
+     * @return the number of corresponding {@link ContentMetadata}.
      */
-    private long countFilteredDatasetList(List<DatasetMeta> datasetMetas, String datasetName, String nbRows) {
-        return datasetMetas
+    private long countFilteredDatasetList(List<ContentMetadata> datasetMetas, String datasetName, String nbRows) {
+        return datasetMetas //
                 .stream() //
                 .filter(d -> (suffixName(datasetName).equals(d.name)) //
                         && nbRows.equals(d.records)) //
@@ -84,14 +92,15 @@ public class DatasetStep extends DataPrepStep {
     /**
      * List all accessible datasets.
      *
-     * @return a {@link List} of {@link DatasetMeta}.
+     * @return a {@link List} of {@link ContentMetadata}.
      * @throws IOException in cas of exception.
      */
-    private List<DatasetMeta> listDatasetMeta() throws IOException {
+    private List<ContentMetadata> listDatasetMeta() throws IOException {
         Response response = api.listDatasetDetails();
         response.then().statusCode(OK.value());
         final String content = IOUtils.toString(response.getBody().asInputStream(), StandardCharsets.UTF_8);
-        return objectMapper.readValue(content, new TypeReference<List<DatasetMeta>>() {
+        return objectMapper.readValue(content, new TypeReference<List<ContentMetadata>>() {
+
         });
     }
 
@@ -110,22 +119,22 @@ public class DatasetStep extends DataPrepStep {
         switch (util.getFilenameExtension(fileName)) {
         case "xls":
         case "xlsx":
-            datasetId = api
+            datasetId = api //
                     .uploadBinaryDataset(fileName, suffixedName) //
-                    .then()
+                    .then() //
                     .statusCode(OK.value()) //
-                    .extract()
-                    .body()
+                    .extract() //
+                    .body() //
                     .asString();
             break;
         case "csv":
         default:
             datasetId = api
                     .uploadTextDataset(fileName, suffixedName) //
-                    .then()
+                    .then() //
                     .statusCode(OK.value()) //
-                    .extract()
-                    .body()
+                    .extract() //
+                    .body() //
                     .asString();
             break;
 
@@ -180,17 +189,35 @@ public class DatasetStep extends DataPrepStep {
 
         final JsonPath jsonPath = response.body().jsonPath();
         final List<String> actual = jsonPath.getList("columns.name", String.class);
-        assertNotNull(new StringBuilder("No columns in dataset \"").append(datasetName).append("\".").toString(),
-                actual);
-        assertFalse(new StringBuilder("No columns in dataset \"").append(datasetName).append("\".").toString(),
-                actual.isEmpty());
-        assertEquals(new StringBuilder("Not the expected number of columns in dataset \"")
-                .append(datasetName)
-                .append("\".")
-                .toString(), columns.size(), actual.size());
-        assertTrue(new StringBuilder("The \"")
-                .append(datasetName)
-                .append("\" dataset doesn't contains the expected columns.")
-                .toString(), actual.containsAll(columns));
+        checkColumnNames(datasetName, columns, actual);
+    }
+
+    @Then("^I check that the dataSet \"(.*)\" has \"(.*)\" records$")
+    public void thenICheckTheDataSetRecordsNumber(String datasetName, String recordNumber) throws IOException {
+        Response response = api.getDataSetMetaData(context.getDatasetId(suffixName(datasetName)));
+        response.then().statusCode(OK.value());
+
+        final JsonPath jsonPath = response.body().jsonPath();
+        assertEquals(recordNumber, jsonPath.get("records").toString());
+    }
+
+    @And("^I wait for the dataset \"(.*)\" metadata to be computed$")
+    public void iWaitForTheDatasetMetadataToBeComputed(String datasetName) throws Throwable {
+        waitResponse("Dataset metadata", metadataTimeout, metadataTimeToWait) //
+                .until(checkDatasetMetadataStatus(datasetName));
+    }
+
+    /**
+     * get dataset metadata status.
+     */
+    private Callable<Boolean> checkDatasetMetadataStatus(String datasetName) {
+        return () -> {
+            Response response = api.getDataSetMetaData(context.getDatasetId(suffixName(datasetName)));
+            response.then().statusCode(OK.value());
+
+            final ContentMetadata actual = response.body().as(ContentMetadata.class);
+            Statistics columnStatistics = actual.columns.get(0).statistics;
+            return !columnStatistics.frequencyTable.isEmpty() && !columnStatistics.patternFrequencyTable.isEmpty();
+        };
     }
 }

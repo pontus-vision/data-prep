@@ -25,12 +25,12 @@ import org.talend.dataprep.exception.error.CommonErrorCodes;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import static org.talend.dataprep.command.Defaults.pipeStream;
 
 @Component
-@Scope("request")
-public class GetFolder
-    extends GenericCommand<InputStream> {
+@Scope(SCOPE_PROTOTYPE)
+public class GetFolder extends GenericCommand<InputStream> {
 
     public GetFolder(final String id) {
         super(GenericCommand.PREPARATION_GROUP);
@@ -40,10 +40,9 @@ public class GetFolder
 
     private HttpRequestBase onExecute(final String id) {
         try {
-            URIBuilder uriBuilder = new URIBuilder(preparationServiceUrl + "/folders/" + id );
+            URIBuilder uriBuilder = new URIBuilder(preparationServiceUrl + "/folders/" + id);
             return new HttpGet(uriBuilder.build());
-        }
-        catch (URISyntaxException e) {
+        } catch (URISyntaxException e) {
             throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
         }
     }

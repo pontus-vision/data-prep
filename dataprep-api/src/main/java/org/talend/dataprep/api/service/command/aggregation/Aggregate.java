@@ -1,22 +1,19 @@
-//  ============================================================================
+// ============================================================================
 //
-//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.api.service.command.aggregation;
 
-import static org.talend.dataprep.command.Defaults.pipeStream;
-
-import java.io.InputStream;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -32,13 +29,15 @@ import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 import org.talend.dataprep.transformation.aggregation.api.AggregationParameters;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.InputStream;
+
+import static org.talend.dataprep.command.Defaults.pipeStream;
 
 /**
  * Aggregate command. Take the content of the dataset or preparation before sending it to the transformation service.
  */
 @Component
-@Scope("request")
+@Scope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE)
 public class Aggregate extends GenericCommand<InputStream> {
 
     /** This class' logger. */
@@ -62,7 +61,8 @@ public class Aggregate extends GenericCommand<InputStream> {
      */
     private HttpRequestBase onExecute(AggregationParameters parameters) {
         // must work on either a dataset or a preparation, if both parameters are set, an error is thrown
-        if (StringUtils.isNotBlank(parameters.getDatasetId()) && StringUtils.isNotBlank(parameters.getPreparationId())) {
+        if (StringUtils.isNotBlank(parameters.getDatasetId())
+                && StringUtils.isNotBlank(parameters.getPreparationId())) {
             LOG.error("Cannot aggregate on both dataset id & preparation id : {}", parameters);
             throw new TDPException(CommonErrorCodes.BAD_AGGREGATION_PARAMETERS);
         }

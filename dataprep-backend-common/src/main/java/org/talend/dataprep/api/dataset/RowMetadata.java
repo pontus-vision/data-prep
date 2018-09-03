@@ -23,14 +23,13 @@ import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
-import org.apache.avro.Schema;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.api.dataset.json.ColumnContextDeserializer;
 import org.talend.dataprep.api.dataset.row.Flag;
-import org.talend.dataprep.api.dataset.row.RowMetadataUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -56,6 +55,9 @@ public class RowMetadata implements Serializable {
     @JsonProperty("nextId")
     private int nextId = 0;
 
+    @JsonIgnore
+    private transient long sampleNbRows;
+
     /**
      * Default empty constructor.
      */
@@ -73,10 +75,43 @@ public class RowMetadata implements Serializable {
     }
 
     /**
+     * Copy constructor to replace {@link #clone()}.
+     */
+    public RowMetadata(RowMetadata original) {
+        List<ColumnMetadata> copyColumns = new ArrayList<>(original.columns.size());
+        original.columns.forEach(col -> copyColumns.add(ColumnMetadata.Builder.column().copy(col).build()));
+        setColumns(new ArrayList<>(copyColumns));
+        nextId = original.nextId;
+        sampleNbRows = original.sampleNbRows;
+    }
+
+    public int getNextId() {
+        return nextId;
+    }
+
+    @JsonIgnore
+    public long getSampleNbRows() {
+        return sampleNbRows;
+    }
+
+    public void setSampleNbRows(long sampleNbRows) {
+        this.sampleNbRows = sampleNbRows;
+    }
+
+    /**
      * @return The metadata of this row's columns.
      */
     public List<ColumnMetadata> getColumns() {
         return Collections.unmodifiableList(columns);
+    }
+
+    /**
+     * @param columnMetadata the metadata to set.
+     */
+    public void setColumns(List<ColumnMetadata> columnMetadata) {
+        columns.clear();
+        nextId = 0;
+        columnMetadata.forEach(this::addColumn);
     }
 
     /**
@@ -98,15 +133,6 @@ public class RowMetadata implements Serializable {
             }
         }
         return true;
-    }
-
-    /**
-     * @param columnMetadata the metadata to set.
-     */
-    public void setColumns(List<ColumnMetadata> columnMetadata) {
-        columns.clear();
-        nextId = 0;
-        columnMetadata.forEach(this::addColumn);
     }
 
     public ColumnMetadata addColumn(ColumnMetadata columnMetadata) {
@@ -295,27 +321,18 @@ public class RowMetadata implements Serializable {
 
     @Override
     public RowMetadata clone() {
-        // also copy the columns !
-        List<ColumnMetadata> copyColumns = new ArrayList<>(columns.size());
-        columns.forEach(col -> copyColumns.add(ColumnMetadata.Builder.column().copy(col).build()));
-        final RowMetadata clone = new RowMetadata(new ArrayList<>(copyColumns));
-        clone.nextId = nextId;
-        return clone;
-    }
-
-    public Schema toSchema() {
-        return RowMetadataUtils.toSchema(this);
+        return new RowMetadata(this);
     }
 
     /**
      * Move column with id <code>movedColumnId</code> <b>after</b> <code>columnId</code>. If you have:
-     * 
+     *
      * <pre>
      *     [0001, 0002, 0003, 0004]
      * </pre>
-     * 
+     *
      * And call <code>moveAfter(0004, 0001)</code>, you will change order of columns with:
-     * 
+     *
      * <pre>
      *     [0001, 0004, 0002, 0003]
      * </pre>
@@ -336,4 +353,5 @@ public class RowMetadata implements Serializable {
         columns.remove(movedColumn);
         columns.add(columns.indexOf(columnMetadata) + 1, movedColumn);
     }
+
 }

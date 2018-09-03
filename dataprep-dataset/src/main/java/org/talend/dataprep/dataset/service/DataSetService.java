@@ -38,8 +38,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -65,6 +63,7 @@ import org.slf4j.Marker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -94,7 +93,6 @@ import org.talend.dataprep.api.service.info.VersionService;
 import org.talend.dataprep.api.user.UserData;
 import org.talend.dataprep.cache.ContentCache;
 import org.talend.dataprep.cache.ContentCache.TimeToLive;
-import org.talend.dataprep.configuration.EncodingSupport;
 import org.talend.dataprep.conversions.BeanConversionService;
 import org.talend.dataprep.dataset.DataSetMetadataBuilder;
 import org.talend.dataprep.dataset.StatisticsAdapter;
@@ -123,6 +121,7 @@ import org.talend.dataprep.schema.FormatFamilyFactory;
 import org.talend.dataprep.schema.Schema;
 import org.talend.dataprep.security.PublicAPI;
 import org.talend.dataprep.security.Security;
+import org.talend.dataprep.security.SecurityProxy;
 import org.talend.dataprep.user.store.UserDataRepository;
 import org.talend.dataprep.util.SortAndOrderHelper.Order;
 import org.talend.dataprep.util.SortAndOrderHelper.Sort;
@@ -207,6 +206,9 @@ public class DataSetService extends BaseDataSetService {
 
     @Resource(name = "serializer#dataset#executor")
     private TaskExecutor executor;
+
+    @Autowired
+    private SecurityProxy securityProxy;
 
     @RequestMapping(value = "/datasets", method = RequestMethod.GET)
     @ApiOperation(value = "List all data sets and filters on certified, or favorite or a limited number when asked",
@@ -311,7 +313,7 @@ public class DataSetService extends BaseDataSetService {
      * @param content The raw content of the data set (might be a CSV, XLS...) or the connection parameter in case of a
      * remote csv.
      * @return The new data id.
-     * @see DataSetService#get(boolean, boolean, String, String)
+     * @see DataSetService#get(boolean, boolean, long, String, String)
      */
     //@formatter:off
     @RequestMapping(value = "/datasets", method = POST, produces = TEXT_PLAIN_VALUE)
@@ -430,6 +432,7 @@ public class DataSetService extends BaseDataSetService {
                     value = "Include metadata information in the response") boolean metadata, //
                     @RequestParam(defaultValue = "false") @ApiParam(name = "includeInternalContent",
                             value = "Include internal content in the response") boolean includeInternalContent, //
+                    @RequestParam(defaultValue = "-1") @ApiParam(name = "limit", value = "limit") long limit, //
                     @ApiParam(value = "Filter for retrieved content.") @RequestParam(value = "filter",
                             defaultValue = "") String filter,
                     @PathVariable(value = "id") @ApiParam(name = "id",
@@ -437,6 +440,7 @@ public class DataSetService extends BaseDataSetService {
         return () -> {
             final Marker marker = Markers.dataset(dataSetId);
             LOG.debug(marker, "Get data set #{}", dataSetId);
+            Stream<DataSetRow> stream = null;
             try {
                 DataSetMetadata dataSetMetadata = dataSetMetadataRepository.get(dataSetId);
                 assertDataSetMetadata(dataSetMetadata, dataSetId);
@@ -445,17 +449,15 @@ public class DataSetService extends BaseDataSetService {
                 if (metadata) {
                     dataSet.setMetadata(conversionService.convert(dataSetMetadata, UserDataSetMetadata.class));
                 }
-                Stream<DataSetRow> stream = contentStore.stream(dataSetMetadata, -1); // Disable line limit
+                stream = contentStore.stream(dataSetMetadata, limit); // Disable line limit
                 if (!includeInternalContent) {
                     LOG.debug("Skip internal content when serving data set #{} content.", dataSetId);
                     stream = stream.map(r -> {
                         final Map<String, Object> values = r.values();
                         final Map<String, Object> filteredValues = new HashMap<>(values);
+                        // Remove technical properties from returned values.
                         values.forEach((k, v) -> {
-                            if (k != null && k.startsWith(FlagNames.INTERNAL_PROPERTY_PREFIX)) { // Removes technical
-                                                                                                 // properties
-                                                                                                 // from returned
-                                                                                                 // values.
+                            if (k != null && k.startsWith(FlagNames.INTERNAL_PROPERTY_PREFIX)) {
                                 filteredValues.remove(k);
                             }
                         });
@@ -465,11 +467,15 @@ public class DataSetService extends BaseDataSetService {
                 }
 
                 // Filter content
-                stream = stream.filter(
-                        filterService.build(URLDecoder.decode(filter, "UTF-8"), dataSetMetadata.getRowMetadata()));
+                stream = stream.filter(filterService.build(filter, dataSetMetadata.getRowMetadata()));
 
                 dataSet.setRecords(stream);
                 return dataSet;
+            } catch (Exception e) {
+                if (stream != null) {
+                    stream.close();
+                }
+                throw e;
             } finally {
                 LOG.debug(marker, "Get done.");
             }
@@ -496,17 +502,24 @@ public class DataSetService extends BaseDataSetService {
 
         LOG.debug("get dataset metadata for {}", dataSetId);
 
-        DataSetMetadata metadata = dataSetMetadataRepository.get(dataSetId);
+        DataSetMetadata metadata;
+        securityProxy.asTechnicalUserForDataSet();
+        try {
+            metadata = dataSetMetadataRepository.get(dataSetId);
+        } finally {
+            securityProxy.releaseIdentity();
+        }
         if (metadata == null) {
             throw new TDPException(DataSetErrorCodes.DATASET_DOES_NOT_EXIST, build().put("id", dataSetId));
         }
+
         if (!metadata.getLifecycle().schemaAnalyzed()) {
-            HttpResponseContext.status(HttpStatus.ACCEPTED);
-            return DataSet.empty();
+            LOG.warn("Schema analyzed is not finished for #{}", dataSetId);
         }
+
         DataSet dataSet = new DataSet();
         dataSet.setMetadata(conversionService.convert(metadata, UserDataSetMetadata.class));
-        LOG.info("found dataset {} for #{}", dataSet.getMetadata().getName(), dataSetId);
+        LOG.debug("found dataset {} for #{}", dataSet.getMetadata().getName(), dataSetId);
         return dataSet;
     }
 
@@ -632,8 +645,10 @@ public class DataSetService extends BaseDataSetService {
     @VolumeMetered
     public String updateRawDataSet(
             @PathVariable(value = "id") @ApiParam(name = "id", value = "Id of the data set to update") String dataSetId, //
-            @RequestParam(value = "name", required = false) @ApiParam(name = "name", value = "New value for the data set name") String name, //
-            @RequestParam(value = "size", required = false) @ApiParam(name = "size", value = "The size of the dataSet") Long size, //
+            @RequestParam(value = "name", required = false) @ApiParam(name = "name",
+                    value = "New value for the data set name") String name, //
+            @RequestParam(value = "size", required = false) @ApiParam(name = "size",
+                    value = "The size of the dataSet") Long size, //
             @ApiParam(value = "content") InputStream dataSetContent) {
 
         LOG.debug("updating dataset content #{}", dataSetId);
@@ -656,16 +671,19 @@ public class DataSetService extends BaseDataSetService {
 
             final UpdateDataSetCacheKey cacheKey = new UpdateDataSetCacheKey(currentDataSetMetadata.getId());
 
-            final DistributedLock lock = dataSetMetadataRepository.createDatasetMetadataLock(currentDataSetMetadata.getId());
+            final DistributedLock lock =
+                    dataSetMetadataRepository.createDatasetMetadataLock(currentDataSetMetadata.getId());
             try {
                 lock.lock();
 
                 // check the size if it's available (quick win)
                 if (size != null && size > 0) {
-                    quotaService.checkIfAddingSizeExceedsAvailableStorage(Math.abs(size - currentDataSetMetadata.getDataSetSize()));
+                    quotaService.checkIfAddingSizeExceedsAvailableStorage(
+                            Math.abs(size - currentDataSetMetadata.getDataSetSize()));
                 }
 
-                final DataSetMetadataBuilder datasetBuilder = metadataBuilder.metadata().id(currentDataSetMetadata.getId());
+                final DataSetMetadataBuilder datasetBuilder =
+                        metadataBuilder.metadata().id(currentDataSetMetadata.getId());
                 datasetBuilder.copyNonContentRelated(currentDataSetMetadata);
                 datasetBuilder.modified(System.currentTimeMillis());
                 if (!StringUtils.isEmpty(name)) {
@@ -675,8 +693,8 @@ public class DataSetService extends BaseDataSetService {
 
                 // Save data set content into cache to make sure there's enough space in the content store
                 final long maxDataSetSizeAllowed = getMaxDataSetSizeAllowed();
-                final StrictlyBoundedInputStream sizeCalculator = new StrictlyBoundedInputStream(dataSetContent,
-                        maxDataSetSizeAllowed);
+                final StrictlyBoundedInputStream sizeCalculator =
+                        new StrictlyBoundedInputStream(dataSetContent, maxDataSetSizeAllowed);
                 try (OutputStream cacheEntry = cacheManager.put(cacheKey, TimeToLive.DEFAULT)) {
                     IOUtils.copy(sizeCalculator, cacheEntry);
                 }
@@ -703,9 +721,6 @@ public class DataSetService extends BaseDataSetService {
                 // Content was changed, so queue events (format analysis, content indexing for search...)
                 analyzeDataSet(currentDataSetMetadata.getId(), emptyList());
 
-                // publishing update event
-                publisher.publishEvent(new DatasetImportedEvent(dataSetId));
-
             } catch (StrictlyBoundedInputStream.InputStreamTooLargeException e) {
                 LOG.warn("Dataset update {} cannot be done, new content is too big", currentDataSetMetadata.getId());
                 throw new TDPException(MAX_STORAGE_MAY_BE_EXCEEDED, e, build().put("limit", e.getMaxSize()));
@@ -720,6 +735,10 @@ public class DataSetService extends BaseDataSetService {
                 }
                 lock.unlock();
             }
+
+            // publishing update event
+            publisher.publishEvent(new DatasetUpdatedEvent(currentDataSetMetadata));
+
             return currentDataSetMetadata.getId();
         }
     }
@@ -784,7 +803,7 @@ public class DataSetService extends BaseDataSetService {
         if (!dataSetMetadata.isDraft()) {
             // Moved to get data set content operation
             HttpResponseContext.status(HttpStatus.MOVED_PERMANENTLY);
-            HttpResponseContext.header("Location", "/datasets/" + dataSetId + "/content");
+            HttpResponseContext.header(HttpHeaders.LOCATION, "/datasets/" + dataSetId + "/content");
             return DataSet.empty(); // dataset not anymore a draft so preview doesn't make sense.
         }
         if (StringUtils.isNotEmpty(sheetName)) {
@@ -932,11 +951,8 @@ public class DataSetService extends BaseDataSetService {
                 metadataForUpdate.getContent().setNbRecords(0);
                 dataSetMetadataRepository.save(metadataForUpdate);
 
-                // all good mate!! so send that to jms
                 // Asks for a in depth schema analysis (for column type information).
                 analyzeDataSet(dataSetId, singletonList(FormatAnalysis.class));
-
-                publisher.publishEvent(new DatasetUpdatedEvent(dataSetMetadata));
             } catch (TDPException e) {
                 throw e;
             } catch (Exception e) {
@@ -945,6 +961,7 @@ public class DataSetService extends BaseDataSetService {
         } finally {
             lock.unlock();
         }
+        publisher.publishEvent(new DatasetUpdatedEvent(dataSetMetadata));
     }
 
     /**
@@ -1104,15 +1121,6 @@ public class DataSetService extends BaseDataSetService {
         return list(null, null, name, strict, false, false, false);
     }
 
-    @RequestMapping(value = "/datasets/encodings", method = GET)
-    @ApiOperation(value = "list the supported encodings for dataset",
-            notes = "This list can be used by user to change dataset encoding.")
-    @Timed
-    @PublicAPI
-    public Stream<String> listSupportedEncodings() {
-        return EncodingSupport.getSupportedCharsets().stream().map(Charset::displayName);
-    }
-
     @RequestMapping(value = "/datasets/imports/{import}/parameters", method = GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get the import parameters",
             notes = "This list can be used by user to change dataset encoding.")
@@ -1225,7 +1233,8 @@ public class DataSetService extends BaseDataSetService {
 
         final DataSetMetadata metadata = dataSetMetadataRepository.get(datasetId);
         if (metadata == null) {
-            throw new TDPException(DataSetErrorCodes.DATASET_DOES_NOT_EXIST, ExceptionContext.withBuilder().put("id", datasetId).build());
+            throw new TDPException(DataSetErrorCodes.DATASET_DOES_NOT_EXIST,
+                    ExceptionContext.withBuilder().put("id", datasetId).build());
         } else {
             try (final Stream<DataSetRow> records = contentStore.stream(metadata)) {
 
@@ -1239,7 +1248,8 @@ public class DataSetService extends BaseDataSetService {
                 final List<Analyzers.Result> analyzerResult = analyzer.getResult();
                 final StatisticsAdapter statisticsAdapter = new StatisticsAdapter(40);
                 statisticsAdapter.adapt(singletonList(columnMetadata), analyzerResult);
-                LOG.debug("found {} for dataset #{}, column #{}", columnMetadata.getSemanticDomains(), datasetId, columnId);
+                LOG.debug("found {} for dataset #{}, column #{}", columnMetadata.getSemanticDomains(), datasetId,
+                        columnId);
                 return columnMetadata.getSemanticDomains();
             }
         }

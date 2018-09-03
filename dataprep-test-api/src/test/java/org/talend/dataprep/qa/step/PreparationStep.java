@@ -6,6 +6,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import javax.validation.constraints.NotNull;
@@ -73,7 +74,7 @@ public class PreparationStep extends DataPrepStep {
 
         PreparationDetails prepDet = getPreparationDetails(prepId);
         Assert.assertNotNull(prepDet);
-        Assert.assertEquals(prepDet.dataset.dataSetName, suffixName(params.get(DATASET_NAME)));
+        Assert.assertEquals(prepDet.dataSetId, context.getDatasetId(suffixName(params.get(DATASET_NAME))));
         Assert.assertEquals(Integer.toString(prepDet.steps.size() - 1), params.get(NB_STEPS));
     }
 
@@ -155,7 +156,7 @@ public class PreparationStep extends DataPrepStep {
     public void loadPreparationMultipleTimes(Integer nbTime, String prepFullName) throws IOException {
         String prepId = context.getPreparationId(suffixName(prepFullName));
         for (int i = 0; i < nbTime; i++) {
-            Response response = api.getPreparationContent(prepId, "head", "HEAD");
+            Response response = api.getPreparationContent(prepId, "head", "HEAD", "");
             assertEquals(OK.value(), response.getStatusCode());
         }
     }
@@ -194,4 +195,13 @@ public class PreparationStep extends DataPrepStep {
         return suffixName(util.extractNameFromFullName(prepFullName));
     }
 
+    @Then("^The preparation \"(.*)\" should contain the following columns:$")
+    public void thePreparationShouldContainTheFollowingColumns(String preparationName, List<String> columns)
+            throws Exception {
+        Response response =
+                api.getPreparationContent(context.getPreparationId(suffixName(preparationName)), "head", "HEAD", "");
+        response.then().statusCode(OK.value());
+
+        checkColumnNames(preparationName, columns, response.jsonPath().getList("metadata.columns.name", String.class));
+    }
 }

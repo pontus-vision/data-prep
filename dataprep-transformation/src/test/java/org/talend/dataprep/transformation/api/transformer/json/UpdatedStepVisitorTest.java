@@ -24,8 +24,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.preparation.PreparationActions;
-import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.api.type.Type;
 import org.talend.dataprep.transformation.actions.common.RunnableAction;
 import org.talend.dataprep.transformation.api.action.context.ActionContext;
@@ -40,27 +38,31 @@ import org.talend.dataprep.transformation.service.StepMetadataRepository;
 @RunWith(MockitoJUnitRunner.class)
 public class UpdatedStepVisitorTest {
 
-    private final RowMetadata metadata = new RowMetadata(singletonList(column().type(Type.STRING).name("original").build()));
+    private final RowMetadata metadata =
+            new RowMetadata(singletonList(column().type(Type.STRING).name("original").build()));
 
     private ActionNode entryNode;
 
     private ActionContext actionContext;
 
     @Mock
-    StepMetadataRepository stepMetadataRepository;
+    private StepMetadataRepository stepMetadataRepository;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         actionContext = new ActionContext(new TransformationContext());
         entryNode = new ActionNode(new RunnableAction((row, context) -> row), actionContext);
     }
 
     @Test
-    public void testUpdatedStepsWithOk() throws Exception {
+    public void testUpdatedStepsWithOk() {
         // Given
-        final Step step = new Step(ROOT_STEP.id(), new PreparationActions().id(), "0.0");
+        final String step = ROOT_STEP.id();
         final RowMetadata stepRowMetadata = new RowMetadata();
-        final Node stepNode = NodeBuilder.from(new StepNode(step, stepRowMetadata, entryNode, new BasicNode())).to(new BasicNode()).build();
+        final Node stepNode = NodeBuilder
+                .from(new StepNode(step, stepRowMetadata, entryNode, new BasicNode()))
+                .to(new BasicNode())
+                .build();
         final UpdatedStepVisitor visitor = new UpdatedStepVisitor(stepMetadataRepository);
         actionContext.setActionStatus(ActionContext.ActionStatus.OK); // OK action!
 
@@ -69,15 +71,18 @@ public class UpdatedStepVisitorTest {
 
         // Then
         stepNode.accept(visitor);
-        verify(stepMetadataRepository).update(step.id(), stepRowMetadata);
+        verify(stepMetadataRepository).update(step, stepRowMetadata);
     }
 
     @Test
-    public void testUpdatedStepsWithKO() throws Exception {
+    public void testUpdatedStepsWithKO() {
         // Given
-        final Step step = new Step(ROOT_STEP.id(), new PreparationActions().id(), "0.0");
+        final String step = ROOT_STEP.id();
         final RowMetadata stepRowMetadata = new RowMetadata();
-        final Node stepNode = NodeBuilder.from(new StepNode(step, stepRowMetadata, entryNode, new BasicNode())).to(new BasicNode()).build();
+        final Node stepNode = NodeBuilder
+                .from(new StepNode(step, stepRowMetadata, entryNode, new BasicNode()))
+                .to(new BasicNode())
+                .build();
         final UpdatedStepVisitor visitor = new UpdatedStepVisitor(stepMetadataRepository);
         actionContext.setActionStatus(ActionContext.ActionStatus.CANCELED); // Canceled action!
 
@@ -86,6 +91,6 @@ public class UpdatedStepVisitorTest {
 
         // Then
         stepNode.accept(visitor);
-        verify(stepMetadataRepository).update(step.id(), stepRowMetadata);
+        verify(stepMetadataRepository).invalidate(step);
     }
 }

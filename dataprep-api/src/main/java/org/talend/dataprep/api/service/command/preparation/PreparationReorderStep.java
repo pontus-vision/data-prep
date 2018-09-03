@@ -13,11 +13,6 @@
 
 package org.talend.dataprep.api.service.command.preparation;
 
-import static org.talend.dataprep.command.Defaults.asString;
-import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EXCEPTION;
-
-import java.net.URISyntaxException;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -28,11 +23,17 @@ import org.springframework.stereotype.Component;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
 
+import java.net.URISyntaxException;
+
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.command.Defaults.asString;
+import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EXCEPTION;
+
 /**
  * Command used to move a step within a preparation.
  */
 @Component
-@Scope("request")
+@Scope(SCOPE_PROTOTYPE)
 public class PreparationReorderStep extends GenericCommand<String> {
 
     /**
@@ -52,7 +53,7 @@ public class PreparationReorderStep extends GenericCommand<String> {
     private HttpRequestBase onExecute(final String preparationId, final String stepId, final String parentStepId) {
         try {
             URIBuilder builder = new URIBuilder(
-                    preparationServiceUrl + "/preparations/"+ preparationId + "/steps/" + stepId + "/order");
+                    preparationServiceUrl + "/preparations/" + preparationId + "/steps/" + stepId + "/order");
             if (StringUtils.isNotBlank(parentStepId)) {
                 builder.addParameter("parentStepId", parentStepId);
             }

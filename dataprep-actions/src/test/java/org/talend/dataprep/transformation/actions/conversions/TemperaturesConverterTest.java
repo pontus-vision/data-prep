@@ -22,6 +22,7 @@ import static org.talend.dataprep.transformation.actions.conversions.Temperature
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.talend.dataprep.api.action.ActionDefinition;
 import org.talend.dataprep.api.dataset.ColumnMetadata;
@@ -92,6 +93,30 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
     }
 
     @Test
+    public void testWithSurrogatePair() {
+        // given
+        Map<String, String> rowContent = new HashMap<>();
+        rowContent.put("0000", "中崎𠀀𠀁𠀂𠀃𠀄");
+        rowContent.put("0001", "中崎𠀀𠀁𠀂𠀃𠀄");
+        final DataSetRow row1 = new DataSetRow(rowContent);
+        row1.setTdpId(123L);
+
+        final Map<String, String> parameters = new HashMap<>();
+        parameters.put(ImplicitParameters.SCOPE.getKey().toLowerCase(), "column");
+        parameters.put("column_id", "0001");
+        parameters.put("from_temperature", CELSIUS.name());
+        parameters.put("to_temperature", FAHRENHEIT.name());
+        parameters.put("precision", "0");
+
+        // when
+        ActionTestWorkbench.test(Collections.singletonList(row1), actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals("中崎𠀀𠀁𠀂𠀃𠀄", row1.get("0000"));
+        assertEquals(StringUtils.EMPTY, row1.get("0001"));
+    }
+
+    @Test
     public void test_apply_in_newcolumn() {
         // given
         Map<String, String> rowContent = new HashMap<>();
@@ -116,7 +141,8 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
         assertEquals("0", row1.get("0001"));
         assertEquals("32", row1.get("0002"));
 
-        ColumnMetadata expected = ColumnMetadata.Builder.column().id(2).name("0001_in_Fahrenheit").type(Type.DOUBLE).build();
+        ColumnMetadata expected =
+                ColumnMetadata.Builder.column().id(2).name("0001_in_Fahrenheit").type(Type.DOUBLE).build();
         ColumnMetadata actual = row1.getRowMetadata().getById("0002");
         assertEquals(expected, actual);
     }
@@ -144,8 +170,8 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
     @Test
     public void shouldGetParameters() throws Exception {
         // given
-        List<String> parameterNames = Arrays.asList("create_new_column", "to_temperature", "from_temperature", "precision", "column_id", "row_id",
-                "scope", "filter");
+        List<String> parameterNames = Arrays.asList("create_new_column", "to_temperature", "from_temperature",
+                "precision", "column_id", "row_id", "scope", "filter");
 
         // when
         final List<Parameter> parameters = action.getParameters(Locale.US);
@@ -153,7 +179,8 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
         // then
         assertNotNull(parameters);
         assertEquals(8, parameters.size()); // 4 implicit parameters + 3 specific
-        final List<String> expectedParametersNotFound = parameters.stream() //
+        final List<String> expectedParametersNotFound = parameters
+                .stream() //
                 .map(Parameter::getName) //
                 .filter(n -> !parameterNames.contains(n)) //
                 .collect(Collectors.toList());
@@ -170,7 +197,7 @@ public class TemperaturesConverterTest extends AbstractMetadataBaseTest<Temperat
     }
 
     private void testConversion(String from, TemperaturesConverter.TemperatureUnit fromUnit, String expected,
-                               TemperaturesConverter.TemperatureUnit toUnit) {
+            TemperaturesConverter.TemperatureUnit toUnit) {
         // given
         long rowId = 120;
 

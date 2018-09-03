@@ -40,6 +40,7 @@ export default function PreparationRestService($http, RestURLs) {
         // getter : list, content, details
 		getContent,
 		getDetails,
+		getSummary,
 		getMetadata,
 		isExportPossible,
 
@@ -62,8 +63,11 @@ export default function PreparationRestService($http, RestURLs) {
      * @description Get preparation records/metadata at the specific step
      * @returns {promise} The GET promise
      */
-	function getContent(preparationId, stepId, sampleType) {
-		const url = `${RestURLs.preparationUrl}/${preparationId}/content?version=${stepId}&from=${sampleType}`;
+	function getContent(preparationId, stepId, sampleType, tql) {
+		let url = `${RestURLs.preparationUrl}/${preparationId}/content?version=${stepId}&from=${sampleType}`;
+		if (tql) {
+			url += '&filter=' + encodeURIComponent(tql);
+		}
 		return $http.get(url).then(res => res.data);
 	}
 
@@ -107,6 +111,18 @@ export default function PreparationRestService($http, RestURLs) {
      */
 	function getDetails(preparationId) {
 		return $http.get(`${RestURLs.preparationUrl}/${preparationId}/details`).then(response => response.data);
+	}
+
+    /**
+     * @ngdoc method
+     * @name getSummary
+     * @methodOf data-prep.services.preparation.service:PreparationRestService
+     * @param {string} preparationId The preparation id to load
+     * @description Get current preparation summary
+     * @returns {promise} The GET promise
+     */
+	function getSummary(preparationId) {
+		return $http.get(`${RestURLs.preparationUrl}/${preparationId}/summary`).then(response => response.data);
 	}
 
     //---------------------------------------------------------------------------------

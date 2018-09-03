@@ -150,6 +150,24 @@ public class StandardizeInvalidTest extends AbstractMetadataBaseTest<Standardize
     }
 
     @Test
+    public void shouldNotStandardizeValueWithSurrogatePair() {
+        // given
+        final Map<String, String> values = new HashMap<>();
+        values.put(columnId0, fixedName);
+        values.put(columnId1, "中崎𠀀𠀁𠀂𠀃𠀄");
+
+        // set semantic domain
+        final DataSetRow row = createRow(values, null, "COUNTRY");
+
+        // when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(values, row.values());
+
+    }
+
+    @Test
     public void should_not_standardize_out_of_threshold() {
         // given
         parameters.put(MATCH_THRESHOLD_PARAMETER, "HIGH");

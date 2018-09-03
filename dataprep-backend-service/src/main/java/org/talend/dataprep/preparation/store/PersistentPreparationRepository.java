@@ -14,6 +14,7 @@ package org.talend.dataprep.preparation.store;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +24,7 @@ import org.talend.dataprep.api.preparation.PreparationActions;
 import org.talend.dataprep.api.preparation.PreparationUtils;
 import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.conversions.BeanConversionService;
+import org.talend.dataprep.metrics.Timed;
 import org.talend.tql.model.Expression;
 
 /**
@@ -38,12 +40,14 @@ public class PersistentPreparationRepository implements PreparationRepository {
 
     private final PreparationRepository delegate;
 
-    public PersistentPreparationRepository(PreparationRepository delegate, BeanConversionService beanConversionService) {
+    public PersistentPreparationRepository(PreparationRepository delegate,
+            BeanConversionService beanConversionService) {
         this.delegate = delegate;
         this.beanConversionService = beanConversionService;
     }
 
-    private static Class<? extends Identifiable> selectPersistentClass(Class<? extends Identifiable> identifiableClass) {
+    private static Class<? extends Identifiable>
+            selectPersistentClass(Class<? extends Identifiable> identifiableClass) {
         if (Preparation.class.isAssignableFrom(identifiableClass)) {
             return PersistentPreparation.class;
         } else if (Step.class.isAssignableFrom(identifiableClass)) {
@@ -54,16 +58,28 @@ public class PersistentPreparationRepository implements PreparationRepository {
         }
     }
 
+    private <T extends Identifiable> Stream<T> applyConversions(Supplier<Stream<T>> supplier, Class<T> clazz,
+            Class<T> persistentClass) {
+        Stream<T> delegateStream = supplier.get();
+        if (!persistentClass.equals(clazz)) {
+            delegateStream = delegateStream.map(i -> beanConversionService.convert(i, clazz));
+        }
+        return delegateStream;
+    }
+
+    @Timed
     @Override
     public <T extends Identifiable> boolean exist(Class<T> clazz, Expression expression) {
         final Class<? extends Identifiable> targetClass = selectPersistentClass(clazz);
         return delegate.exist(targetClass, expression);
     }
 
+    @Timed
     @Override
     public <T extends Identifiable> Stream<T> list(Class<T> clazz) {
         final Class<T> persistentClass = (Class<T>) selectPersistentClass(clazz);
-        return Stream.concat(delegate.list(persistentClass).map(i -> beanConversionService.convert(i, clazz)), getRootElement(persistentClass, clazz));
+        Stream<T> delegateStream = applyConversions(() -> delegate.list(persistentClass), clazz, persistentClass);
+        return Stream.concat(delegateStream, getRootElement(persistentClass, clazz));
     }
 
     private <T extends Identifiable> Stream<T> getRootElement(Class<T> clazz, Class<T> targetClass) {
@@ -76,15 +92,21 @@ public class PersistentPreparationRepository implements PreparationRepository {
         }
     }
 
+    @Timed
     @Override
     public <T extends Identifiable> Stream<T> list(Class<T> clazz, Expression expression) {
         final Class<T> persistentClass = (Class<T>) selectPersistentClass(clazz);
-        return Stream.concat(delegate.list(persistentClass, expression).map(i -> beanConversionService.convert(i, clazz)), getRootElement(clazz, clazz));
+        Stream<T> delegateStream =
+                applyConversions(() -> delegate.list(persistentClass, expression), clazz, persistentClass);
+        return Stream.concat(delegateStream, getRootElement(clazz, clazz));
     }
 
+    @Timed
     @Override
     public void add(Identifiable object) {
-        final List<? extends Identifiable> objects = PreparationUtils.scatter(object).stream() //
+        final List<? extends Identifiable> objects = PreparationUtils
+                .scatter(object)
+                .stream() //
                 .filter(o -> !(Step.ROOT_STEP.equals(o) || PreparationActions.ROOT_ACTIONS.equals(o))) //
                 .map(identifiable -> {
                     final Class<? extends Identifiable> targetClass = selectPersistentClass(identifiable.getClass());
@@ -94,6 +116,7 @@ public class PersistentPreparationRepository implements PreparationRepository {
         delegate.add(objects);
     }
 
+    @Timed
     @Override
     public void add(Collection<? extends Identifiable> objects) {
         for (Identifiable object : objects) {
@@ -101,12 +124,19 @@ public class PersistentPreparationRepository implements PreparationRepository {
         }
     }
 
+    @Timed
     @Override
     public <T extends Identifiable> T get(String id, Class<T> clazz) {
         final Class<T> targetClass = (Class<T>) selectPersistentClass(clazz);
         Object beanToConvert;
         if (clazz.equals(Step.class) && Step.ROOT_STEP.getId().equals(id)) {
             return (T) Step.ROOT_STEP;
+        } else if (clazz.equals(PersistentStep.class) && Step.ROOT_STEP.getId().equals(id)) {
+            final PersistentStep persistentStep = new PersistentStep();
+            persistentStep.setParentId(null);
+            persistentStep.setId(Step.ROOT_STEP.id());
+            persistentStep.setContent(PreparationActions.ROOT_ACTIONS.id());
+            return (T) persistentStep;
         } else if (clazz.equals(PreparationActions.class) && PreparationActions.ROOT_ACTIONS.getId().equals(id)) {
             return (T) PreparationActions.ROOT_ACTIONS;
         } else {
@@ -115,22 +145,26 @@ public class PersistentPreparationRepository implements PreparationRepository {
         return beanConversionService.convert(beanToConvert, clazz);
     }
 
+    @Timed
     @Override
     public void clear() {
         delegate.clear();
     }
 
+    @Timed
     @Override
     public void remove(Identifiable object) {
         final Class<? extends Identifiable> targetClass = selectPersistentClass(object.getClass());
         delegate.remove(beanConversionService.convert(object, targetClass));
     }
 
+    @Timed
     @Override
     public <T extends Identifiable> void remove(Class<T> clazz, Expression filter) {
         list(clazz, filter).forEach(this::remove);
     }
 
+    @Timed
     @Override
     public long count(Class<? extends Identifiable> clazz, Expression filter) {
         return delegate.count(selectPersistentClass(clazz), filter);

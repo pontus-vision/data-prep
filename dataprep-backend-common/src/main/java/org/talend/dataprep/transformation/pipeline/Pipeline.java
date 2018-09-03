@@ -12,25 +12,7 @@
 
 package org.talend.dataprep.transformation.pipeline;
 
-import org.slf4j.Logger;
-import org.talend.dataprep.api.action.ActionDefinition;
-import org.talend.dataprep.api.dataset.DataSet;
-import org.talend.dataprep.api.dataset.RowMetadata;
-import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.preparation.PreparationMessage;
-import org.talend.dataprep.api.preparation.Step;
-import org.talend.dataprep.dataset.StatisticsAdapter;
-import org.talend.dataprep.quality.AnalyzerService;
-import org.talend.dataprep.transformation.actions.category.ScopeCategory;
-import org.talend.dataprep.transformation.actions.common.ApplyDataSetRowAction;
-import org.talend.dataprep.transformation.actions.common.CompileDataSetRowAction;
-import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
-import org.talend.dataprep.transformation.actions.common.RunnableAction;
-import org.talend.dataprep.transformation.pipeline.builder.ActionNodesBuilder;
-import org.talend.dataprep.transformation.pipeline.builder.NodeBuilder;
-import org.talend.dataprep.transformation.pipeline.node.BasicNode;
-import org.talend.dataprep.transformation.pipeline.node.FilteredNode;
-import org.talend.dataprep.transformation.pipeline.node.LimitNode;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -45,7 +27,24 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import org.slf4j.Logger;
+import org.talend.dataprep.api.action.ActionDefinition;
+import org.talend.dataprep.api.dataset.DataSet;
+import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.api.preparation.PreparationDTO;
+import org.talend.dataprep.dataset.StatisticsAdapter;
+import org.talend.dataprep.quality.AnalyzerService;
+import org.talend.dataprep.transformation.actions.category.ScopeCategory;
+import org.talend.dataprep.transformation.actions.common.ApplyDataSetRowAction;
+import org.talend.dataprep.transformation.actions.common.CompileDataSetRowAction;
+import org.talend.dataprep.transformation.actions.common.ImplicitParameters;
+import org.talend.dataprep.transformation.actions.common.RunnableAction;
+import org.talend.dataprep.transformation.pipeline.builder.ActionNodesBuilder;
+import org.talend.dataprep.transformation.pipeline.builder.NodeBuilder;
+import org.talend.dataprep.transformation.pipeline.node.BasicNode;
+import org.talend.dataprep.transformation.pipeline.node.FilteredNode;
+import org.talend.dataprep.transformation.pipeline.node.LimitNode;
 
 public class Pipeline implements Node, RuntimeNode, Serializable {
 
@@ -59,8 +58,6 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
      */
     private static final long serialVersionUID = 1L;
 
-    private Node node;
-
     /**
      * Flag used to know if the pipeline is stopped or not.
      */
@@ -73,6 +70,8 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
      * @see Pipeline#signal(Signal)
      */
     private final transient Object isFinished = new Object();
+
+    private Node node;
 
     /**
      * Default empty constructor.
@@ -112,10 +111,6 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
                 node.exec().signal(Signal.END_OF_STREAM);
             }
         }
-    }
-
-    public void setNode(Node node) {
-        this.node = node;
     }
 
     @Override
@@ -188,6 +183,10 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
         return node;
     }
 
+    public void setNode(Node node) {
+        this.node = node;
+    }
+
     public static class Builder {
 
         private final List<RunnableAction> actions = new ArrayList<>();
@@ -214,18 +213,20 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
 
         private AnalyzerService analyzerService;
 
-        private PreparationMessage preparation;
+        private PreparationDTO preparation;
 
-        private Function<Step, RowMetadata> previousStepRowMetadataSupplier = s -> null;
+        private Function<String, RowMetadata> parentStepRowMetadataSupplier = s -> null;
 
         private Long limit = null;
+
+        private RowMetadataFallbackProvider rowMetadataFallbackProvider;
 
         public static Builder builder() {
             return new Builder();
         }
 
-        public Builder withStepMetadataSupplier(Function<Step, RowMetadata> previousStepRowMetadataSupplier) {
-            this.previousStepRowMetadataSupplier = previousStepRowMetadataSupplier;
+        public Builder withStepMetadataSupplier(Function<String, RowMetadata> previousStepRowMetadataSupplier) {
+            this.parentStepRowMetadataSupplier = previousStepRowMetadataSupplier;
             return this;
         }
 
@@ -250,7 +251,7 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             return this;
         }
 
-        public Builder withPreparation(PreparationMessage preparation) {
+        public Builder withPreparation(PreparationDTO preparation) {
             this.preparation = preparation;
             return this;
         }
@@ -295,6 +296,11 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             return this;
         }
 
+        public Builder withRowMetadataFallbackProvider(RowMetadataFallbackProvider rowMetadataFallbackProvider) {
+            this.rowMetadataFallbackProvider = rowMetadataFallbackProvider;
+            return this;
+        }
+
         public Pipeline build() {
             final NodeBuilder current;
             if (inFilter != null) {
@@ -306,18 +312,24 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             // Apply actions
             final List<RunnableAction> runnableActions;
             if (preparation != null) {
-                LOG.debug("Running using preparation #{} ({} step(s))", preparation.getId(), preparation.getSteps().size());
-                runnableActions = actions.stream() //
+                LOG.debug("Running using preparation #{} ({} step(s))", preparation.getId(),
+                        preparation.getSteps().size());
+                runnableActions = actions
+                        .stream() //
                         .map(a -> {
                             // gather all info for creating runnable actions
                             final Map<String, String> parameters = a.getParameters();
-                            final ScopeCategory scope = ScopeCategory.from(parameters.get(ImplicitParameters.SCOPE.getKey()));
+                            final ScopeCategory scope =
+                                    ScopeCategory.from(parameters.get(ImplicitParameters.SCOPE.getKey()));
                             final ActionDefinition actionDefinition = actionRegistry.get(a.getName());
-                            final CompileDataSetRowAction compile = new CompileDataSetRowAction(parameters, actionDefinition, scope);
-                            final ApplyDataSetRowAction apply = new ApplyDataSetRowAction(actionDefinition, parameters, scope);
+                            final CompileDataSetRowAction compile =
+                                    new CompileDataSetRowAction(parameters, actionDefinition, scope);
+                            final ApplyDataSetRowAction apply =
+                                    new ApplyDataSetRowAction(actionDefinition, parameters, scope);
 
                             // Create runnable action
-                            return RunnableAction.Builder.builder() //
+                            return RunnableAction.Builder
+                                    .builder() //
                                     .withCompile(compile) //
                                     .withRow(apply) //
                                     .withName(a.getName()) //
@@ -331,7 +343,9 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             }
 
             // Build nodes for actions
-            final Node actionsNode = ActionNodesBuilder.builder() //
+            final Node actionsNode = ActionNodesBuilder
+                    .builder() //
+                    .rowMetadataFallbackProvider(rowMetadataFallbackProvider) //
                     .initialMetadata(rowMetadata) //
                     .actions(runnableActions) //
                     // statistics requests
@@ -347,7 +361,8 @@ public class Pipeline implements Node, RuntimeNode, Serializable {
             if (preparation != null) {
                 LOG.debug("Applying step node transformations...");
                 actionsNode.logStatus(LOG, "Before transformation\n{}");
-                final Node node = StepNodeTransformer.transform(actionsNode, preparation.getSteps(), previousStepRowMetadataSupplier);
+                final Node node = StepNodeTransformer.transform(actionsNode, preparation.getSteps(),
+                        parentStepRowMetadataSupplier);
                 current.to(node);
                 node.logStatus(LOG, "After transformation\n{}");
             } else {

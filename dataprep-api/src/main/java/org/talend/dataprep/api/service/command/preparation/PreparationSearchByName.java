@@ -1,24 +1,17 @@
-//  ============================================================================
+// ============================================================================
 //
-//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.api.service.command.preparation;
-
-
-import static org.talend.dataprep.command.Defaults.emptyStream;
-import static org.talend.dataprep.command.Defaults.pipeStream;
-
-import java.io.InputStream;
-import java.net.URISyntaxException;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -30,11 +23,18 @@ import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 
+import java.io.InputStream;
+import java.net.URISyntaxException;
+
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.command.Defaults.emptyStream;
+import static org.talend.dataprep.command.Defaults.pipeStream;
+
 /**
  * Command used to retrieve the preparations matching a name.
  */
 @Component
-@Scope("request")
+@Scope(SCOPE_PROTOTYPE)
 public class PreparationSearchByName extends GenericCommand<InputStream> {
 
     /**
@@ -49,7 +49,7 @@ public class PreparationSearchByName extends GenericCommand<InputStream> {
             try {
                 URIBuilder uriBuilder = new URIBuilder(preparationServiceUrl + "/preparations/search");
                 uriBuilder.addParameter("name", name);
-                uriBuilder.addParameter("exactMatch",String.valueOf(exactMatch));
+                uriBuilder.addParameter("exactMatch", String.valueOf(exactMatch));
                 return new HttpGet(uriBuilder.build());
             } catch (URISyntaxException e) {
                 throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);

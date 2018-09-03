@@ -1,15 +1,15 @@
-//  ============================================================================
+// ============================================================================
 //
-//  Copyright (C) 2006-2018 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2018 Talend Inc. - www.talend.com
 //
-//  This source code is available under agreement available at
-//  https://github.com/Talend/data-prep/blob/master/LICENSE
+// This source code is available under agreement available at
+// https://github.com/Talend/data-prep/blob/master/LICENSE
 //
-//  You should have received a copy of the agreement
-//  along with this program; if not, write to Talend SA
-//  9 rue Pages 92150 Suresnes, France
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
 //
-//  ============================================================================
+// ============================================================================
 
 package org.talend.dataprep.transformation.actions.text;
 
@@ -52,7 +52,8 @@ public class SubstringTest extends AbstractMetadataBaseTest<Substring> {
 
     @Before
     public void init() throws IOException {
-        parameters = ActionMetadataTestUtils.parseParameters(SubstringTest.class.getResourceAsStream("substringAction.json"));
+        parameters = ActionMetadataTestUtils
+                .parseParameters(SubstringTest.class.getResourceAsStream("substringAction.json"));
     }
 
     @Test
@@ -118,6 +119,28 @@ public class SubstringTest extends AbstractMetadataBaseTest<Substring> {
         expectedValues.put("0001", "Bacon ipsum dolor amet swine leberkas pork belly");
         expectedValues.put("0003", " ipsum ");
         expectedValues.put("0002", "01/01/2015");
+
+        //when
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
+
+        // then
+        assertEquals(expectedValues, row.values());
+    }
+
+    @Test
+    public void testApplyOnSurrogatePair() {
+        // given
+        final Map<String, String> values = new HashMap<>();
+        values.put("0000", "lorem bacon");
+        values.put("0001", "中崎𠀀𠀁𠀂𠀃𠀄中崎𠀀𠀁𠀂𠀃𠀄");
+        values.put("0002", "01/01/2015");
+        final DataSetRow row = new DataSetRow(values);
+
+        final Map<String, String> expectedValues = new HashMap<>();
+        expectedValues.put("0000", "lorem bacon");
+        expectedValues.put("0001", "中崎𠀀𠀁𠀂𠀃𠀄中崎𠀀𠀁𠀂𠀃𠀄");
+        expectedValues.put("0002", "01/01/2015");
+        expectedValues.put("0003", "𠀃𠀄中崎𠀀𠀁𠀂");
 
         //when
         ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters));
@@ -273,7 +296,8 @@ public class SubstringTest extends AbstractMetadataBaseTest<Substring> {
     }
 
     @Test
-    public void should_substring_resulting_to_empty_on_strange_bounds_start_index_sup_to_end_index() throws IOException {
+    public void should_substring_resulting_to_empty_on_strange_bounds_start_index_sup_to_end_index()
+            throws IOException {
         // given
         parameters.put(FROM_INDEX_PARAMETER, "6");
         parameters.put(TO_INDEX_PARAMETER, "1");
@@ -548,7 +572,8 @@ public class SubstringTest extends AbstractMetadataBaseTest<Substring> {
         expected.add(createMetadata("0002", "last update"));
 
         //when
-        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters), factory.create(action, parameters));
+        ActionTestWorkbench.test(row, actionRegistry, factory.create(action, parameters),
+                factory.create(action, parameters));
 
         // then
         assertEquals(expected, row.getRowMetadata().getColumns());

@@ -12,9 +12,6 @@
 
 package org.talend.dataprep.api.preparation;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +64,10 @@ public class Preparation extends Identifiable implements Serializable {
 
     /** The user locking the preparation. */
     private BasicUserLock lock;
+
+    private String dataSetName;
+
+    private String folderId;
 
     /**
      * Default empty constructor.
@@ -221,24 +222,17 @@ public class Preparation extends Identifiable implements Serializable {
         this.lastModificationDate = System.currentTimeMillis();
     }
 
-    public Preparation merge(Preparation other) {
-        Preparation merge = new Preparation(id, other.getAppVersion());
-        merge.dataSetId = other.dataSetId != null ? other.dataSetId : dataSetId;
-        merge.rowMetadata = other.rowMetadata != null ? other.rowMetadata : rowMetadata;
-        merge.author = other.author != null ? other.author : author;
-        merge.name = other.name != null ? other.name : name;
-        merge.creationDate = min(other.creationDate, creationDate);
-        merge.lastModificationDate = max(other.lastModificationDate, lastModificationDate);
-        merge.headId = other.headId != null ? other.headId : headId;
-        merge.lock = other.lock != null ? other.lock : lock;
-        return merge;
-    }
-
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("id", id).append("dataSetId", dataSetId).append("author", author)
-                .append("name", name).append("creationDate", creationDate).append("lastModificationDate", lastModificationDate)
-                .append("headId", headId).toString();
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("dataSetId", dataSetId)
+                .append("author", author)
+                .append("name", name)
+                .append("creationDate", creationDate)
+                .append("lastModificationDate", lastModificationDate)
+                .append("headId", headId)
+                .toString();
     }
 
     @Override
@@ -252,12 +246,29 @@ public class Preparation extends Identifiable implements Serializable {
         Preparation that = (Preparation) o;
         return Objects.equals(id, that.id) && // NOSONAR generated code that's easy to read
                 Objects.equals(rowMetadata, that.rowMetadata) && Objects.equals(creationDate, that.creationDate)
-                && Objects.equals(lastModificationDate, that.lastModificationDate) && Objects.equals(dataSetId, that.dataSetId)
-                && Objects.equals(author, that.author) && Objects.equals(name, that.name) && Objects.equals(headId, that.headId);
+                && Objects.equals(lastModificationDate, that.lastModificationDate)
+                && Objects.equals(dataSetId, that.dataSetId) && Objects.equals(author, that.author)
+                && Objects.equals(name, that.name) && Objects.equals(headId, that.headId);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, rowMetadata, dataSetId, author, name, creationDate, lastModificationDate, headId);
+    }
+
+    public void setDataSetName(String dataSetName) {
+        this.dataSetName = dataSetName;
+    }
+
+    public String getDataSetName() {
+        return dataSetName;
+    }
+
+    public String getFolderId() {
+        return folderId;
+    }
+
+    public void setFolderId(String folderId) {
+        this.folderId = folderId;
     }
 }

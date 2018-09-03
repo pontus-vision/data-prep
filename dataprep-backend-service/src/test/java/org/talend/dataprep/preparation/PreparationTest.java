@@ -12,10 +12,11 @@
 
 package org.talend.dataprep.preparation;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,8 @@ public class PreparationTest extends ServiceBaseTest {
     @Test
     public void testDefaultPreparation() throws Exception {
 
-        final Preparation preparation = new Preparation("#123", "12345", Step.ROOT_STEP.id(), versionService.version().getVersionId());
+        final Preparation preparation =
+                new Preparation("#123", "12345", Step.ROOT_STEP.id(), versionService.version().getVersionId());
         preparation.setCreationDate(0L);
 
         assertThat(preparation.id(), is("#123"));
@@ -67,12 +69,14 @@ public class PreparationTest extends ServiceBaseTest {
 
         assertThat(repository.get(Step.ROOT_STEP.getId(), PreparationActions.class), nullValue());
         assertThat(repository.get(Step.ROOT_STEP.getId(), Step.class), notNullValue());
-        assertThat(repository.get(Step.ROOT_STEP.getId(), Step.class).getId(), is("f6e172c33bdacbc69bca9d32b2bd78174712a171"));
+        assertThat(repository.get(Step.ROOT_STEP.getId(), Step.class).getId(),
+                is("f6e172c33bdacbc69bca9d32b2bd78174712a171"));
     }
 
     @Test
     public void testTimestamp() throws Exception {
-        Preparation preparation = new Preparation("#584284", "1234", Step.ROOT_STEP.id(), versionService.version().getVersionId());
+        Preparation preparation =
+                new Preparation("#584284", "1234", Step.ROOT_STEP.id(), versionService.version().getVersionId());
         final long time0 = preparation.getLastModificationDate();
         TimeUnit.MILLISECONDS.sleep(50);
         preparation.updateLastModificationDate();
@@ -83,7 +87,8 @@ public class PreparationTest extends ServiceBaseTest {
     @Test
     public void testId_withName() throws Exception {
         // Preparation id with name
-        Preparation preparation = new Preparation("#87374", "1234", Step.ROOT_STEP.id(), versionService.version().getVersionId());
+        Preparation preparation =
+                new Preparation("#87374", "1234", Step.ROOT_STEP.id(), versionService.version().getVersionId());
         preparation.setName("My Preparation");
         preparation.setCreationDate(0L);
         final String id0 = preparation.getId();
@@ -160,41 +165,8 @@ public class PreparationTest extends ServiceBaseTest {
         assertThat(preparation.id(), Is.is("#54258728"));
     }
 
-    @Test
-    public void should_merge_from_other() {
-        Preparation source = new Preparation("#4837", versionService.version().getVersionId());
-
-        Preparation theOtherOne = new Preparation("#4837", versionService.version().getVersionId());
-        theOtherOne.setAuthor("Joss Stone");
-        theOtherOne.setCreationDate(source.getCreationDate() - 1000);
-        theOtherOne.setDataSetId("ds#123456");
-        theOtherOne.setLastModificationDate(theOtherOne.getCreationDate() + 12345682);
-        theOtherOne.setName("my preparation name");
-        theOtherOne.setHeadId(Step.ROOT_STEP.id());
-
-        Preparation actual = source.merge(theOtherOne);
-
-        assertEquals(actual, theOtherOne);
-    }
-
-    @Test
-    public void should_merge_from_source() {
-        Preparation theOtherOne = new Preparation("#23874", versionService.version().getVersionId());
-
-        Preparation source = new Preparation("#158387", versionService.version().getVersionId());
-        source.setAuthor("Bloc Party");
-        source.setCreationDate(theOtherOne.getCreationDate() - 1000);
-        source.setDataSetId("ds#65478");
-        source.setLastModificationDate(source.getCreationDate() + 2658483);
-        source.setName("banquet");
-        source.setHeadId(Step.ROOT_STEP.id());
-
-        Preparation actual = source.merge(theOtherOne);
-
-        assertEquals(actual, source);
-    }
-
-    public static List<Action> getSimpleAction(final String actionName, final String paramKey, final String paramValue) {
+    public static List<Action> getSimpleAction(final String actionName, final String paramKey,
+            final String paramValue) {
         final Action action = new Action();
         action.setName(actionName);
         action.getParameters().put(paramKey, paramValue);

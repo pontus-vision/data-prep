@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonRootName("dataset")
-public class DataSet {
+public class DataSet implements AutoCloseable {
 
     public static final String RECORDS_FIELD_NAME = "records";
 
@@ -61,5 +61,12 @@ public class DataSet {
     @Override
     public String toString() {
         return "DataSet{" + "metadata=" + metadata + ", records=...}";
+    }
+
+    @Override
+    public void close() {
+        if (records != null) {
+            records.close();
+        }
     }
 }

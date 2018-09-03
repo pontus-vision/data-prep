@@ -12,11 +12,6 @@
 
 package org.talend.dataprep.api.service.command.dataset;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
-import static org.talend.dataprep.command.Defaults.getResponseEntity;
-import static org.talend.dataprep.exception.error.APIErrorCodes.DATASET_STILL_IN_USE;
-
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.slf4j.Logger;
@@ -30,11 +25,17 @@ import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
+import static org.talend.dataprep.command.Defaults.getResponseEntity;
+import static org.talend.dataprep.exception.error.APIErrorCodes.DATASET_STILL_IN_USE;
+
 /**
  * Delete the dataset if it's not used by any preparation.
  */
 @Component
-@Scope("request")
+@Scope(SCOPE_PROTOTYPE)
 public class DataSetDelete extends GenericCommand<ResponseEntity<String>> {
 
     /**
@@ -52,11 +53,8 @@ public class DataSetDelete extends GenericCommand<ResponseEntity<String>> {
         execute(() -> onExecute(dataSetId));
         on(NOT_FOUND).then((req, resp) -> getResponseEntity(NOT_FOUND, resp));
         on(OK).then((req, resp) -> getResponseEntity(OK, resp));
-        onError(e -> new TDPException(
-                APIErrorCodes.UNABLE_TO_DELETE_DATASET,
-                e,
-                ExceptionContext.build().put("dataSetId", dataSetId)
-        ));
+        onError(e -> new TDPException(APIErrorCodes.UNABLE_TO_DELETE_DATASET, e,
+                ExceptionContext.build().put("dataSetId", dataSetId)));
     }
 
     private HttpRequestBase onExecute(final String dataSetId) {

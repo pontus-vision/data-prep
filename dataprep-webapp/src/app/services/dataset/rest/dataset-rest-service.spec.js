@@ -123,9 +123,9 @@ describe('Dataset Rest Service', () => {
 		it('should call dataset list by name and return the first dataset', inject(($rootScope, $q, DatasetRestService, RestURLs) => {
 			//given
 			let dataset = null;
-			const searchResult = { datasets: [{ name: 'Customers' }] };
+			const searchResult = { dataset: [{ name: 'Customers' }] };
 			$httpBackend
-				.expectGET(`${RestURLs.searchUrl}?name=toto&strict=true&filter=datasets`)
+				.expectGET(`${RestURLs.searchUrl}?name=toto&strict=true&categories=dataset`)
 				.respond(200, searchResult);
 
 			//when
@@ -137,7 +137,7 @@ describe('Dataset Rest Service', () => {
 			$rootScope.$digest();
 
 			//then
-			expect(dataset).toEqual(searchResult.datasets[0]);
+			expect(dataset).toEqual(searchResult.dataset[0]);
 		}));
 
 		it('should call dataset list by name and return undefined', inject(($rootScope, $q, DatasetRestService, RestURLs) => {
@@ -145,7 +145,7 @@ describe('Dataset Rest Service', () => {
 			let dataset = null;
 			const searchResult = {};
 			$httpBackend
-				.expectGET(`${RestURLs.searchUrl}?name=toto&strict=true&filter=datasets`)
+				.expectGET(`${RestURLs.searchUrl}?name=toto&strict=true&categories=dataset`)
 				.respond(200, searchResult);
 
 			//when
@@ -450,7 +450,7 @@ describe('Dataset Rest Service', () => {
 			const data = [{ column: [], records: [] }];
 
 			$httpBackend
-				.expectGET(RestURLs.datasetUrl + '/e85afAa78556d5425bc2?metadata=false&includeTechnicalProperties=true')
+				.expectGET(RestURLs.datasetUrl + '/e85afAa78556d5425bc2?filter=&metadata=false&includeTechnicalProperties=true')
 				.respond(200, data);
 
 			//when
@@ -471,7 +471,7 @@ describe('Dataset Rest Service', () => {
 			const data = [{ column: [], records: [] }];
 			const tql = "(0001='charles')";
 			$httpBackend
-				.expectGET(RestURLs.datasetUrl + "/e85afAa78556d5425bc2?filter=(0001%253D'charles')&includeTechnicalProperties=true&metadata=false")
+				.expectGET(RestURLs.datasetUrl + "/e85afAa78556d5425bc2?filter=(0001%3D'charles')&includeTechnicalProperties=true&metadata=false")
 				.respond(200, data);
 
 			//when
