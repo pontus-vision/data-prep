@@ -55,12 +55,7 @@ import org.talend.dataprep.cache.TransformationMetadataCacheKey;
 import org.talend.dataprep.command.preparation.PreparationDetailsGet;
 import org.talend.dataprep.command.preparation.PreparationSummaryGet;
 import org.talend.dataprep.transformation.service.BaseExportStrategy;
-import org.talend.dataprep.transformation.service.export.ApplyPreparationExportStrategy;
-import org.talend.dataprep.transformation.service.export.CachedExportStrategy;
-import org.talend.dataprep.transformation.service.export.DataSetExportStrategy;
-import org.talend.dataprep.transformation.service.export.OptimizedExportStrategy;
-import org.talend.dataprep.transformation.service.export.PreparationExportStrategy;
-import org.talend.dataprep.transformation.service.export.SampleExportStrategy;
+import org.talend.dataprep.transformation.service.export.*;
 import org.talend.dataprep.util.OrderedBeans;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,6 +78,8 @@ public class StandardExportStrategiesIntegrationTest {
 
     @InjectMocks
     private CachedExportStrategy cachedExportStrategy;
+
+    private MasterSampleExportStrategy masterSampleExportStrategy;
 
     @Mock
     protected ApplicationContext applicationContext;
@@ -124,8 +121,9 @@ public class StandardExportStrategiesIntegrationTest {
         applyPreparationExportStrategy = new ApplyPreparationExportStrategy();
         dataSetExportStrategy = new DataSetExportStrategy();
         preparationExportStrategy = new PreparationExportStrategy();
+        masterSampleExportStrategy = new MasterSampleExportStrategy();
         sampleExportStrategies = standardExportStrategiesConfiguration.exportStrategies(applyPreparationExportStrategy,
-                dataSetExportStrategy, optimizedExportStrategy, preparationExportStrategy, cachedExportStrategy);
+                dataSetExportStrategy, optimizedExportStrategy, preparationExportStrategy, cachedExportStrategy, masterSampleExportStrategy);
     }
 
     private void injectObjectMapper(SampleExportStrategy exportStrategy) {
