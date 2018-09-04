@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.talend.dataprep.api.dataset.DataSet;
 import org.talend.dataprep.api.export.ExportParameters;
+import org.talend.dataprep.api.export.ExportParametersUtil;
 import org.talend.dataprep.api.preparation.PreparationDTO;
 import org.talend.dataprep.cache.CacheKeyGenerator;
 import org.talend.dataprep.cache.ContentCache;
@@ -34,30 +35,33 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
     @Autowired
     private CacheKeyGenerator cacheKeyGenerator;
 
+    @Autowired
+    private ExportParametersUtil exportParametersUtil;
+
     @Override
     public StreamingResponseBody execute(ExportParameters parameters) {
-        final String formatName = parameters.getExportType();
-        final ExportFormat format = getFormat(formatName);
+        ExportFormat format = getFormat(parameters.getExportType());
         ExportUtils.setExportHeaders(parameters.getExportName(), //
                 parameters.getArguments().get(ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCODING), //
                 format);
 
-            InternalExportParameters internal = fromParams(parameters);
+        InternalExportParameters internal = fromParams(parameters);
 
-            // create tee to broadcast to cache + service output
-            final TransformationCacheKey key = getCacheKey(internal);
+        final TransformationCacheKey key = getCacheKey(parameters);
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Transformation Cache Key : {}", key.getKey());
-                LOGGER.debug("Cache key details: {}", key);
-            }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Transformation Cache Key : {}", key.getKey());
+            LOGGER.debug("Cache key details: {}", key);
+        }
 
         return outputStream -> {
             if (contentCache.has(key)) { // we read from cache !
+                LOGGER.error("Reading from cache {}", key);
                 try (InputStream cachedContent = contentCache.get(key)) {
                     IOUtils.copy(cachedContent, outputStream);
                 }
             } else { // Or we just do the export and cache it
+                LOGGER.error("Executing the prep and putting in cache {}", key);
                 try (final TeeOutputStream tee = new TeeOutputStream(outputStream,
                         contentCache.put(key, ContentCache.TimeToLive.DEFAULT))) {
                     doExport(internal, format, tee);
@@ -98,42 +102,40 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
                 builder.globalStatistics(false);
             }
 
-            builder.output(outputStream);
+            // output style
+            builder.format(format.getName()).args(parameters.getArguments()).output(outputStream);
+
             factory.get(builder.build()).buildExecutable(dataSet, builder.build()).execute();
         }
     }
 
     private InternalExportParameters fromParams(ExportParameters parameters) {
-        try {
-            InternalExportParameters internal = new InternalExportParameters();
-            internal.setFormat(getFormat(parameters.getExportType()));
-            internal.setExportType(getNonBlankOrNull(parameters.getExportType()));
-            String datasetId = parameters.getDatasetId();
-            internal.setDatasetId(getNonBlankOrNull(datasetId));
-            internal.setPreparationId(getNonBlankOrNull(parameters.getPreparationId()));
-            internal.setFrom(parameters.getFrom());
-            internal.setContent(parameters.getContent());
-            internal.setExportName(getNonBlankOrNull(parameters.getExportName()));
-            internal.setFilter(getNonBlankOrNull(parameters.getFilter()));
+        InternalExportParameters internal = new InternalExportParameters();
+        internal.setFormat(getFormat(parameters.getExportType()));
+        internal.setExportType(getNonBlankOrNull(parameters.getExportType()));
+        String datasetId = parameters.getDatasetId();
+        internal.setDatasetId(getNonBlankOrNull(datasetId));
+        internal.setPreparationId(getNonBlankOrNull(parameters.getPreparationId()));
+        internal.setFrom(parameters.getFrom());
+        internal.setContent(parameters.getContent());
+        internal.setExportName(getNonBlankOrNull(parameters.getExportName()));
+        internal.setFilter(getNonBlankOrNull(parameters.getFilter()));
+        internal.setArguments(parameters.getArguments());
 
-            if (StringUtils.isNotBlank(parameters.getPreparationId())) {
-                PreparationDTO preparation = getPreparation(parameters.getPreparationId());
-                internal.setPreparation(preparation);
-                if (internal.getDatasetId() == null) {
-                    internal.setDatasetId(preparation.getDataSetId());
-                }
-                // Normalize stepId (replace "head" with a real step ID)
-                if (StringUtils.isNotBlank(parameters.getStepId())) {
-                    String stepId = StringUtils.isBlank(parameters.getStepId()) ? preparation.getHeadId() : parameters.getStepId();
-                    String version = getCleanStepId(preparation, stepId);
-                    internal.setStepId(version);
-                }
+        if (StringUtils.isNotBlank(parameters.getPreparationId())) {
+            PreparationDTO preparation = getPreparation(parameters.getPreparationId());
+            internal.setPreparation(preparation);
+            if (internal.getDatasetId() == null) {
+                internal.setDatasetId(preparation.getDataSetId());
             }
-            return internal;
-        } catch (Exception e) {
-            LOGGER.error("shit", e);
-            throw e;
+            // Normalize stepId (replace "head" with a real step ID)
+            if (StringUtils.isNotBlank(parameters.getStepId())) {
+                String stepId = StringUtils.isBlank(parameters.getStepId()) ? preparation.getHeadId() : parameters.getStepId();
+                String version = getCleanStepId(preparation, stepId);
+                internal.setStepId(version);
+            }
         }
+        return internal;
     }
 
     private String getNonBlankOrNull(String datasetId) {
@@ -166,23 +168,16 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
             return parameters.getContent() == null //
                     && StringUtils.isNotEmpty(parameters.getPreparationId())
                     && StringUtils.isEmpty(parameters.getDatasetId())
-                    && contentCache.has(getCacheKey(fromParams(parameters)));
+                    && contentCache.has(getCacheKey(parameters));
         } catch (TDPException e) {
             LOGGER.debug("Unable to use cached export strategy.", e);
             return false;
         }
     }
 
-    private TransformationCacheKey getCacheKey(InternalExportParameters parameters) {
-        return cacheKeyGenerator.generateContentKey( //
-                parameters.getDatasetId(), //
-                parameters.getPreparationId(), //
-                parameters.getStepId(), //
-                parameters.getExportType(), //
-                parameters.getFrom(), //
-                parameters.getArguments(), //
-                parameters.getFilter() //
-        );
+    // WARN: must follow the creation process of PreparationCacheCondition
+    private TransformationCacheKey getCacheKey(ExportParameters parameters) {
+        return cacheKeyGenerator.generateContentKey(exportParametersUtil.populateFromPreparationExportParameter(parameters));
     }
 
 }

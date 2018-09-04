@@ -55,7 +55,6 @@ public class CacheKeyGenerator {
      * Build a cache key from ExportParameter
      */
     public TransformationCacheKey generateContentKey(final ExportParameters parameters) {
-
         final String stepId = parameters.getStepId();
         final String preparationId = parameters.getPreparationId();
         final String format = parameters.getExportType();

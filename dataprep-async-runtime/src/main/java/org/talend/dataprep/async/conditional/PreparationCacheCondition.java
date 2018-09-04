@@ -43,24 +43,17 @@ public class PreparationCacheCondition implements ConditionalTest {
 
     @Override
     public boolean apply(Object... args) {
-
         // check pre-condition
         Validate.notNull(args);
         Validate.isTrue(args.length == 1);
         Validate.isInstanceOf(ExportParameters.class, args[0]);
 
-        try {
-            ExportParameters exportParameters =
-                    exportParametersUtil.populateFromPreparationExportParameter((ExportParameters) args[0]);
+        ExportParameters exportParameters =
+                exportParametersUtil.populateFromPreparationExportParameter((ExportParameters) args[0]);
 
-            TransformationCacheKey cacheKey = cacheKeyGenerator.generateContentKey(exportParameters);
+        TransformationCacheKey cacheKey = cacheKeyGenerator.generateContentKey(exportParameters);
 
-            return cacheCondition.apply(cacheKey);
-        } catch (IOException e) {
-            LOGGER.error("Cannot get all information from export parameters", e);
-            return false;
-        }
-
+        return cacheCondition.apply(cacheKey);
     }
 
 }

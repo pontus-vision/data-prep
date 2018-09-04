@@ -46,31 +46,23 @@ public class PrepMetadataCacheCondition implements ConditionalTest {
 
     @Override
     public boolean apply(Object... args) {
-
         // check pre-condition
         Validate.notNull(args);
         Validate.isTrue(args.length == 2);
         Validate.isInstanceOf(String.class, args[0]);
         Validate.isInstanceOf(String.class, args[1]);
 
-        try {
-            String preparationId = (String) args[0];
-            String headId = (String) args[1];
+        String preparationId = (String) args[0];
+        String headId = (String) args[1];
 
-            ExportParameters exportParameters = new ExportParameters();
-            exportParameters.setPreparationId(preparationId);
-            exportParameters.setStepId(headId);
-            exportParameters = exportParametersUtil.populateFromPreparationExportParameter(exportParameters);
+        ExportParameters exportParameters = new ExportParameters();
+        exportParameters.setPreparationId(preparationId);
+        exportParameters.setStepId(headId);
+        exportParameters = exportParametersUtil.populateFromPreparationExportParameter(exportParameters);
 
-            final TransformationMetadataCacheKey cacheKey = cacheKeyGenerator
-                    .generateMetadataKey(exportParameters.getPreparationId(), exportParameters.getStepId(), HEAD);
+        final TransformationMetadataCacheKey cacheKey = cacheKeyGenerator
+                .generateMetadataKey(exportParameters.getPreparationId(), exportParameters.getStepId(), HEAD);
 
-            return cacheCondition.apply(cacheKey);
-
-        } catch (IOException e) {
-            LOGGER.error("Cannot get all information from export parameters", e);
-        }
-
-        return false;
+        return cacheCondition.apply(cacheKey);
     }
 }

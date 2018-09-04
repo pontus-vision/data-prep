@@ -26,9 +26,11 @@ import java.util.Map;
 class InternalExportParameters {
 
     private String exportType;
+
     private ExportFormat format;
 
     private String preparationId;
+
     private PreparationDTO preparation;
 
     private String stepId;
@@ -37,13 +39,11 @@ class InternalExportParameters {
 
     private ExportParameters.SourceType from;
 
-     private String exportName;
+    private String exportName;
 
-     private Map<String, String> arguments = new HashMap<>();
+    private Map<String, String> arguments = new HashMap<>();
 
-     private String filter;
-
-     private Map<String, String> unmappedProperties = new HashMap<>();
+    private String filter;
 
     private DataSet content;
 
@@ -140,14 +140,6 @@ class InternalExportParameters {
 
     public void setFilter(String filter) {
         this.filter = filter;
-    }
-
-    public Map<String, String> getUnmappedProperties() {
-        return unmappedProperties;
-    }
-
-    public void setUnmappedProperties(Map<String, String> unmappedProperties) {
-        this.unmappedProperties = unmappedProperties;
     }
 
     /**

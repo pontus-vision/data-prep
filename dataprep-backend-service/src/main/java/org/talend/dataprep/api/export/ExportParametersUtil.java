@@ -39,7 +39,7 @@ public class ExportParametersUtil {
      * @param exportParam incoming export param
      * @return a full value copy of the export parameter
      */
-    public ExportParameters populateFromPreparationExportParameter(ExportParameters exportParam) throws IOException {
+    public ExportParameters populateFromPreparationExportParameter(ExportParameters exportParam) {
         ExportParameters result = new ExportParameters();
         result.setPreparationId(exportParam.getPreparationId());
         result.setExportType(exportParam.getExportType());
