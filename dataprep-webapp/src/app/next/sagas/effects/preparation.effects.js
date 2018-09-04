@@ -143,9 +143,13 @@ export function* removePreparation(id) {
 
 export function* openRemoveFolderModal(folderId) {
 	const state = new Map({
-		header: 'Remove a folder',
+		header: i18next.t('tdp-app:REMOVE_FOLDER_MODAL_HEADER', {
+			defaultValue: 'Remove a folder',
+		}),
 		show: true,
-		children: 'You are going to permanently remove this folder. This operation cannot be undone. Do you want to proceed?',
+		children: i18next.t('tdp-app:REMOVE_FOLDER_MODAL_CONTENT', {
+			defaultValue: 'You are going to permanently remove this folder. This operation cannot be undone. Do you want to proceed?',
+		}),
 		validateAction: 'folder:remove',
 		cancelAction: 'folder:remove:close',
 		folderId,
@@ -163,7 +167,6 @@ export function* removeFolder() {
 	const { response } = yield call(http.delete, `${uris.get('apiFolders')}/${folderId}`);
 	if (response.ok) {
 		yield call(refreshCurrentFolder);
-		yield call(closeRemoveFolderModal);
 		yield put(
 			creators.notification.success(null, {
 				title: i18next.t('tdp-app:FOLDER_REMOVE_NOTIFICATION_TITLE', {
@@ -175,6 +178,7 @@ export function* removeFolder() {
 			}),
 		);
 	}
+	yield call(closeRemoveFolderModal);
 }
 
 export function* setTitleEditionMode(payload) {
@@ -192,19 +196,25 @@ export function* openPreparationCreatorModal() {
 
 export function* openAddFolderModal() {
 	const state = new Map({
-		header: 'Add a folder',
+		header: i18next.t('tdp-app:ADD_FOLDER_HEADER', {
+			defaultValue: 'Add a folder',
+		}),
 		show: true,
 		name: '',
 		error: '',
 		validateAction: {
-			label: 'Add',
+			label: i18next.t('tdp-app:ADD', {
+				defaultValue: 'Add',
+			}),
 			bsStyle: 'primary',
 			id: 'folder:add',
 			disabled: true,
 			actionCreator: 'folder:add',
 		},
 		cancelAction: {
-			label: 'Cancel',
+			label: i18next.t('tdp-app:Cancel', {
+				defaultValue: 'Cancel',
+			}),
 			id: 'folder:add:close',
 			actionCreator: 'folder:add:close',
 		},
@@ -223,7 +233,10 @@ export function* addFolder() {
 	const { data } = yield call(http.get, `${uris.get('apiFolders')}/${currentFolderId}/preparations`);
 	const existingFolder = data.folders.filter(folder => folder.name === newFolderName).length;
 	if (existingFolder) {
-		yield put(actions.components.mergeState('FolderCreatorModal', 'add_folder_modal', { error: `The folder "${newFolderName}" exists already` }));
+		const error = i18next.t('tdp-app:FOLDER_EXIST_MESSAGE', {
+			name: newFolderName,
+		});
+		yield put(actions.components.mergeState('FolderCreatorModal', 'add_folder_modal', { error }));
 	}
 	else {
 		yield call(http.put, `${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${newFolderName}`);
@@ -236,6 +249,7 @@ export function* addFolder() {
 				}),
 				message: i18next.t('tdp-app:FOLDER_ADD_NOTIFICATION_MESSAGE', {
 					defaultValue: `The folder "${newFolderName}" has been added.`,
+					name: newFolderName,
 				}),
 			}),
 		);

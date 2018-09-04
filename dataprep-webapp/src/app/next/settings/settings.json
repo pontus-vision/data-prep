@@ -187,7 +187,7 @@
       "bsStyle": "primary",
       "label": {
         "i18n": {
-          "key": "tdp-cmf:PREPARATION_REMOVE",
+          "key": "tdp-cmf:REMOVE",
           "options": {
             "defaultValue": "Remove"
           }
@@ -200,7 +200,7 @@
       "bsStyle": "primary",
       "label": {
         "i18n": {
-          "key": "tdp-cmf:FOLDER_REMOVE",
+          "key": "tdp-cmf:REMOVE",
           "options": {
             "defaultValue": "Remove"
           }
@@ -212,7 +212,7 @@
       "id": "folder:remove:close",
       "label": {
         "i18n": {
-          "key": "tdp-cmf:CLOSE_REMOVE_FOLDER_MODAL",
+          "key": "tdp-cmf:CANCEL",
           "options": {
             "defaultValue": "Cancel"
           }
@@ -224,7 +224,7 @@
       "id": "folder:remove:open",
       "label": {
         "i18n": {
-          "key": "tdp-cmf:OPEN_REMOVE_FOLDER_MODAL",
+          "key": "tdp-cmf:REMOVE",
           "options": {
             "defaultValue": "Remove"
           }
