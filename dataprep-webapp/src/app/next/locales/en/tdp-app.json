@@ -1,10 +1,10 @@
 {
   "ABOUT_MODAL_TITLE": "About Talend Data Preparation",
   "ABOUT_VERSION_NAME": "Version: {{version}}",
-  "BUILD_ID": "Build ID",
   "ADD": "Add",
   "ADD_FOLDER_HEADER": "Add a folder",
   "ADD_FOLDER_NAME_LABEL": "Enter folder name",
+  "BUILD_ID": "Build ID",
   "CANCEL": "Cancel",
   "COPY_MOVE_MODAL_SUBTITLE": "Click on the folder you want to {{action, lowercase}} your preparation",
   "COPY_MOVE_MODAL_TITLE": "{{action}} your preparation",
