@@ -69,7 +69,7 @@ function remove(event, payload) {
 	case TYPE_FOLDER:
 		return {
 			type: OPEN_REMOVE_FOLDER_MODAL,
-			payload: payload.model.id,
+			payload: payload.model,
 		};
 	case TYPE_PREPARATION:
 		return {

@@ -141,18 +141,20 @@ export function* removePreparation(id) {
 	yield call(refreshCurrentFolder);
 }
 
-export function* openRemoveFolderModal(folderId) {
+export function* openRemoveFolderModal(payload) {
 	const state = new Map({
 		header: i18next.t('tdp-app:REMOVE_FOLDER_MODAL_HEADER', {
 			defaultValue: 'Remove a folder',
 		}),
 		show: true,
 		children: i18next.t('tdp-app:REMOVE_FOLDER_MODAL_CONTENT', {
-			defaultValue: 'You are going to permanently remove this folder. This operation cannot be undone. Do you want to proceed?',
+			name: payload.name,
+			defaultValue: `You are going to permanently remove the folder ${payload.name}. This operation cannot be undone. Do you want to proceed?`,
 		}),
 		validateAction: 'folder:remove',
 		cancelAction: 'folder:remove:close',
-		folderId,
+		folderId: payload.id,
+		folderName: payload.name,
 	});
 	yield put(actions.components.mergeState('CMFContainer(ConfirmDialog)', 'ConfirmDialog', state));
 }
@@ -167,13 +169,15 @@ export function* removeFolder() {
 	const { response } = yield call(http.delete, `${uris.get('apiFolders')}/${folderId}`);
 	if (response.ok) {
 		yield call(refreshCurrentFolder);
+		const folderName = yield select(state => state.cmf.components.getIn(['CMFContainer(ConfirmDialog)', 'ConfirmDialog', 'folderName']));
 		yield put(
 			creators.notification.success(null, {
 				title: i18next.t('tdp-app:FOLDER_REMOVE_NOTIFICATION_TITLE', {
 					defaultValue: 'Folder Remove',
 				}),
 				message: i18next.t('tdp-app:FOLDER_REMOVE_NOTIFICATION_MESSAGE', {
-					defaultValue: 'The folder has been removed.',
+					name: folderName,
+					defaultValue: `The folder ${folderName} has been removed.`,
 				}),
 			}),
 		);

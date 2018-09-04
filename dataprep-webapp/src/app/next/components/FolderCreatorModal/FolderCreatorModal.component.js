@@ -20,8 +20,7 @@ class FolderCreatorModal extends React.Component {
 	}
 
 	render() {
-		const { t } = this.props;
-		const addFolderLabel = t('tdp-app:ADD_FOLDER_NAME_LABEL', {
+		const addFolderLabel = this.props.t('tdp-app:ADD_FOLDER_NAME_LABEL', {
 			defaultValue: 'Enter folder name',
 		});
 		return (
