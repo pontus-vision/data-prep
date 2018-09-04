@@ -1,4 +1,5 @@
 import React from 'react';
+import keycode from 'keycode';
 import { ConfirmDialog } from '@talend/react-components';
 import { translate } from 'react-i18next';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -10,6 +11,8 @@ class FolderCreatorModal extends React.Component {
 	constructor(props) {
 		super(props);
 		this.onChange = this.onChange.bind(this);
+		this.onSubmit = this.onSubmit.bind(this);
+		this.onKeyUp = this.onKeyUp.bind(this);
 	}
 
 	onChange() {
@@ -19,13 +22,24 @@ class FolderCreatorModal extends React.Component {
 		this.props.setState({ name, error: '', validateAction });
 	}
 
+	onSubmit(event, data) {
+		this.props.state.validateAction.onClick(event, data);
+		event.preventDefault();
+	}
+
+	onKeyUp(event) {
+		if (event.keyCode === keycode('escape')) {
+			this.props.state.cancelAction.onClick(event);
+		}
+	}
+
 	render() {
 		const addFolderLabel = this.props.t('tdp-app:ADD_FOLDER_NAME_LABEL', {
 			defaultValue: 'Enter folder name',
 		});
 		return (
 			<ConfirmDialog {...this.props.state}>
-				<form>
+				<form onSubmit={this.onSubmit}>
 					<div className="form-group field field-string">
 						<input
 							className="form-control"
@@ -37,6 +51,7 @@ class FolderCreatorModal extends React.Component {
 								this.folderNameInput = input;
 							}}
 							onChange={this.onChange}
+							onKeyUp={this.onKeyUp}
 						/>
 						<label className="control-label" htmlFor="add-folder-input">
 							{ addFolderLabel }

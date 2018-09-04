@@ -184,7 +184,6 @@
     "preparation:remove": {
       "id": "preparation:remove",
       "icon": "talend-trash",
-      "bsStyle": "primary",
       "label": {
         "i18n": {
           "key": "tdp-cmf:REMOVE",
@@ -197,7 +196,7 @@
     },
     "folder:remove": {
       "id": "folder:remove",
-      "bsStyle": "primary",
+      "bsStyle": "danger",
       "label": {
         "i18n": {
           "key": "tdp-cmf:REMOVE",
