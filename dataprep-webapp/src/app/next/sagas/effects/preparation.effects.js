@@ -1,3 +1,4 @@
+import React from 'react';
 import { all, call, put, select } from 'redux-saga/effects';
 import { actions } from '@talend/react-cmf';
 import { Map } from 'immutable';
@@ -135,22 +136,20 @@ export function* rename(payload) {
 	yield call(refreshCurrentFolder);
 }
 
-export function* removePreparation(id) {
-	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
-	yield call(http.delete, `${uris.get('apiPreparations')}/${id}`);
-	yield call(refreshCurrentFolder);
-}
-
 export function* openRemoveFolderModal(payload) {
+	const message = i18next.t('tdp-app:REMOVE_FOLDER_MODAL_CONTENT', {
+		name: payload.name,
+		defaultValue: `You are going to permanently remove the folder ${payload.name}. This operation cannot be undone. Do you want to proceed?`,
+	});
+	const style = {
+		textAlign: 'initial',
+	};
 	const state = new Map({
 		header: i18next.t('tdp-app:REMOVE_FOLDER_MODAL_HEADER', {
 			defaultValue: 'Remove a folder',
 		}),
 		show: true,
-		children: i18next.t('tdp-app:REMOVE_FOLDER_MODAL_CONTENT', {
-			name: payload.name,
-			defaultValue: `You are going to permanently remove the folder ${payload.name}. This operation cannot be undone. Do you want to proceed?`,
-		}),
+		children: (<div style={style}>{message}</div>),
 		validateAction: 'folder:remove',
 		cancelAction: 'folder:remove:close',
 		folderId: payload.id,

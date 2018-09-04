@@ -23,13 +23,6 @@ function* rename() {
 	}
 }
 
-function* removePreparation() {
-	while (true) {
-		const { payload } = yield take(actions.REMOVE_PREPARATION);
-		yield call(effects.removePreparation, payload);
-	}
-}
-
 function* removeFolder() {
 	while (true) {
 		yield take(actions.REMOVE_FOLDER);
@@ -125,7 +118,6 @@ export default {
 	'preparation:copy': copy,
 	'preparation:move': move,
 	'preparation:fetch': fetch,
-	'preparation:remove': removePreparation,
 	'preparation:closeRemoveFolderConfirmDialog': closeRemoveFolderModal,
 	'preparation:openRemoveFolderConfirmDialog': openRemoveFolderModal,
 	'preparation:folder:add': addFolder,
