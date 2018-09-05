@@ -1,8 +1,36 @@
 package org.talend.dataprep.dataset.adapter;
 
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.talend.dataprep.command.GenericCommand.DATASET_GROUP;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.netflix.hystrix.HystrixCommand;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+import org.talend.dataprep.api.dataset.ColumnMetadata;
+import org.talend.dataprep.api.dataset.DataSet;
+import org.talend.dataprep.api.dataset.DataSetMetadata;
+import org.talend.dataprep.api.dataset.DatasetDTO;
+import org.talend.dataprep.api.dataset.DatasetDetailsDTO;
+import org.talend.dataprep.api.dataset.RowMetadata;
+import org.talend.dataprep.api.dataset.row.DataSetRow;
+import org.talend.dataprep.api.dataset.row.InvalidMarker;
+import org.talend.dataprep.api.dataset.statistics.Statistics;
+import org.talend.dataprep.api.filter.FilterService;
+import org.talend.dataprep.conversions.BeanConversionService;
+import org.talend.dataprep.conversions.inject.OwnerInjection;
+import org.talend.dataprep.dataset.DatasetConfiguration;
+import org.talend.dataprep.dataset.adapter.commands.DataSetGetMetadataLegacy;
+import org.talend.dataprep.dataset.event.DatasetUpdatedEvent;
+import org.talend.dataprep.dataset.store.content.DataSetContentLimit;
+import org.talend.dataprep.quality.AnalyzerService;
+import org.talend.dataprep.util.avro.AvroUtils;
+import org.talend.dataquality.common.inference.Analyzer;
+import org.talend.dataquality.common.inference.Analyzers;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,35 +44,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericRecord;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-import org.talend.dataprep.api.dataset.ColumnMetadata;
-import org.talend.dataprep.api.dataset.DataSet;
-import org.talend.dataprep.api.dataset.DataSetMetadata;
-import org.talend.dataprep.api.dataset.RowMetadata;
-import org.talend.dataprep.api.dataset.row.DataSetRow;
-import org.talend.dataprep.api.dataset.row.InvalidMarker;
-import org.talend.dataprep.api.dataset.statistics.Statistics;
-import org.talend.dataprep.api.filter.FilterService;
-import org.talend.dataprep.conversions.BeanConversionService;
-import org.talend.dataprep.dataset.DatasetConfiguration;
-import org.talend.dataprep.dataset.adapter.commands.DataSetGetMetadataLegacy;
-import org.talend.dataprep.dataset.event.DatasetUpdatedEvent;
-import org.talend.dataprep.dataset.store.content.DataSetContentLimit;
-import org.talend.dataprep.quality.AnalyzerService;
-import org.talend.dataprep.util.avro.AvroUtils;
-import org.talend.dataquality.common.inference.Analyzer;
-import org.talend.dataquality.common.inference.Analyzers;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.netflix.hystrix.HystrixCommand;
+import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.talend.dataprep.command.GenericCommand.DATASET_GROUP;
 
 /**
  * Adapter for legacy data model over the {@link DataCatalogClient}.
@@ -75,6 +77,9 @@ public class DatasetClient {
     @Autowired
     private FilterService filterService;
 
+    @Autowired
+    private OwnerInjection ownerInjection;
+
     private final Cache<String, AnalysisResult> computedMetadataCache = CacheBuilder
             .newBuilder() //
             .maximumSize(50) //
@@ -93,12 +98,13 @@ public class DatasetClient {
      * </p>
      *
      * @param certification filter with a specific certification state
-     * @param favorite filter with favorite only
+     * @param favorite      filter with favorite only
      * @return DataSetMetadata without rowMetadata
      */
-    public Stream<DataSetMetadata> listDataSetMetadata(Dataset.CertificationState certification, Boolean favorite) {
+    public Stream<DatasetDTO> listDataSetMetadata(Dataset.CertificationState certification, Boolean favorite) {
+
         return dataCatalogClient.listDataset(certification, favorite).map(
-                dataset -> conversionService.convert(dataset, DataSetMetadata.class));
+                dataset -> conversionService.convert(dataset, DatasetDTO.class, ownerInjection.injectIntoDataset()));
     }
 
     public DataSetMetadata getDataSetMetadata(String id) {
@@ -131,7 +137,7 @@ public class DatasetClient {
     /**
      * Get a dataSet by id.
      *
-     * @param id the dataset to fetch
+     * @param id          the dataset to fetch
      * @param fullContent we need the full dataset or a sample (see sample limit in datset: 10k rows)
      */
     public DataSet getDataSet(String id, boolean fullContent) {
@@ -141,8 +147,8 @@ public class DatasetClient {
     /**
      * Get a dataSet by id.
      *
-     * @param id the dataset to fetch
-     * @param fullContent we need the full dataset or a sample (see sample limit in datset: 10k rows)
+     * @param id                    the dataset to fetch
+     * @param fullContent           we need the full dataset or a sample (see sample limit in datset: 10k rows)
      * @param withRowValidityMarker perform a quality analysis on the dataset records
      */
     public DataSet getDataSet(String id, boolean fullContent, boolean withRowValidityMarker) {
@@ -153,10 +159,10 @@ public class DatasetClient {
      * Get a dataSet by id.
      * Convert metadata and records from {@link Dataset} to {@link DataSet}
      *
-     * @param id the dataset to fetch
-     * @param fullContent we need the full dataset or a sample (see sample limit in datset: 10k rows)
+     * @param id                    the dataset to fetch
+     * @param fullContent           we need the full dataset or a sample (see sample limit in datset: 10k rows)
      * @param withRowValidityMarker perform a quality analysis on the dataset records
-     * @param filter TQL filter for content
+     * @param filter                TQL filter for content
      */
     public DataSet getDataSet(String id, boolean fullContent, boolean withRowValidityMarker, String filter) {
         DataSet dataset = new DataSet();
@@ -217,7 +223,7 @@ public class DatasetClient {
      */
     @Deprecated
     public HystrixCommand<InputStream> getDataSetGetCommand(final String dataSetId, final boolean fullContent,
-            final boolean includeInternalContent) {
+                                                            final boolean includeInternalContent) {
         return new HystrixCommand<InputStream>(DATASET_GROUP) {
 
             @Override
@@ -292,7 +298,7 @@ public class DatasetClient {
                 AtomicLong count = new AtomicLong(0);
                 RowMetadata rowMetadata = getDataSetRowMetadata(id);
                 try (Stream<DataSetRow> records =
-                        dataCatalogClient.getDataSetContent(id, sampleSize).map(toDatasetRow(rowMetadata))) {
+                             dataCatalogClient.getDataSetContent(id, sampleSize).map(toDatasetRow(rowMetadata))) {
                     analyzerService.analyzeFull(records, rowMetadata.getColumns());
                 }
                 return new AnalysisResult(rowMetadata, count.get());
@@ -301,6 +307,12 @@ public class DatasetClient {
             // source method do not throw checked exception
             throw (RuntimeException) e.getCause();
         }
+    }
+
+    public DatasetDetailsDTO getDataSetDetails(String id) {
+        Dataset dataset = dataCatalogClient.getMetadata(id);
+        return conversionService.convert(dataset, DatasetDetailsDTO.class, ownerInjection.injectIntoDatasetDetails());
+
     }
 
     private class AnalysisResult {
