@@ -238,6 +238,7 @@ export function* addFolder() {
 	if (existingFolder) {
 		const error = i18next.t('tdp-app:FOLDER_EXIST_MESSAGE', {
 			name: newFolderName,
+			defaultValue: 'Folder exists already',
 		});
 		yield put(actions.components.mergeState('FolderCreatorModal', 'add_folder_modal', { error }));
 	}
