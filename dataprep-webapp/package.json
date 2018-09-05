@@ -114,6 +114,7 @@
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
+    "@cypress/webpack-preprocessor": "^2.0.1",
     "@talend/react-cmf-webpack-plugin": "^0.166.0",
     "angular-mocks": "1.5.9",
     "autoprefixer": "^7.1.4",
