@@ -12,36 +12,42 @@
 
 package org.talend.dataprep.util;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.talend.daikon.exception.ExceptionContext.build;
-import static org.talend.dataprep.exception.error.CommonErrorCodes.ILLEGAL_ORDER_FOR_LIST;
-import static org.talend.dataprep.exception.error.CommonErrorCodes.ILLEGAL_SORT_FOR_LIST;
-
-import java.beans.PropertyEditor;
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.function.Function;
-
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Converter;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
+import org.talend.dataprep.api.dataset.DatasetDTO;
 import org.talend.dataprep.api.folder.Folder;
 import org.talend.dataprep.api.preparation.Preparation;
 import org.talend.dataprep.api.preparation.PreparationDTO;
 import org.talend.dataprep.dataset.service.UserDataSetMetadata;
 import org.talend.dataprep.exception.TDPException;
 
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Converter;
+import java.beans.PropertyEditor;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.function.Function;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.talend.daikon.exception.ExceptionContext.build;
+import static org.talend.dataprep.exception.error.CommonErrorCodes.ILLEGAL_ORDER_FOR_LIST;
+import static org.talend.dataprep.exception.error.CommonErrorCodes.ILLEGAL_SORT_FOR_LIST;
 
 /**
  * Utility class used to sort and order DataSets or Preparations.
  */
 public final class SortAndOrderHelper {
 
-    /** Order to apply to a sort. */
+    /**
+     * Order to apply to a sort.
+     */
     public enum Order {
-        /** Ascending order. */
+        /**
+         * Ascending order.
+         */
         ASC,
-        /** Descending order. */
+        /**
+         * Descending order.
+         */
         DESC;
 
         public String camelName() {
@@ -54,16 +60,25 @@ public final class SortAndOrderHelper {
      * Might be a good idea to replace by {@link org.springframework.data.domain.Sort}
      */
     public enum Sort {
-        /** Name of the entity. */
+        /**
+         * Name of the entity.
+         */
         NAME,
-        /** Creator of the entity. */
+        /**
+         * Creator of the entity.
+         */
         AUTHOR,
-        /** @deprecated use {@link #CREATION_DATE} or {@link #LAST_MODIFICATION_DATE}. */
-        @Deprecated
-        DATE,
-        /** Creation date. */
+        /**
+         * @deprecated use {@link #CREATION_DATE} or {@link #LAST_MODIFICATION_DATE}.
+         */
+        @Deprecated DATE,
+        /**
+         * Creation date.
+         */
         CREATION_DATE,
-        /** Last modification date. {@link Preparation#lastModificationDate} */
+        /**
+         * Last modification date. {@link Preparation#lastModificationDate}
+         */
         LAST_MODIFICATION_DATE,
         /**
          * Number of steps of a preparation.
@@ -84,8 +99,8 @@ public final class SortAndOrderHelper {
         }
     }
 
-    private static final Converter<String, String> snakeToCamelCaseConverter = CaseFormat.UPPER_UNDERSCORE
-            .converterTo(CaseFormat.LOWER_CAMEL);
+    private static final Converter<String, String> snakeToCamelCaseConverter =
+            CaseFormat.UPPER_UNDERSCORE.converterTo(CaseFormat.LOWER_CAMEL);
 
     private SortAndOrderHelper() {
     }
@@ -135,7 +150,58 @@ public final class SortAndOrderHelper {
     /**
      * Return a dataset metadata comparator from the given parameters.
      *
-     * @param sortKey the sort key. If null, default to {@link Sort#NAME}.
+     * @param sortKey  the sort key. If null, default to {@link Sort#NAME}.
+     * @param orderKey the order key to use. If null, default to {@link Order#ASC}.
+     * @return a dataset metadata comparator from the given parameters.
+     */
+    public static Comparator<DatasetDTO> getDatasetDTOComparator(Sort sortKey, Order orderKey) {
+        Comparator<Comparable> comparisonOrder = getOrderComparator(orderKey);
+
+        // Select comparator for sort (either by name or date)
+        Function<DatasetDTO, Comparable> keyExtractor;
+        if (sortKey == null) { // default to NAME sort
+            keyExtractor = SortAndOrderHelper::extractDataSetName;
+        } else {
+            switch (sortKey) {
+            // In case of API call error, default to NAME sort
+            case DATASET_NAME:
+            case NB_STEPS:
+            case NAME:
+                keyExtractor = SortAndOrderHelper::extractDataSetName;
+                break;
+            case AUTHOR:
+                keyExtractor = datasetDTO -> Optional
+                        .ofNullable(datasetDTO)
+                        .filter(ds -> (ds.getOwner() != null))
+                        .filter(ds -> (ds.getOwner().getDisplayName() != null))
+                        .map(ds -> (ds.getOwner().getDisplayName().toUpperCase()))
+                        .orElse(EMPTY);
+                break;
+            case CREATION_DATE:
+            case DATE:
+                keyExtractor = DatasetDTO::getCreationDate;
+                break;
+            case LAST_MODIFICATION_DATE:
+                keyExtractor = DatasetDTO::getLastModificationDate;
+                break;
+            case NB_RECORDS:
+                keyExtractor = datasetDTO -> Optional
+                        .ofNullable(datasetDTO)
+                        .map(m -> datasetDTO.getRecords())
+                        .orElse(Long.MIN_VALUE);
+                break;
+            default:
+                // this should not be possible
+                throw new TDPException(ILLEGAL_SORT_FOR_LIST, build().put("sort", sortKey));
+            }
+        }
+        return Comparator.comparing(keyExtractor, comparisonOrder);
+    }
+
+    /**
+     * Return a dataset metadata comparator from the given parameters.
+     *
+     * @param sortKey  the sort key. If null, default to {@link Sort#NAME}.
      * @param orderKey the order key to use. If null, default to {@link Order#ASC}.
      * @return a dataset metadata comparator from the given parameters.
      */
@@ -155,7 +221,8 @@ public final class SortAndOrderHelper {
                 keyExtractor = SortAndOrderHelper::extractDataSetName;
                 break;
             case AUTHOR:
-                keyExtractor = dataSetMetadata -> Optional.ofNullable(dataSetMetadata)
+                keyExtractor = dataSetMetadata -> Optional
+                        .ofNullable(dataSetMetadata)
                         .filter(ds -> ds instanceof UserDataSetMetadata)
                         .filter(ds -> ((UserDataSetMetadata) ds).getOwner() != null)
                         .filter(ds -> ((UserDataSetMetadata) ds).getOwner().getDisplayName() != null)
@@ -170,7 +237,8 @@ public final class SortAndOrderHelper {
                 keyExtractor = DataSetMetadata::getLastModificationDate;
                 break;
             case NB_RECORDS:
-                keyExtractor = metadata -> Optional.ofNullable(metadata)
+                keyExtractor = metadata -> Optional
+                        .ofNullable(metadata)
                         .filter(m -> m.getContent() != null)
                         .map(m -> m.getContent().getNbRecords())
                         .orElse(Long.MIN_VALUE);
@@ -184,7 +252,16 @@ public final class SortAndOrderHelper {
     }
 
     private static String extractDataSetName(DataSetMetadata dataSetMetadata) {
-        return Optional.ofNullable(dataSetMetadata)
+        return Optional
+                .ofNullable(dataSetMetadata)
+                .filter(p -> p.getName() != null)
+                .map(p -> p.getName().toUpperCase())
+                .orElse(EMPTY);
+    }
+
+    private static String extractDataSetName(DatasetDTO datasetDTO) {
+        return Optional
+                .ofNullable(datasetDTO)
                 .filter(p -> p.getName() != null)
                 .map(p -> p.getName().toUpperCase())
                 .orElse(EMPTY);
@@ -193,7 +270,7 @@ public final class SortAndOrderHelper {
     /**
      * Return a Preparation comparator from the given parameters.
      *
-     * @param sortKey the sort key.
+     * @param sortKey  the sort key.
      * @param orderKey the order comparator to use.
      * @return a preparation comparator from the given parameters.
      */
@@ -212,7 +289,8 @@ public final class SortAndOrderHelper {
                 keyExtractor = SortAndOrderHelper::extractPreparationName;
                 break;
             case AUTHOR:
-                keyExtractor = preparationDTO -> Optional.ofNullable(preparationDTO)
+                keyExtractor = preparationDTO -> Optional
+                        .ofNullable(preparationDTO)
                         .filter(p -> p.getOwner() != null)
                         .filter(p -> p.getOwner().getDisplayName() != null)
                         .map(p -> p.getOwner().getDisplayName().toUpperCase())
@@ -240,7 +318,8 @@ public final class SortAndOrderHelper {
     }
 
     private static String extractPreparationName(PreparationDTO preparation) {
-        return Optional.ofNullable(preparation)
+        return Optional
+                .ofNullable(preparation)
                 .filter(p -> p.getName() != null)
                 .map(p -> p.getName().toUpperCase())
                 .orElse(EMPTY);
@@ -249,7 +328,7 @@ public final class SortAndOrderHelper {
     /**
      * Return a Folder comparator from the given parameters.
      *
-     * @param sortKey the sort key.
+     * @param sortKey  the sort key.
      * @param orderKey the order comparator to use.
      * @return a folder comparator from the given parameters.
      */
@@ -286,7 +365,8 @@ public final class SortAndOrderHelper {
     }
 
     private static String extractFolderName(Folder folder) {
-        return Optional.ofNullable(folder)
+        return Optional
+                .ofNullable(folder)
                 .filter(f -> f.getName() != null)
                 .map(f -> f.getName().toUpperCase())
                 .orElse(EMPTY);

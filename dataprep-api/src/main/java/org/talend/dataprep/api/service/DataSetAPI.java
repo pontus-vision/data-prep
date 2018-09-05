@@ -12,26 +12,9 @@
 
 package org.talend.dataprep.api.service;
 
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-import static org.talend.dataprep.command.CommandHelper.toPublisher;
-import static org.talend.dataprep.command.CommandHelper.toStreaming;
-import static org.talend.dataprep.dataset.adapter.Dataset.CertificationState.CERTIFIED;
-
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.netflix.hystrix.HystrixCommand;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,11 +28,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.talend.dataprep.api.action.ActionForm;
 import org.talend.dataprep.api.dataset.DataSet;
-import org.talend.dataprep.api.dataset.DataSetGovernance;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
+import org.talend.dataprep.api.dataset.DatasetDTO;
+import org.talend.dataprep.api.dataset.DatasetDetailsDTO;
 import org.talend.dataprep.api.dataset.statistics.SemanticDomain;
 import org.talend.dataprep.api.preparation.Preparation;
-import org.talend.dataprep.api.service.api.EnrichedDataSetMetadata;
+import org.talend.dataprep.api.preparation.PreparationDTO;
 import org.talend.dataprep.api.service.command.dataset.CompatibleDataSetList;
 import org.talend.dataprep.api.service.command.dataset.CopyDataSet;
 import org.talend.dataprep.api.service.command.dataset.CreateDataSet;
@@ -69,19 +53,34 @@ import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.configuration.EncodingSupport;
 import org.talend.dataprep.dataset.adapter.Dataset.CertificationState;
 import org.talend.dataprep.dataset.adapter.DatasetClient;
-import org.talend.dataprep.dataset.service.UserDataSetMetadata;
 import org.talend.dataprep.metrics.Timed;
 import org.talend.dataprep.security.PublicAPI;
 import org.talend.dataprep.util.SortAndOrderHelper;
 import org.talend.dataprep.util.SortAndOrderHelper.Order;
 import org.talend.dataprep.util.SortAndOrderHelper.Sort;
-
-import com.netflix.hystrix.HystrixCommand;
-
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.stream.Stream;
+
+import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import static org.talend.dataprep.command.CommandHelper.toPublisher;
+import static org.talend.dataprep.command.CommandHelper.toStream;
+import static org.talend.dataprep.command.CommandHelper.toStreaming;
+import static org.talend.dataprep.dataset.adapter.Dataset.CertificationState.CERTIFIED;
 
 @RestController
 public class DataSetAPI extends APIService {
@@ -95,17 +94,21 @@ public class DataSetAPI extends APIService {
     /**
      * Create a dataset from request body content.
      *
-     * @param name The dataset name.
-     * @param contentType the request content type used to distinguish dataset creation or import.
+     * @param name           The dataset name.
+     * @param contentType    the request content type used to distinguish dataset creation or import.
      * @param dataSetContent the dataset content from the http request body.
      * @return The dataset id.
      */
     @RequestMapping(value = "/api/datasets", method = POST, produces = TEXT_PLAIN_VALUE)
-    @ApiOperation(value = "Create a data set", produces = TEXT_PLAIN_VALUE, notes = "Create a new data set based on content provided in POST body. For documentation purposes, body is typed as 'text/plain' but operation accepts binary content too. Returns the id of the newly created data set.")
+    @ApiOperation(value = "Create a data set", produces = TEXT_PLAIN_VALUE,
+            notes = "Create a new data set based on content provided in POST body. For documentation purposes, body is typed as 'text/plain' but operation accepts binary content too. Returns the id of the newly created data set.")
     @Timed
     public Callable<String> create(
-            @ApiParam(value = "User readable name of the data set (e.g. 'Finance Report 2015', 'Test Data Set').") @RequestParam(defaultValue = "", required = false) String name,
-            @ApiParam(value = "An optional tag to be added in data set metadata once created.") @RequestParam(defaultValue = "", required = false) String tag,
+            @ApiParam(
+                    value = "User readable name of the data set (e.g. 'Finance Report 2015', 'Test Data Set').") @RequestParam(
+                            defaultValue = "", required = false) String name,
+            @ApiParam(value = "An optional tag to be added in data set metadata once created.") @RequestParam(
+                    defaultValue = "", required = false) String tag,
             @ApiParam(value = "Size of the data set, in bytes.") @RequestParam(defaultValue = "0") long size,
             @RequestHeader(CONTENT_TYPE) String contentType, @ApiParam(value = "content") InputStream dataSetContent) {
         return () -> {
@@ -113,7 +116,8 @@ public class DataSetAPI extends APIService {
                 LOG.debug("Creating dataset (pool: {} )...", getConnectionStats());
             }
             try {
-                HystrixCommand<String> creation = getCommand(CreateDataSet.class, name, tag, contentType, size, dataSetContent);
+                HystrixCommand<String> creation =
+                        getCommand(CreateDataSet.class, name, tag, contentType, size, dataSetContent);
                 return creation.execute();
             } finally {
                 LOG.debug("Dataset creation done.");
@@ -126,7 +130,9 @@ public class DataSetAPI extends APIService {
             notes = "Create or update a data set based on content provided in PUT body with given id. For documentation purposes, body is typed as 'text/plain' but operation accepts binary content too. Returns the id of the newly created data set.")
     @Timed
     public Callable<String> createOrUpdateById(
-            @ApiParam(value = "User readable name of the data set (e.g. 'Finance Report 2015', 'Test Data Set').") @RequestParam(defaultValue = "", required = false) String name,
+            @ApiParam(
+                    value = "User readable name of the data set (e.g. 'Finance Report 2015', 'Test Data Set').") @RequestParam(
+                            defaultValue = "", required = false) String name,
             @ApiParam(value = "Id of the data set to update / create") @PathVariable(value = "id") String id,
             @ApiParam(value = "Size of the data set, in bytes.") @RequestParam(defaultValue = "0") long size,
             @ApiParam(value = "content") InputStream dataSetContent) {
@@ -142,7 +148,8 @@ public class DataSetAPI extends APIService {
     }
 
     @RequestMapping(value = "/api/datasets/{id}/copy", method = POST, produces = TEXT_PLAIN_VALUE)
-    @ApiOperation(value = "Copy the dataset.", produces = TEXT_PLAIN_VALUE, notes = "Copy the dataset, returns the id of the copied created data set.")
+    @ApiOperation(value = "Copy the dataset.", produces = TEXT_PLAIN_VALUE,
+            notes = "Copy the dataset, returns the id of the copied created data set.")
     @Timed
     public Callable<String> copy(@ApiParam(value = "Name of the copy") @RequestParam(required = false) String name,
             @ApiParam(value = "Id of the data set to update / create") @PathVariable(value = "id") String id) {
@@ -159,7 +166,8 @@ public class DataSetAPI extends APIService {
     }
 
     @RequestMapping(value = "/api/datasets/{id}/metadata", method = PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Update a data set metadata by id.", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, //
+    @ApiOperation(value = "Update a data set metadata by id.", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE, //
             notes = "Update a data set metadata based on content provided in PUT body with given id. For documentation purposes. Returns the id of the updated data set metadata.")
     @Timed
     public void updateMetadata(
@@ -191,7 +199,8 @@ public class DataSetAPI extends APIService {
         };
     }
 
-    @RequestMapping(value = "/api/datasets/{datasetId}/column/{columnId}", method = POST, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/api/datasets/{datasetId}/column/{columnId}", method = POST,
+            consumes = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Update a dataset.", consumes = APPLICATION_JSON_VALUE, //
             notes = "Update a data set based on content provided in POST body with given id. For documentation purposes, body is typed as 'text/plain' but operation accepts binary content too.")
     @Timed
@@ -211,12 +220,16 @@ public class DataSetAPI extends APIService {
     }
 
     @RequestMapping(value = "/api/datasets/{id}", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Get a data set by id.", produces = APPLICATION_JSON_VALUE, notes = "Get a data set based on given id.")
+    @ApiOperation(value = "Get a data set by id.", produces = APPLICATION_JSON_VALUE,
+            notes = "Get a data set based on given id.")
     @Timed
     public DataSet get(@ApiParam(value = "Id of the data set to get") @PathVariable(value = "id") String id,
-            @ApiParam(value = "Whether output should be the full data set (true) or not (false).") @RequestParam(value = "fullContent", defaultValue = "false") boolean fullContent,
-            @ApiParam(value = "Filter for retrieved content.") @RequestParam(value = "filter", defaultValue = "") String filter,
-            @ApiParam(value = "Whether to include internal technical properties (true) or not (false).") @RequestParam(value = "includeTechnicalProperties", defaultValue = "false") boolean includeTechnicalProperties) {
+            @ApiParam(value = "Whether output should be the full data set (true) or not (false).") @RequestParam(
+                    value = "fullContent", defaultValue = "false") boolean fullContent,
+            @ApiParam(value = "Filter for retrieved content.") @RequestParam(value = "filter",
+                    defaultValue = "") String filter,
+            @ApiParam(value = "Whether to include internal technical properties (true) or not (false).") @RequestParam(
+                    value = "includeTechnicalProperties", defaultValue = "false") boolean includeTechnicalProperties) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Requesting dataset #{} (pool: {})...", id, getConnectionStats());
         }
@@ -236,9 +249,11 @@ public class DataSetAPI extends APIService {
      * @return the dataset metadata or no content if not found.
      */
     @RequestMapping(value = "/api/datasets/{id}/metadata", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Get a data set metadata by id.", produces = APPLICATION_JSON_VALUE, notes = "Get a data set metadata based on given id.")
+    @ApiOperation(value = "Get a data set metadata by id.", produces = APPLICATION_JSON_VALUE,
+            notes = "Get a data set metadata based on given id.")
     @Timed
-    public DataSetMetadata getMetadata(@ApiParam(value = "Id of the data set to get") @PathVariable(value = "id") String id) {
+    public DataSetMetadata
+            getMetadata(@ApiParam(value = "Id of the data set to get") @PathVariable(value = "id") String id) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Requesting dataset metadata #{} (pool: {})...", id, getConnectionStats());
         }
@@ -252,12 +267,15 @@ public class DataSetAPI extends APIService {
     }
 
     @RequestMapping(value = "/api/datasets/preview/{id}", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Get a data set by id.", produces = APPLICATION_JSON_VALUE, notes = "Get a data set based on given id.")
+    @ApiOperation(value = "Get a data set by id.", produces = APPLICATION_JSON_VALUE,
+            notes = "Get a data set based on given id.")
     @Timed
     public ResponseEntity<StreamingResponseBody> preview(
             @ApiParam(value = "Id of the data set to get") @PathVariable(value = "id") String id,
-            @RequestParam(defaultValue = "true") @ApiParam(name = "metadata", value = "Include metadata information in the response") boolean metadata,
-            @RequestParam(defaultValue = "") @ApiParam(name = "sheetName", value = "Sheet name to preview") String sheetName) {
+            @RequestParam(defaultValue = "true") @ApiParam(name = "metadata",
+                    value = "Include metadata information in the response") boolean metadata,
+            @RequestParam(defaultValue = "") @ApiParam(name = "sheetName",
+                    value = "Sheet name to preview") String sheetName) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Requesting dataset #{} (pool: {})...", id, getConnectionStats());
         }
@@ -272,27 +290,30 @@ public class DataSetAPI extends APIService {
     }
 
     @RequestMapping(value = "/api/datasets", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "List data sets.", produces = APPLICATION_JSON_VALUE, notes = "Returns a list of data sets the user can use.")
+    @ApiOperation(value = "List data sets.", produces = APPLICATION_JSON_VALUE,
+            notes = "Returns a list of data sets the user can use.")
     @Timed
-    public Stream<UserDataSetMetadata> list(
-            @ApiParam(value = "Sort key (by name or date), defaults to 'date'.") @RequestParam(defaultValue = "creationDate") Sort sort,
-            @ApiParam(value = "Order for sort key (desc or asc), defaults to 'desc'.") @RequestParam(defaultValue = "desc") Order order,
-            @ApiParam(value = "Filter on name containing the specified name") @RequestParam(defaultValue = "") String name,
+    public Stream<DatasetDTO> list(
+            @ApiParam(value = "Sort key (by name or date), defaults to 'date'.") @RequestParam(
+                    defaultValue = "creationDate") Sort sort,
+            @ApiParam(value = "Order for sort key (desc or asc), defaults to 'desc'.") @RequestParam(
+                    defaultValue = "desc") Order order,
+            @ApiParam(value = "Filter on name containing the specified name") @RequestParam(
+                    defaultValue = "") String name,
             @ApiParam(value = "Filter on certified data sets") @RequestParam(defaultValue = "false") boolean certified,
             @ApiParam(value = "Filter on favorite data sets") @RequestParam(defaultValue = "false") boolean favorite,
             @ApiParam(value = "Filter on recent data sets") @RequestParam(defaultValue = "false") boolean limit) {
         try {
             CertificationState certification = certified ? CERTIFIED : null;
             Boolean filterOnFavorite = favorite ? Boolean.TRUE : null;
-            Stream<DataSetMetadata> datasetStream = datasetClient.listDataSetMetadata(certification, filterOnFavorite);
+            Stream<DatasetDTO> datasetStream = datasetClient.listDataSetMetadata(certification, filterOnFavorite);
 
             if (isNotBlank(name)) {
                 datasetStream = datasetStream.filter(ds -> containsIgnoreCase(ds.getName(), name));
             }
 
             if (certified) {
-                datasetStream = datasetStream.filter(
-                        dataset -> dataset.getGovernance().getCertificationStep() == DataSetGovernance.Certification.CERTIFIED);
+                datasetStream = datasetStream.filter(dataset -> dataset.getCertification() == CERTIFIED);
             }
 
             if (limit) {
@@ -300,43 +321,101 @@ public class DataSetAPI extends APIService {
             }
 
             return datasetStream //
-                    .map(dataSetMetadata -> beanConversionService.convert(dataSetMetadata, UserDataSetMetadata.class)) //
-                    .sorted(SortAndOrderHelper.getDataSetMetadataComparator(sort, order));
+                    .sorted(SortAndOrderHelper.getDatasetDTOComparator(sort, order));
         } finally {
-            LOG.info("listing datasets done [favorite: {}, certified: {}, name: {}, limit: {}]", favorite, certified, name,
-                    limit);
+            LOG.info("listing datasets done [favorite: {}, certified: {}, name: {}, limit: {}]", favorite, certified,
+                    name, limit);
+        }
+    }
+
+    /**
+     * Return the dataset details.
+     *
+     * @param id the wanted dataset details.
+     * @return the dataset datails or no content if not found.
+     */
+    @RequestMapping(value = "/api/datasets/{id}/details", method = GET, produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Get a data set detail by id.", produces = APPLICATION_JSON_VALUE,
+            notes = "Get a data set metadata based on given id.")
+    @Timed
+    public DatasetDetailsDTO
+            getDetails(@ApiParam(value = "Id of the data set to get") @PathVariable(value = "id") String id) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Requesting dataset details #{} (pool: {})...", id, getConnectionStats());
+        }
+        try {
+            DatasetDetailsDTO details = datasetClient.getDataSetDetails(id);
+
+            List<DatasetDetailsDTO.Preparation> preps = getPreparation(details.getId());
+
+            details.setPreparations(preps);
+
+            return details;
+
+        } finally {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Request dataset details #{} (pool: {}) done.", id, getConnectionStats());
+            }
+        }
+    }
+
+    /**
+     * Return the list of preparation using a dataset
+     *
+     * @param id the wanted dataset.
+     * @return the list of preparation using the dataset
+     */
+    @RequestMapping(value = "/api/datasets/{id}/preparations", method = GET, produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Get the list of preparation using a dataset by the dataset id.",
+            produces = APPLICATION_JSON_VALUE, notes = "Get the list of preparation using a dataset by the dataset id.")
+    @Timed
+    public List<DatasetDetailsDTO.Preparation>
+            getPreparation(@ApiParam(value = "Id of the data set to get") @PathVariable(value = "id") String id) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Requesting preparations using dataset #{} (pool: {})...", id, getConnectionStats());
+        }
+        try {
+            DatasetDetailsDTO details = datasetClient.getDataSetDetails(id);
+
+            // Add the related preparations list to the given dataset metadata.
+            final PreparationSearchByDataSetId getPreparations =
+                    getCommand(PreparationSearchByDataSetId.class, details.getId());
+
+            List<DatasetDetailsDTO.Preparation> preps = new ArrayList<>();
+
+            toStream(PreparationDTO.class, mapper, getPreparations) //
+                    .filter(p -> p.getSteps() != null)
+                    .forEach(p -> preps.add(new DatasetDetailsDTO.Preparation(p.getId(), p.getName(),
+                            (long) p.getSteps().size(), p.getLastModificationDate())));
+
+            return preps;
+
+        } finally {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Request preparations using dataset #{} (pool: {}) done.", id, getConnectionStats());
+            }
         }
     }
 
     @RequestMapping(value = "/api/datasets/summary", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "List data sets summary.", produces = APPLICATION_JSON_VALUE, notes = "Returns a list of data sets summary the user can use.")
+    @ApiOperation(value = "List data sets summary.", produces = APPLICATION_JSON_VALUE,
+            notes = "Returns a list of data sets summary the user can use.")
     @Timed
-    public Stream<EnrichedDataSetMetadata> listSummary(
-            @ApiParam(value = "Sort key (by name or date), defaults to 'date'.") @RequestParam(defaultValue = "creationDate") Sort sort,
-            @ApiParam(value = "Order for sort key (desc or asc), defaults to 'desc'.") @RequestParam(defaultValue = "desc") Order order,
-            @ApiParam(value = "Filter on name containing the specified name") @RequestParam(defaultValue = "") String name,
+    public Stream<DatasetDTO> listSummary(
+            @ApiParam(value = "Sort key (by name or date), defaults to 'date'.") @RequestParam(
+                    defaultValue = "creationDate") Sort sort,
+            @ApiParam(value = "Order for sort key (desc or asc), defaults to 'desc'.") @RequestParam(
+                    defaultValue = "desc") Order order,
+            @ApiParam(value = "Filter on name containing the specified name") @RequestParam(
+                    defaultValue = "") String name,
             @ApiParam(value = "Filter on certified data sets") @RequestParam(defaultValue = "false") boolean certified,
             @ApiParam(value = "Filter on favorite data sets") @RequestParam(defaultValue = "false") boolean favorite,
             @ApiParam(value = "Filter on recent data sets") @RequestParam(defaultValue = "false") boolean limit) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Listing datasets summary (pool: {})...", getConnectionStats());
         }
-        Stream<UserDataSetMetadata> listDataSets = list(sort, order, name, certified, favorite, limit);
-        return listDataSets //
-                .map(m -> {
-                    LOG.debug("found dataset [{}] in the summary list", m.getName());
-                    // Add the related preparations list to the given dataset metadata.
-                    final PreparationSearchByDataSetId getPreparations = getCommand(PreparationSearchByDataSetId.class,
-                            m.getId());
-                    return Flux.from(CommandHelper.toPublisher(Preparation.class, mapper, getPreparations)).collectList() //
-                            .map(preparations -> {
-                                final List<Preparation> list = preparations.stream() //
-                                        .filter(p -> p.getSteps() != null) //
-                                        .collect(Collectors.toList());
-                                return new EnrichedDataSetMetadata(m, list);
-                            }) //
-                            .block();
-                });
+        return list(sort, order, name, certified, favorite, limit);
+
     }
 
     /**
@@ -344,29 +423,37 @@ public class DataSetAPI extends APIService {
      * compatible preparation is found an empty list is returned.
      *
      * @param dataSetId the specified data set id
-     * @param sort the sort criterion: either name or date.
-     * @param order the sorting order: either asc or desc
+     * @param sort      the sort criterion: either name or date.
+     * @param order     the sorting order: either asc or desc
      */
-    @RequestMapping(value = "/api/datasets/{id}/compatiblepreparations", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "List compatible preparations.", produces = APPLICATION_JSON_VALUE, notes = "Returns a list of data sets that are compatible with the specified one.")
+    @RequestMapping(value = "/api/datasets/{id}/compatiblepreparations", method = GET,
+            produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "List compatible preparations.", produces = APPLICATION_JSON_VALUE,
+            notes = "Returns a list of data sets that are compatible with the specified one.")
     @Timed
     public Stream<Preparation> listCompatiblePreparations(
             @ApiParam(value = "Id of the data set to get") @PathVariable(value = "id") String dataSetId,
-            @ApiParam(value = "Sort key (by name or date), defaults to 'modification'.") @RequestParam(defaultValue = "lastModificationDate") Sort sort,
-            @ApiParam(value = "Order for sort key (desc or asc), defaults to 'desc'.") @RequestParam(defaultValue = "desc") Order order) {
+            @ApiParam(value = "Sort key (by name or date), defaults to 'modification'.") @RequestParam(
+                    defaultValue = "lastModificationDate") Sort sort,
+            @ApiParam(value = "Order for sort key (desc or asc), defaults to 'desc'.") @RequestParam(
+                    defaultValue = "desc") Order order) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Listing compatible preparations (pool: {})...", getConnectionStats());
         }
         // get the list of compatible data sets
-        GenericCommand<InputStream> compatibleDataSetList = getCommand(CompatibleDataSetList.class, dataSetId, sort, order);
-        final Mono<List<DataSetMetadata>> compatibleList = Flux
-                .from(toPublisher(DataSetMetadata.class, mapper, compatibleDataSetList)) //
-                .collectList() //
-                .cache(); // Keep it in cache for later reuse
+        GenericCommand<InputStream> compatibleDataSetList =
+                getCommand(CompatibleDataSetList.class, dataSetId, sort, order);
+        final Mono<List<DataSetMetadata>> compatibleList =
+                Flux
+                        .from(toPublisher(DataSetMetadata.class, mapper, compatibleDataSetList)) //
+                        .collectList() //
+                        .cache(); // Keep it in cache for later reuse
         // get list of preparations
         GenericCommand<InputStream> preparationList = getCommand(PreparationList.class, sort, order);
-        return Flux.from(toPublisher(Preparation.class, mapper, preparationList)) //
-                .filter(p -> compatibleList.flatMapIterable(l -> l) //
+        return Flux
+                .from(toPublisher(Preparation.class, mapper, preparationList)) //
+                .filter(p -> compatibleList
+                        .flatMapIterable(l -> l) //
                         .map(DataSetMetadata::getId) //
                         .any(id -> StringUtils.equals(id, p.getDataSetId()) || dataSetId.equals(p.getDataSetId())) //
                         .block() //
@@ -375,10 +462,11 @@ public class DataSetAPI extends APIService {
     }
 
     @RequestMapping(value = "/api/datasets/{id}", method = DELETE)
-    @ApiOperation(value = "Delete a data set by id", notes = "Delete a data set content based on provided id. Id should be a UUID returned by the list operation. Not valid or non existing data set id returns empty content.")
+    @ApiOperation(value = "Delete a data set by id",
+            notes = "Delete a data set content based on provided id. Id should be a UUID returned by the list operation. Not valid or non existing data set id returns empty content.")
     @Timed
-    public ResponseEntity<String> delete(
-            @PathVariable(value = "id") @ApiParam(name = "id", value = "Id of the data set to delete") String dataSetId) {
+    public ResponseEntity<String> delete(@PathVariable(value = "id") @ApiParam(name = "id",
+            value = "Id of the data set to delete") String dataSetId) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Delete dataset #{} (pool: {})...", dataSetId, getConnectionStats());
         }
@@ -393,10 +481,11 @@ public class DataSetAPI extends APIService {
     }
 
     @RequestMapping(value = "/api/datasets/{id}/actions", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Get suggested actions for a whole data set.", notes = "Returns the suggested actions for the given dataset in decreasing order of likeness.")
+    @ApiOperation(value = "Get suggested actions for a whole data set.",
+            notes = "Returns the suggested actions for the given dataset in decreasing order of likeness.")
     @Timed
-    public List<ActionForm> suggestDatasetActions(
-            @PathVariable(value = "id") @ApiParam(name = "id", value = "Data set id to get suggestions from.") String dataSetId) {
+    public List<ActionForm> suggestDatasetActions(@PathVariable(value = "id") @ApiParam(name = "id",
+            value = "Data set id to get suggestions from.") String dataSetId) {
         HystrixCommand<List<ActionForm>> getLookupActions = getCommand(SuggestLookupActions.class,
                 new HystrixCommand<DataSetMetadata>(GenericCommand.DATASET_GROUP) {
 
@@ -413,8 +502,10 @@ public class DataSetAPI extends APIService {
     @ApiOperation(value = "Set or Unset the dataset as favorite for the current user.", produces = TEXT_PLAIN_VALUE, //
             notes = "Specify if a dataset is or is not a favorite for the current user.")
     @Timed
-    public Callable<String> favorite(@ApiParam(value = "Id of the favorite data set ") @PathVariable(value = "id") String id,
-            @RequestParam(defaultValue = "false") @ApiParam(name = "unset", value = "When true, will remove the dataset from favorites, if false (default) this will set the dataset as favorite.") boolean unset) {
+    public Callable<String> favorite(
+            @ApiParam(value = "Id of the favorite data set ") @PathVariable(value = "id") String id,
+            @RequestParam(defaultValue = "false") @ApiParam(name = "unset",
+                    value = "When true, will remove the dataset from favorites, if false (default) this will set the dataset as favorite.") boolean unset) {
         return () -> {
             if (LOG.isDebugEnabled()) {
                 LOG.debug((unset ? "Unset" : "Set") + " favorite dataset #{} (pool: {})...", id, getConnectionStats());
@@ -434,8 +525,10 @@ public class DataSetAPI extends APIService {
         return EncodingSupport.getSupportedCharsets().stream().map(Charset::displayName);
     }
 
-    @RequestMapping(value = "/api/datasets/imports/{import}/parameters", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Fetch the parameters needed to imports a dataset.", notes = "Returns the parameters needed to imports a dataset.")
+    @RequestMapping(value = "/api/datasets/imports/{import}/parameters", method = GET,
+            produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Fetch the parameters needed to imports a dataset.",
+            notes = "Returns the parameters needed to imports a dataset.")
     @Timed
     @PublicAPI
     public ResponseEntity<StreamingResponseBody> getImportParameters(@PathVariable("import") final String importType) {
@@ -446,17 +539,20 @@ public class DataSetAPI extends APIService {
      * Return the semantic types for a given dataset / column.
      *
      * @param datasetId the dataset id.
-     * @param columnId the column id.
+     * @param columnId  the column id.
      * @return the semantic types for a given dataset / column.
      */
-    @RequestMapping(value = "/api/datasets/{datasetId}/columns/{columnId}/types", method = GET, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "list the types of the wanted column", notes = "This list can be used by user to change the column type.")
+    @RequestMapping(value = "/api/datasets/{datasetId}/columns/{columnId}/types", method = GET,
+            produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "list the types of the wanted column",
+            notes = "This list can be used by user to change the column type.")
     @Timed
     @PublicAPI
     public Stream<SemanticDomain> getDataSetColumnSemanticCategories(
             @ApiParam(value = "The dataset id") @PathVariable String datasetId,
             @ApiParam(value = "The column id") @PathVariable String columnId) {
         LOG.debug("listing semantic types for dataset {}, column {}", datasetId, columnId);
-        return CommandHelper.toStream(SemanticDomain.class, mapper, getCommand(GetDataSetColumnTypes.class, datasetId, columnId));
+        return CommandHelper.toStream(SemanticDomain.class, mapper,
+                getCommand(GetDataSetColumnTypes.class, datasetId, columnId));
     }
 }
