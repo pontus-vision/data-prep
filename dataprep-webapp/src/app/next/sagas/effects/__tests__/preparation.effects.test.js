@@ -11,6 +11,7 @@ import {
 import http from '../http';
 import PreparationService from '../../../services/preparation.service';
 import PreparationCopyMoveModal from '../../../components/PreparationCopyMoveModal';
+import { refreshCurrentFolder } from '../preparation.effects';
 
 describe('preparation', () => {
 	describe('cancelRename', () => {
@@ -143,7 +144,7 @@ describe('preparation', () => {
 			expect(effect.fn).toEqual(http.put);
 			expect(effect.args[0]).toEqual('/api/preparations/id0');
 			expect(effect.args[1]).toEqual({ name: 'newPrep0' });
-			expect(gen.next().value).toEqual(call(effects.fetch));
+			expect(gen.next().value).toEqual(call(effects.refreshCurrentFolder));
 			expect(gen.next().done).toBeTruthy();
 		});
 	});
