@@ -68,8 +68,8 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
                 }
             } else { // Or we just do the export and cache it
                 LOGGER.error("Executing the prep and putting in cache {}", key);
-                try (final TeeOutputStream tee =
-                        new TeeOutputStream(new CloseShieldOutputStream(outputStream), contentCache.put(key, ContentCache.TimeToLive.DEFAULT))) {
+                try (final TeeOutputStream tee = new TeeOutputStream(new CloseShieldOutputStream(outputStream),
+                        contentCache.put(key, ContentCache.TimeToLive.DEFAULT))) {
                     doExport(internal, format, tee);
                 }
             }
@@ -113,7 +113,8 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
             confBuilder.volume(Configuration.Volume.LARGE);
             if (optimizedPreparationInput == null) {
                 // get from dataset source
-                try (DataSet dataSet = datasetClient.getDataSet(datasetId, parameters.getFrom() == ExportParameters.SourceType.FILTER, true)) {
+                try (DataSet dataSet = datasetClient.getDataSet(datasetId,
+                        parameters.getFrom() == ExportParameters.SourceType.FILTER, true)) {
                     // get the actions to apply (no preparation ==> dataset export ==> no actions)
                     executeWithDataset(dataSet, confBuilder);
                 }
@@ -143,7 +144,8 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
     }
 
     /**
-     * Normalize parameters replacing blanks with null and "head" step by a real id. Also fetch real objects instead of their ids.
+     * Normalize parameters replacing blanks with null and "head" step by a real id. Also fetch real objects instead of
+     * their ids. Sets default values.
      */
     private InternalExportParameters fromParams(ExportParameters parameters) {
         InternalExportParameters internal = new InternalExportParameters();
@@ -170,6 +172,8 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
                         StringUtils.isBlank(parameters.getStepId()) ? preparation.getHeadId() : parameters.getStepId();
                 String version = getCleanStepId(preparation, stepId);
                 internal.setStepId(version);
+            } else {
+                internal.setStepId(preparation.getHeadId());
             }
         }
         return internal;
@@ -247,17 +251,19 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
     private OptimizedPreparationInput analyseOptimizationApplicability(InternalExportParameters parameters) {
         OptimizedPreparationInput input = new OptimizedPreparationInput();
 
-        if (parameters.getPreparation() == null) {
+        PreparationDTO preparation = parameters.getPreparation();
+        if (preparation == null) {
             // Not applicable (need preparation to work on).
             return null;
         }
-        final List<String> steps = new ArrayList<>(parameters.getPreparation().getSteps());
-        if (steps.size() <= 2) {
-            LOGGER.debug("Not enough steps ({}) in preparation.", steps.size());
+        List<String> preparationSteps = preparation.getSteps();
+        final List<String> stepsToExecute = new ArrayList<>(preparationSteps);
+        if (stepsToExecute.size() <= 2) {
+            LOGGER.debug("Not enough steps ({}) in preparation.", stepsToExecute.size());
             return null;
         }
         String version = parameters.getStepId();
-        String previousVersion = steps.get(parameters.getPreparation().getSteps().indexOf(version) - 1);
+        String previousVersion = preparationSteps.get(preparationSteps.indexOf(version) - 1);
         // Get metadata of previous step
         final TransformationMetadataCacheKey transformationMetadataCacheKey = cacheKeyGenerator
                 .generateMetadataKey(parameters.getPreparationId(), previousVersion, parameters.getFrom());
@@ -288,7 +294,7 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
             return null;
         }
 
-        input.stepsToApply = getMatchingSteps(parameters.getPreparation().getSteps(), previousVersion, version);
+        input.stepsToApply = getMatchingSteps(preparationSteps, previousVersion, version);
 
         return input;
     }
