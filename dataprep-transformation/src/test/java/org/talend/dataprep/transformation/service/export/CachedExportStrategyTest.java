@@ -109,12 +109,6 @@ public class CachedExportStrategyTest extends ServiceBaseTest {
     }
 
     @Test
-    public void shouldNotAcceptNullParameter() throws Exception {
-        // Then
-        assertFalse(cachedExportStrategy.test(null));
-    }
-
-    @Test
     public void shouldNotAcceptWhenParameterContentIsPresent() throws Exception {
         // Then
         final ExportParameters parameters = new ExportParameters();

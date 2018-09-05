@@ -136,12 +136,6 @@ public class PreparationExportStrategyTest {
     }
 
     @Test
-    public void shouldNotAcceptNullParameters() {
-        // Then
-        assertFalse(strategy.test(null));
-    }
-
-    @Test
     public void shouldAcceptParameters() {
         // Then
         final ExportParameters parameters = new ExportParameters();

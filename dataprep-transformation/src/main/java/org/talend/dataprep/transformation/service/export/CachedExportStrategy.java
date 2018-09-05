@@ -49,7 +49,6 @@ public class CachedExportStrategy extends BaseSampleExportStrategy {
         try {
             return parameters.getContent() == null //
                     && StringUtils.isNotEmpty(parameters.getPreparationId())
-                    && StringUtils.isEmpty(parameters.getDatasetId())
                     && contentCache.has(getCacheKey(parameters));
         } catch (TDPException e) {
             LOGGER.debug("Unable to use cached export strategy.", e);

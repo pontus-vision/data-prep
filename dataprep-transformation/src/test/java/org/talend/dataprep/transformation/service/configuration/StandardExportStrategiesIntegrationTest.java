@@ -36,6 +36,7 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -61,6 +62,7 @@ import org.talend.dataprep.util.OrderedBeans;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore("obsolete")
 public class StandardExportStrategiesIntegrationTest {
 
     private StandardExportStrategies standardExportStrategiesConfiguration = new StandardExportStrategies();

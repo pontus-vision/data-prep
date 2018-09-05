@@ -51,11 +51,6 @@ public class OptimizedExportStrategyTest extends TransformationServiceBaseTest {
     CacheKeyGenerator cacheKeyGenerator;
 
     @Test
-    public void testAcceptNullParameters() {
-        assertFalse(optimizedExportStrategy.test(null));
-    }
-
-    @Test
     public void testAcceptKO_withContent() {
         // Given
         ExportParameters exportParameters = new ExportParameters();

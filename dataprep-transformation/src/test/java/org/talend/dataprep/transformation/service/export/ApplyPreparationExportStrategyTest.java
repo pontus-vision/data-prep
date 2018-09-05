@@ -26,12 +26,6 @@ public class ApplyPreparationExportStrategyTest extends ServiceBaseTest {
     ApplyPreparationExportStrategy applyPreparationExportStrategy;
 
     @Test
-    public void shouldNotAcceptNullParameter() throws Exception {
-        // Then
-        assertFalse(applyPreparationExportStrategy.test(null));
-    }
-
-    @Test
     public void shouldNotAcceptIfDataSetParameterNotSet() throws Exception {
         // Given
         final ExportParameters parameters = new ExportParameters();
