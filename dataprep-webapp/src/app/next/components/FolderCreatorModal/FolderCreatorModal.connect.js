@@ -17,6 +17,7 @@ export function FolderCreatorContainer(props) {
 				...state.cancelAction,
 				onClick: (event, data) => props.dispatchActionCreator(state.cancelAction.actionCreator, event, data),
 			},
+			onHide: (event, data) => props.dispatchActionCreator(state.cancelAction.actionCreator, event, data),
 		},
 	};
 

@@ -205,6 +205,10 @@ export function* openAddFolderModal() {
 		show: true,
 		name: '',
 		error: '',
+		keyboard: true,
+		autoFocus: true,
+		enforceFocus: true,
+		restoreFocus: true,
 		validateAction: {
 			label: i18next.t('tdp-app:ADD', {
 				defaultValue: 'Add',

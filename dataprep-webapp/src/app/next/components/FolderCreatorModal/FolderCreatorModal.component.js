@@ -12,7 +12,6 @@ class FolderCreatorModal extends React.Component {
 		super(props);
 		this.onChange = this.onChange.bind(this);
 		this.onSubmit = this.onSubmit.bind(this);
-		this.onKeyUp = this.onKeyUp.bind(this);
 	}
 
 	onChange() {
@@ -26,13 +25,6 @@ class FolderCreatorModal extends React.Component {
 		this.props.state.validateAction.onClick(event, data);
 		event.preventDefault();
 	}
-
-	onKeyUp(event) {
-		if (event.keyCode === keycode('escape')) {
-			this.props.state.cancelAction.onClick(event);
-		}
-	}
-
 	render() {
 		const addFolderLabel = this.props.t('tdp-app:ADD_FOLDER_NAME_LABEL', {
 			defaultValue: 'Enter folder name',
@@ -51,7 +43,6 @@ class FolderCreatorModal extends React.Component {
 								this.folderNameInput = input;
 							}}
 							onChange={this.onChange}
-							onKeyUp={this.onKeyUp}
 						/>
 						<label className="control-label" htmlFor="add-folder-input">
 							{ addFolderLabel }
