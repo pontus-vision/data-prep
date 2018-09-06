@@ -139,17 +139,13 @@ export function* rename(payload) {
 export function* openRemoveFolderModal(payload) {
 	const message = i18next.t('tdp-app:REMOVE_FOLDER_MODAL_CONTENT', {
 		name: payload.name,
-		defaultValue: `You are going to permanently remove the folder ${payload.name}. This operation cannot be undone. Do you want to proceed?`,
 	});
-	const style = {
-		textAlign: 'initial',
-	};
 	const state = new Map({
 		header: i18next.t('tdp-app:REMOVE_FOLDER_MODAL_HEADER', {
 			defaultValue: 'Remove a folder',
 		}),
 		show: true,
-		children: (<div style={style}>{message}</div>),
+		children: message,
 		validateAction: 'folder:remove',
 		cancelAction: 'folder:remove:close',
 		folderId: payload.id,

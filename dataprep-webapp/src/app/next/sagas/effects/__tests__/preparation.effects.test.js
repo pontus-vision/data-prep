@@ -1,4 +1,3 @@
-import React from 'react';
 import { all, call } from 'redux-saga/effects';
 import { HTTPError } from '@talend/react-cmf/lib/sagas/http';
 import { Map } from 'immutable';
@@ -344,7 +343,7 @@ describe('preparation', () => {
 			expect(effect.componentState).toEqual(new Map({
 				header: 'Remove a folder',
 				show: true,
-				children: (<div style={{ textAlign: 'initial' }}>You are going to permanently remove the folder folderName. This operation cannot be undone. Do you want to proceed?</div>),
+				children: 'REMOVE_FOLDER_MODAL_CONTENT',
 				validateAction: 'folder:remove',
 				cancelAction: 'folder:remove:close',
 				folderId: 'folderId',
@@ -395,6 +394,10 @@ describe('preparation', () => {
 				show: true,
 				name: '',
 				error: '',
+				keyboard: true,
+				autoFocus: true,
+				enforceFocus: true,
+				restoreFocus: true,
 				validateAction: {
 					label: 'Add',
 					bsStyle: 'primary',

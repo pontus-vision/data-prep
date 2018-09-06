@@ -17,17 +17,19 @@ import {
 	REMOVE_PREPARATION,
 } from '../constants/actions';
 
-const TYPE_FOLDER = 'folder';
-const TYPE_PREPARATION = 'preparation';
+const TYPES = {
+	FOLDER: 'folder',
+	PREPARATION: 'preparation',
+};
 
 // FIXME [NC]: folder management has nothing to do here
 // we're in the `preparation` action creators file,
 // so I think that the `type` argument should not exists
 function open(event, { type, id }) {
 	switch (type) {
-	case TYPE_FOLDER:
+	case TYPES.FOLDER:
 		return folder.open(event, { id });
-	case TYPE_PREPARATION:
+	case TYPES.PREPARATION:
 		return {
 			type: REDIRECT_WINDOW,
 			payload: {
@@ -66,12 +68,12 @@ function rename(event, data) {
 
 function remove(event, payload) {
 	switch (payload.model.type) {
-	case TYPE_FOLDER:
+	case TYPES.FOLDER:
 		return {
 			type: OPEN_REMOVE_FOLDER_MODAL,
 			payload: payload.model,
 		};
-	case TYPE_PREPARATION:
+	case TYPES.PREPARATION:
 		return {
 			type: REMOVE_PREPARATION,
 			payload: payload.model.id,

@@ -10,6 +10,7 @@ import AppLoader from '@talend/react-containers/lib/AppLoader/index';
 import components from './';
 import i18n from './../../i18n';
 import settingsService from './../services/settings.service';
+import './App.scss';
 
 const initialNotificationsState = new Map({
 	notifications: new List([]),
