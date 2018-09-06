@@ -71,15 +71,7 @@ public class StandardExportStrategiesIntegrationTest {
 
     private ApplyPreparationExportStrategy applyPreparationExportStrategy;
 
-    private DataSetExportStrategy dataSetExportStrategy;
-
-    @InjectMocks
-    private OptimizedExportStrategy optimizedExportStrategy;
-
     private PreparationExportStrategy preparationExportStrategy;
-
-    @InjectMocks
-    private CachedExportStrategy cachedExportStrategy;
 
     private MasterSampleExportStrategy masterSampleExportStrategy;
 
@@ -118,14 +110,11 @@ public class StandardExportStrategiesIntegrationTest {
     }
 
     private void initSampleExportStrategies() throws Exception {
-        injectObjectMapper(cachedExportStrategy);
-        injectObjectMapper(optimizedExportStrategy);
         applyPreparationExportStrategy = new ApplyPreparationExportStrategy();
-        dataSetExportStrategy = new DataSetExportStrategy();
         preparationExportStrategy = new PreparationExportStrategy();
         masterSampleExportStrategy = new MasterSampleExportStrategy();
         sampleExportStrategies = standardExportStrategiesConfiguration.exportStrategies(applyPreparationExportStrategy,
-                dataSetExportStrategy, optimizedExportStrategy, preparationExportStrategy, cachedExportStrategy, masterSampleExportStrategy);
+                preparationExportStrategy, masterSampleExportStrategy);
     }
 
     private void injectObjectMapper(SampleExportStrategy exportStrategy) {
@@ -168,21 +157,6 @@ public class StandardExportStrategiesIntegrationTest {
                 .thenReturn(new ByteArrayInputStream("{}".getBytes()));
     }
 
-    private void doTestCachedExportStrategyShouldBeChosen(SourceType from) throws Exception {
-        // Given
-        ExportParameters parameters = new ExportParameters();
-        parameters.setFrom(from);
-        parameters.setContent(null);
-        parameters.setPreparationId("prepId-1234");
-        when(contentCache.has(transformationCacheKey)).thenReturn(true);
-
-        // When
-        Optional<SampleExportStrategy> electedStrategy = chooseExportStrategy(parameters);
-
-        // Then
-        assertElectedStrategyIsInstanceOf(electedStrategy, CachedExportStrategy.class);
-    }
-
     protected Optional<SampleExportStrategy> chooseExportStrategy(ExportParameters parameters) {
         return sampleExportStrategies //
                 .filter(exportStrategy -> exportStrategy.test(parameters)) //
@@ -194,42 +168,6 @@ public class StandardExportStrategiesIntegrationTest {
         assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(), instanceOf(clazz));
     }
 
-    @Test
-    public void testCachedExportStrategyShouldBeChosenFromHEAD() throws Exception {
-        doTestCachedExportStrategyShouldBeChosen(HEAD);
-    }
-
-    @Test
-    public void testCachedExportStrategyShouldBeChosenFromFilter() throws Exception {
-        doTestCachedExportStrategyShouldBeChosen(FILTER);
-    }
-
-    @Test
-    public void testCachedExportStrategyShouldBeChosenFromRESERVOIR() throws Exception {
-        doTestCachedExportStrategyShouldBeChosen(RESERVOIR);
-    }
-
-    @Test
-    public void testCachedExportStrategyShouldBeChosenFromNull() throws Exception {
-        doTestCachedExportStrategyShouldBeChosen(null);
-    }
-
-    private void doTestOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFrom(
-            SourceType from) throws Exception {
-        // Given
-        ExportParameters parameters = new ExportParameters();
-        parameters.setFrom(from);
-        parameters.setContent(null);
-        parameters.setPreparationId(idOfPrepWith2StepsOrMore());
-        when(contentCache.has(transformationCacheKeyPreviousVersion)).thenReturn(true);
-        when(contentCache.has(transformationMetadataCacheKeyPreviousVersion)).thenReturn(true);
-
-        // When
-        Optional<SampleExportStrategy> electedStrategy = chooseExportStrategy(parameters);
-
-        // Then
-        assertElectedStrategyIsInstanceOf(electedStrategy, OptimizedExportStrategy.class);
-    }
 
     private String idOfPrepWith2StepsOrMore() throws IOException {
         reset(preparationDetailsGet);
@@ -250,30 +188,6 @@ public class StandardExportStrategiesIntegrationTest {
         return "prepId-1234";
     }
 
-    @Test
-    public void testOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFromHEAD()
-            throws Exception {
-        doTestOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFrom(HEAD);
-    }
-
-    @Test
-    public void testOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFromFILTER()
-            throws Exception {
-        doTestOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFrom(FILTER);
-    }
-
-    @Test
-    public void testOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFromRESERVOIR()
-            throws Exception {
-        doTestOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFrom(RESERVOIR);
-    }
-
-    @Test
-    public void testOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFromNull()
-            throws Exception {
-        doTestOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFrom(null);
-    }
-
     protected void doTestOptimizedExportStrategyShouldNotBeChosenWhenVersionIsRootStepAndNoCacheIsAvailableFrom(
             SourceType from, Class expectedStrategyClass) throws Exception {
         // Given
@@ -290,8 +204,6 @@ public class StandardExportStrategiesIntegrationTest {
 
         // Then
         assertTrue("An ExportStrategy should be chosen but none was found", electedStrategy.isPresent());
-        assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(),
-                not(instanceOf(OptimizedExportStrategy.class)));
         assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(),
                 instanceOf(expectedStrategyClass));
     }
@@ -325,8 +237,6 @@ public class StandardExportStrategiesIntegrationTest {
 
         // Then
         assertTrue("An ExportStrategy should be chosen but none was found", electedStrategy.isPresent());
-        assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(),
-                not(instanceOf(OptimizedExportStrategy.class)));
         assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(),
                 instanceOf(expectedStrategyClass));
     }
@@ -364,21 +274,6 @@ public class StandardExportStrategiesIntegrationTest {
     @Test
     public void testPreparationExportStrategyShouldBeChosenFromNull() throws Exception {
         doTestPreparationExportStrategyShouldBeChosen(null);
-    }
-
-    @Test
-    public void testDataSetExportStrategyShouldBeChosen() throws Exception {
-        // Given
-        ExportParameters parameters = new ExportParameters();
-        parameters.setContent(null);
-        parameters.setPreparationId(null);
-        parameters.setDatasetId("dataset-5678");
-
-        // When
-        Optional<SampleExportStrategy> electedStrategy = chooseExportStrategy(parameters);
-
-        // Then
-        assertElectedStrategyIsInstanceOf(electedStrategy, DataSetExportStrategy.class);
     }
 
     @Test

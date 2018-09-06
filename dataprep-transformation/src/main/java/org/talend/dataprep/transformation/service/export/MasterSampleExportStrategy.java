@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -78,17 +79,23 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
 
     private void doExport(InternalExportParameters parameters, ExportFormat format, OutputStream outputStream) {
         final String datasetId = parameters.getDatasetId();
-        final OptimizedPreparationInput optimizedPreparationInput = analyseOptimizationApplicability(parameters);
-
         // handle source cache. It could be handled just as out cache if out = src
         Configuration.Builder confBuilder = Configuration
                 .builder() //
                 .args(parameters.getArguments()) //
-                .outFilter(rm -> filterService.build(parameters.getFilter(), rm)) //
-                .sourceType(parameters.getFrom())
                 .format(format.getName()) // why needs input format ?
-                .limit(this.limit);
+                .sourceType(parameters.getFrom())
+                .limit(this.limit)
+                .output(outputStream);
 
+        if (parameters.getFrom() == ExportParameters.SourceType.FILTER) {
+            confBuilder.inFilter(dsr -> filterService.build(parameters.getFilter(), dsr.getRowMetadata()).test(dsr));
+        } else {
+            confBuilder.outFilter(rm -> filterService.build(parameters.getFilter(), rm));
+        }
+
+
+        final OptimizedPreparationInput optimizedPreparationInput = analyseOptimizationApplicability(parameters);
         if (parameters.getPreparation() != null) {
             final PreparationDTO preparation = parameters.getPreparation();
             // TODO : why builder need prep and step ID ? Should only need actions
@@ -97,17 +104,12 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
 
             if (optimizedPreparationInput == null) {
                 confBuilder.actions(getActions(parameters.getPreparationId(), parameters.getStepId()));
-            } else {
-                preparation.setSteps(optimizedPreparationInput.getStepsToApply());
             }
         }
         // no need for statistics if it's not JSON output
         if (!Objects.equals(format.getName(), JSON)) {
             confBuilder.globalStatistics(false);
         }
-
-        // output style
-        confBuilder.format(format.getName()).args(parameters.getArguments()).output(outputStream);
 
         if (parameters.getContent() == null) {
             confBuilder.volume(Configuration.Volume.LARGE);
@@ -122,9 +124,9 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
                 // or get cached version
                 // And this was really a bad idea to put cache at this level as we may have cached in any format (CSV, JSON...)
                 try (InputStreamReader src = new InputStreamReader(
-                        contentCache.get(optimizedPreparationInput.getTransformationCacheKey()), UTF_8);
+                        contentCache.get(optimizedPreparationInput.getSourceDataCacheKey()), UTF_8);
                         DataSet dataSet = mapper.readerFor(DataSet.class).readValue(src)) {
-                    dataSet.setMetadata(optimizedPreparationInput.getMetadata());
+                    dataSet.setMetadata(optimizedPreparationInput.getSourceMetadata());
                     executeWithDataset(dataSet, confBuilder);
                 } catch (TDPException e) {
                     throw e;
@@ -228,75 +230,88 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
     private static class OptimizedPreparationInput {
 
         // not final
-        private DataSetMetadata metadata;
+        private DataSetMetadata sourceMetadata;
 
-        private TransformationCacheKey transformationCacheKey;
+        private TransformationCacheKey sourceDataCacheKey;
 
         private List<String> stepsToApply;
 
-        private DataSetMetadata getMetadata() {
-            return metadata;
+        private DataSetMetadata getSourceMetadata() {
+            return sourceMetadata;
         }
 
         public List<String> getStepsToApply() {
             return stepsToApply;
         }
 
-        public TransformationCacheKey getTransformationCacheKey() {
-            return transformationCacheKey;
+        public TransformationCacheKey getSourceDataCacheKey() {
+            return sourceDataCacheKey;
         }
     }
 
     // Extract information or returns null is not applicable.
     private OptimizedPreparationInput analyseOptimizationApplicability(InternalExportParameters parameters) {
         OptimizedPreparationInput input = new OptimizedPreparationInput();
-
         PreparationDTO preparation = parameters.getPreparation();
-        if (preparation == null) {
+        if (preparation == null || parameters.getContent() != null) {
             // Not applicable (need preparation to work on).
             return null;
+        } else {
+            List<String> preparationSteps = preparation.getSteps();
+            String version = parameters.getStepId();
+            String previousVersion = getPreviousVersion(preparationSteps, version);
+            // Get metadata of previous step
+            Optional<DataSetMetadata> dataSetMetadata = getVersionedMetadata(parameters.getPreparationId(),
+                    previousVersion, parameters.getFrom());
+            if (dataSetMetadata.isPresent()) {
+                input.sourceMetadata = dataSetMetadata.get();
+                input.sourceDataCacheKey = cacheKeyGenerator.generateContentKey( //
+                        parameters.getDatasetId(), //
+                        parameters.getPreparationId(), //
+                        previousVersion, //
+                        parameters.getExportType(), //
+                        parameters.getFrom(), //
+                        parameters.getFilter() //
+                );
+                LOGGER.debug("Previous content cache key {}: {}", input.sourceDataCacheKey.getKey(),
+                        input.sourceDataCacheKey);
+                if (contentCache.has(input.sourceDataCacheKey)) {
+                    input.stepsToApply = getMatchingSteps(preparationSteps, previousVersion, parameters.getStepId());
+                    preparation.setSteps(input.stepsToApply);
+                    return input;
+                } else {
+                    LOGGER.debug("No content cached for previous version '{}'", previousVersion);
+                    return null;
+                }
+            } else {
+                return null;
+            }
         }
-        List<String> preparationSteps = preparation.getSteps();
-        final List<String> stepsToExecute = new ArrayList<>(preparationSteps);
-        if (stepsToExecute.size() <= 2) {
-            LOGGER.debug("Not enough steps ({}) in preparation.", stepsToExecute.size());
-            return null;
-        }
-        String version = parameters.getStepId();
-        String previousVersion = preparationSteps.get(preparationSteps.indexOf(version) - 1);
-        // Get metadata of previous step
-        final TransformationMetadataCacheKey transformationMetadataCacheKey = cacheKeyGenerator
-                .generateMetadataKey(parameters.getPreparationId(), previousVersion, parameters.getFrom());
-        if (!contentCache.has(transformationMetadataCacheKey)) {
-            LOGGER.debug("No metadata cached for previous version '{}' (key for lookup: '{}')", previousVersion,
-                    transformationMetadataCacheKey.getKey());
-            return null;
-        }
-        try (InputStream metadataStream = contentCache.get(transformationMetadataCacheKey)) {
-            input.metadata = mapper.readerFor(DataSetMetadata.class).readValue(metadataStream);
-        } catch (IOException e) {
-            LOGGER.warn("Error reading cache for key " + transformationMetadataCacheKey, e);
-            return null;
-        }
-        input.transformationCacheKey = cacheKeyGenerator.generateContentKey( //
-                parameters.getDatasetId(), //
-                parameters.getPreparationId(), //
-                previousVersion, //
-                parameters.getExportType(), //
-                parameters.getFrom(), //
-                parameters.getFilter() //
-        );
-        LOGGER.debug("Previous content cache key: {}", input.transformationCacheKey.getKey());
-        LOGGER.debug("Previous content cache key details: {}", input.transformationCacheKey);
+    }
 
-        if (!contentCache.has(input.transformationCacheKey)) {
-            LOGGER.debug("No content cached for previous version '{}'", previousVersion);
-            return null;
+    private String getPreviousVersion(List<String> preparationSteps, String version) {
+        int previousVersionIndex = preparationSteps.indexOf(version) - 1;
+        return previousVersionIndex > 0 ? preparationSteps.get(previousVersionIndex) : null;
+    }
+
+    private Optional<DataSetMetadata> getVersionedMetadata(String preparationId, String version, ExportParameters.SourceType sourceType) {
+        Optional<DataSetMetadata> out;
+        final TransformationMetadataCacheKey sourceMetadataCacheKey = cacheKeyGenerator
+                .generateMetadataKey(preparationId, version, sourceType);
+        if (!contentCache.has(sourceMetadataCacheKey)) {
+            LOGGER.debug("No metadata cached for previous version '{}' (key for lookup: '{}')", version,
+                    sourceMetadataCacheKey.getKey());
+            out = Optional.empty();
+        } else {
+            try (InputStream metadataStream = contentCache.get(sourceMetadataCacheKey)) {
+                out = Optional.of(mapper.readerFor(DataSetMetadata.class).readValue(metadataStream));
+            } catch (IOException e) {
+                // TODO: should we evict the cache entry ?
+                LOGGER.warn("Error reading cache for key " + sourceMetadataCacheKey, e);
+                out = Optional.empty();
+            }
         }
-
-        input.stepsToApply = getMatchingSteps(preparationSteps, previousVersion, version);
-
-        return input;
+        return out;
     }
 
 }

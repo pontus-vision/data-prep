@@ -24,10 +24,8 @@ public class StandardExportStrategies {
 
     @Bean
     OrderedBeans<SampleExportStrategy> exportStrategies(ApplyPreparationExportStrategy applyPreparationExportStrategy, //
-            DataSetExportStrategy dataSetExportStrategy, //
-            OptimizedExportStrategy optimizedExportStrategy, //
             PreparationExportStrategy preparationExportStrategy, //
-            CachedExportStrategy cachedExportStrategy, MasterSampleExportStrategy masterSampleExportStrategy) {
+            MasterSampleExportStrategy masterSampleExportStrategy) {
         // Order is important: it gives priority for one strategy over others.
         return new OrderedBeans<>(asList(preparationExportStrategy, masterSampleExportStrategy));
     }
