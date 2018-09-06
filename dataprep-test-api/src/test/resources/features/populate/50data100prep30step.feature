@@ -1,4 +1,4 @@
-@Unstable
+@Unstable @Populate
 Feature: Populate server with 50 CSV - 100 preparation - 30 steps in each
 
   Scenario: Populate server with 50 CSV - 100 preparation - 30 steps in each

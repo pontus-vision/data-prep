@@ -189,7 +189,7 @@ public class FeatureContext {
     }
 
     @NotNull
-    public List<String> getDatasetNames(){
+    public List<String> getDatasetNames() {
         return new ArrayList<>(datasetIdByName.keySet());
     }
 
