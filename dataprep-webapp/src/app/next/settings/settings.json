@@ -217,6 +217,7 @@
           }
         }
       },
+      "bsStyle": "default btn-inverse",
       "actionCreator": "folder:remove:close"
     },
     "folder:remove:open": {

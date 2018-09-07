@@ -1,5 +1,4 @@
 import React from 'react';
-import keycode from 'keycode';
 import { ConfirmDialog } from '@talend/react-components';
 import { translate } from 'react-i18next';
 import ImmutablePropTypes from 'react-immutable-proptypes';

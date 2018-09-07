@@ -394,20 +394,17 @@ describe('preparation', () => {
 				show: true,
 				name: '',
 				error: '',
-				keyboard: true,
-				autoFocus: true,
-				enforceFocus: true,
-				restoreFocus: true,
 				validateAction: {
 					label: 'Add',
-					bsStyle: 'primary',
 					id: 'folder:add',
 					disabled: true,
+					bsStyle: 'primary',
 					actionCreator: 'folder:add',
 				},
 				cancelAction: {
 					label: 'Cancel',
 					id: 'folder:add:close',
+					bsStyle: 'default btn-inverse',
 					actionCreator: 'folder:add:close',
 				},
 			}));
@@ -426,12 +423,12 @@ describe('preparation', () => {
 			expect(gen.next().done).toBeTruthy();
 		});
 
-		it('should add folder with error', () => {
+		it('should not add folder when it already exists', () => {
 			const gen = effects.addFolder();
 			expect(gen.next().value.SELECT).toBeDefined();
+			expect(gen.next('folderName').value.SELECT).toBeDefined();
 			expect(gen.next(IMMUTABLE_SETTINGS).value.SELECT).toBeDefined();
-			expect(gen.next('folderId').value.SELECT).toBeDefined();
-			const effect = gen.next('folderName').value.CALL;
+			const effect = gen.next('folderId').value.CALL;
 			expect(effect.fn).toEqual(http.get);
 			expect(effect.args[0]).toEqual('/api/folders/folderId/preparations');
 			const response = {
@@ -450,12 +447,23 @@ describe('preparation', () => {
 			expect(effectError.componentState).toEqual({ error: 'Folder exists already' });
 		});
 
+		it('should not add folder when new name is empty', () => {
+			const gen = effects.addFolder();
+			expect(gen.next().value.SELECT).toBeDefined();
+
+			const effectError = gen.next('').value.PUT.action;
+			expect(effectError.type).toEqual('REACT_CMF.COMPONENT_MERGE_STATE');
+			expect(effectError.key).toEqual('add_folder_modal');
+			expect(effectError.componentName).toEqual('FolderCreatorModal');
+			expect(effectError.componentState).toEqual({ error: 'Folder name is empty' });
+		});
+
 		it('should add folder with success', () => {
 			const gen = effects.addFolder();
 			expect(gen.next().value.SELECT).toBeDefined();
+			expect(gen.next('folderName').value.SELECT).toBeDefined();
 			expect(gen.next(IMMUTABLE_SETTINGS).value.SELECT).toBeDefined();
-			expect(gen.next('folderId').value.SELECT).toBeDefined();
-			const effect = gen.next('folderName').value.CALL;
+			const effect = gen.next('folderId').value.CALL;
 			expect(effect.fn).toEqual(http.get);
 			expect(effect.args[0]).toEqual('/api/folders/folderId/preparations');
 			const response = {

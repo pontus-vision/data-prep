@@ -1,4 +1,3 @@
-import React from 'react';
 import { all, call, put, select } from 'redux-saga/effects';
 import { actions } from '@talend/react-cmf';
 import { Map } from 'immutable';
@@ -201,17 +200,13 @@ export function* openAddFolderModal() {
 		show: true,
 		name: '',
 		error: '',
-		keyboard: true,
-		autoFocus: true,
-		enforceFocus: true,
-		restoreFocus: true,
 		validateAction: {
 			label: i18next.t('tdp-app:ADD', {
 				defaultValue: 'Add',
 			}),
-			bsStyle: 'primary',
 			id: 'folder:add',
 			disabled: true,
+			bsStyle: 'primary',
 			actionCreator: 'folder:add',
 		},
 		cancelAction: {
@@ -219,6 +214,7 @@ export function* openAddFolderModal() {
 				defaultValue: 'Cancel',
 			}),
 			id: 'folder:add:close',
+			bsStyle: 'default btn-inverse',
 			actionCreator: 'folder:add:close',
 		},
 	});
@@ -230,33 +226,49 @@ export function* closeAddFolderModal() {
 }
 
 export function* addFolder() {
-	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
-	const currentFolderId = yield select(state => state.cmf.collections.get('currentFolderId'));
-	const newFolderName = yield select(state => state.cmf.components.getIn(['FolderCreatorModal', 'add_folder_modal', 'name']));
-	const { data } = yield call(http.get, `${uris.get('apiFolders')}/${currentFolderId}/preparations`);
-	const existingFolder = data.folders.filter(folder => folder.name === newFolderName).length;
-	if (existingFolder) {
-		const error = i18next.t('tdp-app:FOLDER_EXIST_MESSAGE', {
-			name: newFolderName,
-			defaultValue: 'Folder exists already',
+	const newFolderName = yield select(state =>
+		state.cmf.components.getIn(['FolderCreatorModal', 'add_folder_modal', 'name']),
+	);
+	if (!newFolderName.length) {
+		const error = i18next.t('tdp-app:FOLDER_EMPTY_MESSAGE', {
+			defaultValue: 'Folder name is empty',
 		});
 		yield put(actions.components.mergeState('FolderCreatorModal', 'add_folder_modal', { error }));
 	}
 	else {
-		yield call(http.put, `${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${newFolderName}`);
-		yield call(refreshCurrentFolder);
-		yield call(closeAddFolderModal);
-		yield put(
-			creators.notification.success(null, {
-				title: i18next.t('tdp-app:FOLDER_ADD_NOTIFICATION_TITLE', {
-					defaultValue: 'Folder Added',
-				}),
-				message: i18next.t('tdp-app:FOLDER_ADD_NOTIFICATION_MESSAGE', {
-					defaultValue: `The folder "${newFolderName}" has been added.`,
-					name: newFolderName,
-				}),
-			}),
+		const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
+		const currentFolderId = yield select(state => state.cmf.collections.get('currentFolderId'));
+		const { data } = yield call(
+			http.get,
+			`${uris.get('apiFolders')}/${currentFolderId}/preparations`,
 		);
+		const existingFolder = data.folders.filter(folder => folder.name === newFolderName).length;
+		if (existingFolder) {
+			const error = i18next.t('tdp-app:FOLDER_EXIST_MESSAGE', {
+				name: newFolderName,
+				defaultValue: 'Folder exists already',
+			});
+			yield put(actions.components.mergeState('FolderCreatorModal', 'add_folder_modal', { error }));
+		}
+		else {
+			yield call(
+				http.put,
+				`${uris.get('apiFolders')}?parentId=${currentFolderId}&path=${newFolderName}`,
+			);
+			yield call(refreshCurrentFolder);
+			yield call(closeAddFolderModal);
+			yield put(
+				creators.notification.success(null, {
+					title: i18next.t('tdp-app:FOLDER_ADD_NOTIFICATION_TITLE', {
+						defaultValue: 'Folder Added',
+					}),
+					message: i18next.t('tdp-app:FOLDER_ADD_NOTIFICATION_MESSAGE', {
+						defaultValue: `The folder "${newFolderName}" has been added.`,
+						name: newFolderName,
+					}),
+				}),
+			);
+		}
 	}
 }
 
