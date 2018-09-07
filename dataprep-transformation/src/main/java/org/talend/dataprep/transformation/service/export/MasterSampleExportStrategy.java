@@ -94,7 +94,6 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
             confBuilder.outFilter(rm -> filterService.build(parameters.getFilter(), rm));
         }
 
-
         final OptimizedPreparationInput optimizedPreparationInput = analyseOptimizationApplicability(parameters);
         if (parameters.getPreparation() != null) {
             final PreparationDTO preparation = parameters.getPreparation();
@@ -261,8 +260,8 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
             String version = parameters.getStepId();
             String previousVersion = getPreviousVersion(preparationSteps, version);
             // Get metadata of previous step
-            Optional<DataSetMetadata> dataSetMetadata = getVersionedMetadata(parameters.getPreparationId(),
-                    previousVersion, parameters.getFrom());
+            Optional<DataSetMetadata> dataSetMetadata =
+                    getVersionedMetadata(parameters.getPreparationId(), previousVersion, parameters.getFrom());
             if (dataSetMetadata.isPresent()) {
                 input.sourceMetadata = dataSetMetadata.get();
                 input.sourceDataCacheKey = cacheKeyGenerator.generateContentKey( //
@@ -294,10 +293,11 @@ public class MasterSampleExportStrategy extends BaseSampleExportStrategy impleme
         return previousVersionIndex > 0 ? preparationSteps.get(previousVersionIndex) : null;
     }
 
-    private Optional<DataSetMetadata> getVersionedMetadata(String preparationId, String version, ExportParameters.SourceType sourceType) {
+    private Optional<DataSetMetadata> getVersionedMetadata(String preparationId, String version,
+            ExportParameters.SourceType sourceType) {
         Optional<DataSetMetadata> out;
-        final TransformationMetadataCacheKey sourceMetadataCacheKey = cacheKeyGenerator
-                .generateMetadataKey(preparationId, version, sourceType);
+        final TransformationMetadataCacheKey sourceMetadataCacheKey =
+                cacheKeyGenerator.generateMetadataKey(preparationId, version, sourceType);
         if (!contentCache.has(sourceMetadataCacheKey)) {
             LOGGER.debug("No metadata cached for previous version '{}' (key for lookup: '{}')", version,
                     sourceMetadataCacheKey.getKey());

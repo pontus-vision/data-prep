@@ -168,7 +168,6 @@ public class StandardExportStrategiesIntegrationTest {
         assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(), instanceOf(clazz));
     }
 
-
     private String idOfPrepWith2StepsOrMore() throws IOException {
         reset(preparationDetailsGet);
         final PreparationDetailsDTO preparationDetailsDTO = mapper
@@ -288,6 +287,6 @@ public class StandardExportStrategiesIntegrationTest {
         Optional<SampleExportStrategy> electedStrategy = chooseExportStrategy(parameters);
 
         // Then
-        assertElectedStrategyIsInstanceOf(electedStrategy, ApplyPreparationExportStrategy.class);
+        assertElectedStrategyIsInstanceOf(electedStrategy, MasterSampleExportStrategy.class);
     }
 }
