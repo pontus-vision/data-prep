@@ -73,8 +73,10 @@ import org.talend.dataprep.api.preparation.Step;
 import org.talend.dataprep.api.preparation.StepDiff;
 import org.talend.dataprep.api.preparation.StepRowMetadata;
 import org.talend.dataprep.api.service.info.VersionService;
+import org.talend.dataprep.audit.BaseDataprepAuditService;
 import org.talend.dataprep.conversions.BeanConversionService;
 import org.talend.dataprep.conversions.inject.OwnerInjection;
+import org.talend.dataprep.conversions.inject.SharedInjection;
 import org.talend.dataprep.dataset.adapter.DatasetClient;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.PreparationErrorCodes;
@@ -162,6 +164,15 @@ public class PreparationService {
     @Autowired
     private DatasetClient datasetClient;
 
+    @Autowired
+    private OwnerInjection ownerInjection;
+
+    @Autowired
+    private SharedInjection sharedInjection;
+
+    @Autowired
+    private BaseDataprepAuditService auditService;
+
     /**
      * Create a preparation from the http request body.
      *
@@ -195,6 +206,8 @@ public class PreparationService {
         FolderEntry folderEntry = new FolderEntry(PREPARATION, id);
         folderRepository.addFolderEntry(folderEntry, folderId);
 
+        auditService.auditPreparationCreation(preparation.getName(), id, preparation.getDataSetName(),
+                preparation.getDataSetId(), folderId);
         LOGGER.info("New preparation {} created and stored in {} ", preparation, folderId);
         return id;
     }
@@ -294,9 +307,9 @@ public class PreparationService {
             preparationStream = preparationStream.filter(p -> folderEntries.contains(p.id()));
         }
 
-        final OwnerInjection ownerInjection = springContext.getBean(OwnerInjection.class);
         return preparationStream
-                .map(p -> beanConversionService.convert(p, PreparationDTO.class, ownerInjection)) //
+                .map(p -> beanConversionService.convert(p, PreparationDTO.class, ownerInjection.injectIntoPreparation(),
+                        sharedInjection)) //
                 .sorted(getPreparationComparator(sort, order));
     }
 
@@ -1214,7 +1227,7 @@ public class PreparationService {
             }
             final int columnId = Integer.parseInt(parameters.get(ImplicitParameters.COLUMN_ID.getKey()));
             if (columnId > shiftColumnAfterId) {
-                parameters.put(ImplicitParameters.COLUMN_ID.getKey(), format.format(columnId + (long) shiftNumber)); //$NON-NLS-1$
+                parameters.put(ImplicitParameters.COLUMN_ID.getKey(), format.format(columnId + (long) shiftNumber)); // $NON-NLS-1$
             }
             return step;
         };
