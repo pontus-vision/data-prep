@@ -236,7 +236,8 @@ public class OSDataPrepAPIHelper {
      * @throws java.io.IOException if creation isn't possible
      */
     public Response uploadBinaryDataset(String filename, String datasetName) throws java.io.IOException {
-        return uploadBinaryDataset(IOUtils.toByteArray(OSDataPrepAPIHelper.class.getResourceAsStream(filename)), datasetName);
+        return uploadBinaryDataset(IOUtils.toByteArray(OSDataPrepAPIHelper.class.getResourceAsStream(filename)),
+                datasetName);
     }
 
     /**
