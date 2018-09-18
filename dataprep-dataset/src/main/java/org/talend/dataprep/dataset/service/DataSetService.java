@@ -922,9 +922,7 @@ public class DataSetService extends BaseDataSetService {
                 }
 
                 // Location updates
-                if (dataSetMetadata.getLocation() != null) {
-                    metadataForUpdate.setLocation(dataSetMetadata.getLocation());
-                }
+                metadataForUpdate.setLocation(dataSetMetadata.getLocation());
 
                 // update parameters & encoding (so that user can change import parameters for CSV)
                 metadataForUpdate.getContent().setParameters(dataSetMetadata.getContent().getParameters());
