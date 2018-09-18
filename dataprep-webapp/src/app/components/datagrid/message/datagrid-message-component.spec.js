@@ -77,11 +77,11 @@ describe('Datagrid Message Component', () => {
         expect(scope.removeAllFilters).toHaveBeenCalled();
     });
 
-    it('should render NO_ROWS datagrid-message', () => {
+    it('should NOT render datagrid-message', () => {
         //when
         createElement();
 
         //then
-        expect($(element).find('.datagrid-message').length).toBe(1);
+        expect($(element).find('.datagrid-message').length).toBe(0);
     });
 });
