@@ -263,6 +263,7 @@ public class OptimizedExportStrategy extends BaseSampleExportStrategy {
                 // Not applicable (need preparation to work on).
                 return null;
             }
+            // head is not allowed as step id
             version = stepId;
             previousVersion = Step.ROOT_STEP.getId();
             final List<String> steps = new ArrayList<>(preparation.getSteps());
@@ -273,7 +274,7 @@ public class OptimizedExportStrategy extends BaseSampleExportStrategy {
             if (StringUtils.equals("head", stepId) || StringUtils.isEmpty(stepId)) {
                 version = steps.get(steps.size() - 1);
                 previousVersion = steps.get(steps.size() - 2);
-            } else if (preparation.getSteps().indexOf(version) >= 1) {
+            } else if (preparation.getSteps().indexOf(version) >= 0) {
                 version = stepId;
                 previousVersion = steps.get(preparation.getSteps().indexOf(version) - 1);
             }

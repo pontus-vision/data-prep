@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import static org.talend.dataprep.api.export.ExportParameters.SourceType.FILTER;
 import static org.talend.dataprep.api.export.ExportParameters.SourceType.HEAD;
 import static org.talend.dataprep.api.export.ExportParameters.SourceType.RESERVOIR;
-import static org.talend.dataprep.api.preparation.Step.ROOT_STEP;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -276,44 +275,8 @@ public class StandardExportStrategiesIntegrationTest {
         doTestOptimizedExportStrategyShouldBeChosenWhenPrepIsNotInCacheAndHasAtLeastTwoStepsFrom(null);
     }
 
-    protected void doTestOptimizedExportStrategyShouldNotBeChosenWhenVersionIsRootStepAndNoCacheIsAvailableFrom(
-            SourceType from, Class expectedStrategyClass) throws Exception {
-        // Given
-        ExportParameters parameters = new ExportParameters();
-        parameters.setFrom(from);
-        parameters.setContent(null);
-        parameters.setPreparationId(idOfPrepWith2StepsOrMore());
-        parameters.setStepId(ROOT_STEP.getId());
-        when(contentCache.has(transformationCacheKeyPreviousVersion)).thenReturn(false);
-        when(contentCache.has(transformationMetadataCacheKeyPreviousVersion)).thenReturn(false);
-
-        // When
-        Optional<? extends ExportStrategy> electedStrategy = chooseExportStrategy(parameters);
-
-        // Then
-        assertTrue("An ExportStrategy should be chosen but none was found", electedStrategy.isPresent());
-        assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(),
-                not(instanceOf(OptimizedExportStrategy.class)));
-        assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(),
-                instanceOf(expectedStrategyClass));
-    }
-
-    @Test
-    public void testOptimizedExportStrategyShouldNotBeChosenWhenVersionIsRootStepAndNoCacheIsAvailableFromHEAD()
+    private void doTestOptimizedExportStrategyShouldNotBeChosenWhenPrepHasOnlyOneStep(SourceType from)
             throws Exception {
-        doTestOptimizedExportStrategyShouldNotBeChosenWhenVersionIsRootStepAndNoCacheIsAvailableFrom(HEAD,
-                PreparationExportStrategy.class);
-    }
-
-    @Test
-    public void testOptimizedExportStrategyShouldNotBeChosenWhenVersionIsRootStepAndNoCacheIsAvailableFromNull()
-            throws Exception {
-        doTestOptimizedExportStrategyShouldNotBeChosenWhenVersionIsRootStepAndNoCacheIsAvailableFrom(null,
-                PreparationExportStrategy.class);
-    }
-
-    protected void doTestOptimizedExportStrategyShouldNotBeChosenWhenPrepHasOnlyOneStep(SourceType from,
-            Class expectedStrategyClass) throws Exception {
         // Given
         ExportParameters parameters = new ExportParameters();
         parameters.setFrom(from);
@@ -330,17 +293,17 @@ public class StandardExportStrategiesIntegrationTest {
         assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(),
                 not(instanceOf(OptimizedExportStrategy.class)));
         assertThat("The chosen ExportStrategy is not the expected one", electedStrategy.get(),
-                instanceOf(expectedStrategyClass));
+                instanceOf(PreparationExportStrategy.class));
     }
 
     @Test
     public void testOptimizedExportStrategyShouldNotBeChosenWhenPrepHasOnlyOneStepFromHEAD() throws Exception {
-        doTestOptimizedExportStrategyShouldNotBeChosenWhenPrepHasOnlyOneStep(HEAD, PreparationExportStrategy.class);
+        doTestOptimizedExportStrategyShouldNotBeChosenWhenPrepHasOnlyOneStep(HEAD);
     }
 
     @Test
     public void testOptimizedExportStrategyShouldNotBeChosenWhenPrepHasOnlyOneStepFromNull() throws Exception {
-        doTestOptimizedExportStrategyShouldNotBeChosenWhenPrepHasOnlyOneStep(null, PreparationExportStrategy.class);
+        doTestOptimizedExportStrategyShouldNotBeChosenWhenPrepHasOnlyOneStep(null);
     }
 
     private void doTestPreparationExportStrategyShouldBeChosen(SourceType from) throws Exception {
