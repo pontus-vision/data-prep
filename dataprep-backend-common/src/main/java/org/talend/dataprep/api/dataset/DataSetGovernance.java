@@ -19,7 +19,6 @@ import java.util.Objects;
 /**
  * Represents governance data of the dataset.
  */
-@Deprecated
 public class DataSetGovernance implements Serializable {
 
     /** Serialization UID. */

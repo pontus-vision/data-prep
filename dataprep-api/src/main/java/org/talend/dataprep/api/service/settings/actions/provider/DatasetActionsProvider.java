@@ -15,9 +15,6 @@
 
 package org.talend.dataprep.api.service.settings.actions.provider;
 
-import static java.util.Arrays.asList;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
-
 import java.util.List;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,6 +22,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.talend.dataprep.api.service.settings.AppSettingsProvider;
 import org.talend.dataprep.api.service.settings.actions.api.ActionSettings;
+
+import static java.util.Arrays.asList;
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 @Component
 @Scope(SCOPE_PROTOTYPE)
@@ -41,7 +41,6 @@ public class DatasetActionsProvider implements AppSettingsProvider<ActionSetting
                 DatasetActions.DATASET_FAVORITE,
                 DatasetActions.DATASET_FETCH,
                 DatasetActions.DATASET_OPEN,
-                DatasetActions.DATASET_PREPARATIONS_FETCH,
                 DatasetActions.DATASET_PREPARATIONS,
                 DatasetActions.DATASET_REMOVE,
                 DatasetActions.DATASET_SORT,

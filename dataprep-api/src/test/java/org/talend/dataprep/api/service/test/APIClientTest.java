@@ -395,7 +395,7 @@ public class APIClientTest {
     }
 
     private Response getExportResponse(String preparationId, String datasetId, String stepId, String csvDelimiter,
-                                       String fileName, Integer expectedStatus) {
+            String fileName, Integer expectedStatus) {
         RequestSpecification exportRequest = given() //
                 .formParam("exportType", "CSV") //
                 .formParam(ExportFormat.PREFIX + CSVFormat.ParametersCSV.ENCLOSURE_MODE, //

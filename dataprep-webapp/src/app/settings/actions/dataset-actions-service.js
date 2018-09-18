@@ -152,28 +152,6 @@ export default class DatasetActionsService {
 			this.UploadWorkflowService.openDataset(action.payload.model, action.event);
 			break;
 		}
-		case '@@dataset/RELATED_PREPARATIONS': {
-			const { payload } = action;
-			if (payload) {
-				const { isOpen, model } = payload;
-				if (isOpen) {
-					this.DatasetService
-						.getRelatedPreparations(model)
-						.then((preparations) => {
-							return this.state.inventory.datasets.content.map((dataset) => {
-								if (dataset.id === model.id) {
-									dataset.preparations = preparations;
-								}
-								return dataset;
-							});
-						})
-						.then((datasets) => {
-							this.StateService.setDatasets(datasets);
-						});
-				}
-			}
-			break;
-		}
 		}
 	}
 }

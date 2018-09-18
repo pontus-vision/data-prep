@@ -216,16 +216,15 @@ public class DataSetAPITest extends ApiServiceTestBase {
         for (JsonNode dataset : rootNode) {
             checkNotNull(dataset, "id");
             checkNotNull(dataset, "name");
-            //TODO We need to do another endpoint to test this
-            //            checkNotNull(dataset, "preparations");
-            //            final JsonNode preparations = dataset.get("preparations");
-            //            assertTrue(preparations.isArray());
-            //            for (JsonNode preparation : preparations) {
-            //                checkNotNull(preparation, "id");
-            //                checkNotNull(preparation, "name");
-            //                checkNotNull(preparation, "nbSteps");
-            //                checkNotNull(preparation, "lastModificationDate");
-            //            }
+            checkNotNull(dataset, "preparations");
+            final JsonNode preparations = dataset.get("preparations");
+            assertTrue(preparations.isArray());
+            for (JsonNode preparation : preparations) {
+                checkNotNull(preparation, "id");
+                checkNotNull(preparation, "name");
+                checkNotNull(preparation, "nbSteps");
+                checkNotNull(preparation, "lastModificationDate");
+            }
         }
     }
 
