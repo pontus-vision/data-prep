@@ -13,7 +13,15 @@
 
 package org.talend.dataprep.qa.step;
 
-import static org.junit.Assert.fail;
+import cucumber.api.java.en.Then;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.talend.dataprep.qa.config.DataPrepStep;
+import org.talend.dataprep.qa.util.ExcelComparator;
+import org.talend.dataprep.qa.util.SparkComparator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,14 +29,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.talend.dataprep.qa.config.DataPrepStep;
-import org.talend.dataprep.qa.util.ExcelComparator;
-
-import cucumber.api.java.en.Then;
+import static org.junit.Assert.fail;
 
 /**
  * Store all steps related to files and temporary files.
@@ -40,8 +41,8 @@ public class FileStep extends DataPrepStep {
      */
     private static final Logger LOG = LoggerFactory.getLogger(FileStep.class);
 
-    @Then("^I check that \"(.*)\" temporary file equals \"(.*)\" file$")
-    public void thenICheckThatTheFileIsTheExpectedOne(String temporaryFilename, String expectedFilename)
+    @Then("^I check that \"(.*)\" temporary (spark |)?file equals \"(.*)\" file$")
+    public void thenICheckThatTheFileIsTheExpectedOne(String temporaryFilename, String spark, String expectedFilename)
             throws IOException {
         LOG.debug("I check that {} temporary file equals {} file", temporaryFilename, expectedFilename);
 
@@ -56,6 +57,11 @@ public class FileStep extends DataPrepStep {
                         new XSSFWorkbook(expectedFileStream))) {
                     fail("Temporary file " + temporaryFilename + " isn't the same as the expected file "
                             + expectedFilename);
+                }
+            }  else if (StringUtils.isNotBlank(spark) && spark.equals("spark ")) {
+                if(!SparkComparator.compareTwoFile(tempFileStream,expectedFileStream)) {
+                    fail("Temporary file " + temporaryFilename + " isn't the same as the expected file "
+                            + expectedFilename+ ":\n" + String.join("\n", Files.readAllLines(tempFile)));
                 }
             } else if (!IOUtils.contentEquals(tempFileStream, expectedFileStream)) {
                 fail("Temporary file " + temporaryFilename + " isn't the same as the expected file " + expectedFilename
