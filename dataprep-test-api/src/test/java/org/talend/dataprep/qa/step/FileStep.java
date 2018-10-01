@@ -13,7 +13,14 @@
 
 package org.talend.dataprep.qa.step;
 
-import cucumber.api.java.en.Then;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -23,13 +30,7 @@ import org.talend.dataprep.qa.config.DataPrepStep;
 import org.talend.dataprep.qa.util.ExcelComparator;
 import org.talend.dataprep.qa.util.SparkComparator;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static org.junit.Assert.fail;
+import cucumber.api.java.en.Then;
 
 /**
  * Store all steps related to files and temporary files.
@@ -58,10 +59,10 @@ public class FileStep extends DataPrepStep {
                     fail("Temporary file " + temporaryFilename + " isn't the same as the expected file "
                             + expectedFilename);
                 }
-            }  else if (StringUtils.isNotBlank(spark) && spark.equals("spark ")) {
-                if(!SparkComparator.compareTwoFile(tempFileStream,expectedFileStream)) {
+            } else if (StringUtils.isNotBlank(spark) && spark.equals("spark ")) {
+                if (!SparkComparator.compareTwoFile(tempFileStream, expectedFileStream)) {
                     fail("Temporary file " + temporaryFilename + " isn't the same as the expected file "
-                            + expectedFilename+ ":\n" + String.join("\n", Files.readAllLines(tempFile)));
+                            + expectedFilename + ":\n" + String.join("\n", Files.readAllLines(tempFile)));
                 }
             } else if (!IOUtils.contentEquals(tempFileStream, expectedFileStream)) {
                 fail("Temporary file " + temporaryFilename + " isn't the same as the expected file " + expectedFilename
