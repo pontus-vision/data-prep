@@ -17,12 +17,10 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +40,8 @@ public class FileStep extends DataPrepStep {
      */
     private static final Logger LOG = LoggerFactory.getLogger(FileStep.class);
 
-    @Then("^I check that \"(.*)\" temporary (spark |)?file equals \"(.*)\" file$")
-    public void thenICheckThatTheFileIsTheExpectedOne(String temporaryFilename, String spark, String expectedFilename)
+    @Then("^I check that \"(.*)\" temporary file equals \"(.*)\" file$")
+    public void thenICheckThatTheFileIsTheExpectedOne(String temporaryFilename, String expectedFilename)
             throws IOException {
         LOG.debug("I check that {} temporary file equals {} file", temporaryFilename, expectedFilename);
 
@@ -52,19 +50,29 @@ public class FileStep extends DataPrepStep {
         try (InputStream tempFileStream = Files.newInputStream(tempFile);
                 InputStream expectedFileStream = DataPrepStep.class.getResourceAsStream(expectedFilename)) {
 
-            if (FileSystems.getDefault().getPathMatcher("glob:*.xlsx").matches(tempFile.getFileName())) {
-
+            if (tempFile.getFileName().endsWith(".xlsx")) {
                 if (!ExcelComparator.compareTwoFile(new XSSFWorkbook(tempFileStream),
                         new XSSFWorkbook(expectedFileStream))) {
                     fail("Temporary file " + temporaryFilename + " isn't the same as the expected file "
                             + expectedFilename);
                 }
-            } else if (StringUtils.isNotBlank(spark) && spark.equals("spark ")) {
-                if (!SparkComparator.compareTwoFile(tempFileStream, expectedFileStream)) {
-                    fail("Temporary file " + temporaryFilename + " isn't the same as the expected file "
-                            + expectedFilename + ":\n" + String.join("\n", Files.readAllLines(tempFile)));
-                }
             } else if (!IOUtils.contentEquals(tempFileStream, expectedFileStream)) {
+                fail("Temporary file " + temporaryFilename + " isn't the same as the expected file " + expectedFilename
+                        + ":\n" + String.join("\n", Files.readAllLines(tempFile)));
+            }
+        }
+    }
+
+    @Then("^I check that \"(.*)\" temporary file contains the same lines than \"(.*)\" file$")
+    public void thenICheckThatTheSparkFileIsTheExpectedOne(String temporaryFilename, String expectedFilename)
+            throws IOException {
+        LOG.debug("I check that {} temporary file contains the same lines as {} file", temporaryFilename, expectedFilename);
+
+        Path tempFile = context.getTempFile(temporaryFilename).toPath();
+        try (InputStream tempFileStream = Files.newInputStream(tempFile);
+                InputStream expectedFileStream = DataPrepStep.class.getResourceAsStream(expectedFilename)) {
+
+            if (!SparkComparator.doesFilesContainSameLines(tempFileStream, expectedFileStream)) {
                 fail("Temporary file " + temporaryFilename + " isn't the same as the expected file " + expectedFilename
                         + ":\n" + String.join("\n", Files.readAllLines(tempFile)));
             }
