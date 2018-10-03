@@ -13,6 +13,7 @@
 
 package org.talend.dataprep.qa.step;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -66,16 +67,14 @@ public class FileStep extends DataPrepStep {
     @Then("^I check that \"(.*)\" temporary file contains the same lines than \"(.*)\" file$")
     public void thenICheckThatTheSparkFileIsTheExpectedOne(String temporaryFilename, String expectedFilename)
             throws IOException {
-        LOG.debug("I check that {} temporary file contains the same lines as {} file", temporaryFilename, expectedFilename);
+        LOG.debug("I check that {} temporary file contains the same lines as {} file", temporaryFilename,
+                expectedFilename);
 
         Path tempFile = context.getTempFile(temporaryFilename).toPath();
         try (InputStream tempFileStream = Files.newInputStream(tempFile);
                 InputStream expectedFileStream = DataPrepStep.class.getResourceAsStream(expectedFilename)) {
 
-            if (!SparkComparator.doesFilesContainSameLines(tempFileStream, expectedFileStream)) {
-                fail("Temporary file " + temporaryFilename + " isn't the same as the expected file " + expectedFilename
-                        + ":\n" + String.join("\n", Files.readAllLines(tempFile)));
-            }
+            assertTrue(SparkComparator.doesFilesContainSameLines(tempFileStream, expectedFileStream));
         }
     }
 }
