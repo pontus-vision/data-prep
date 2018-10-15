@@ -12,10 +12,14 @@
 
 package org.talend.dataprep.qa.step.populate;
 
+import static org.talend.dataprep.qa.config.FeatureContext.removeSuffixName;
+
 import au.com.bytecode.opencsv.CSVWriter;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talend.dataprep.qa.config.DataPrepStep;
 import org.talend.dataprep.qa.step.ActionStep;
@@ -29,8 +33,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import static org.talend.dataprep.qa.config.FeatureContext.removeSuffixName;
 
 /**
  * Step dealing with dataset.
@@ -46,17 +48,24 @@ public class PopulateDatasetStep extends DataPrepStep {
     @Autowired
     private ActionStep actionStep;
 
+    private static final Logger logger = LoggerFactory.getLogger(PopulateDatasetStep.class);
+
     @Given("^I upload \"(.*)\" times the dataset \"(.*)\" with name \"(.*)\"$") //
     public void givenIUploadTheDataSetNTime(Integer nbTime, String fileName, String name) throws IOException {
+        long startTime = System.currentTimeMillis();
         for (int i = 0; i < nbTime; i++) {
             String finalDatasetName = i + "_" + name;
             datasetStep.givenIUploadTheDataSet(fileName, finalDatasetName);
         }
+        long endTime = System.currentTimeMillis();
+        long timeElapsed = endTime - startTime;
+        logger.info("Total execution time to upload a datset {} times : {} seconds", nbTime, timeElapsed / 1000);
     }
 
     @Given("^I create \"(.*)\" preparation \"(.*)\" with random dataset and \"(.*)\" steps with parameters:$")
     public void givenICreatePrepWithNStepNTime(Integer nbTime, String preparationName, Integer nbStep,
-            DataTable dataTable) throws IOException {
+                                               DataTable dataTable) throws IOException {
+        long startTime = System.currentTimeMillis();
         for (int i = 0; i < nbTime; i++) {
             String datasetName = removeSuffixName(getRandomDatasetName());
             String finalPrepName = i + "_" + preparationName;
@@ -65,6 +74,9 @@ public class PopulateDatasetStep extends DataPrepStep {
             for (int j = 0; j < (nbStep / 2); j++) {
                 iCreateMultipleStepForPrep(finalPrepName, dataTable);
             }
+            long endTime = System.currentTimeMillis();
+            long timeElapsed = endTime - startTime;
+            logger.info("Total execution time to create {} a preparation with {} steps : {} seconds", nbTime, nbStep, timeElapsed / 1000);
         }
     }
 
@@ -85,7 +97,6 @@ public class PopulateDatasetStep extends DataPrepStep {
     public void iUploadARandomDatasetWithColumnsAndRowsWithName(int nbColumns, int nbRows, String datasetName)
             throws Throwable {
         Path tempFile = generateRandomDataset(nbColumns, nbRows, datasetName);
-        System.out.println("tempFile. = " + tempFile);
         datasetStep.givenIUploadTheDataSet(tempFile.toString(), datasetName);
     }
 
