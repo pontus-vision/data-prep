@@ -65,8 +65,8 @@ public class FileStep extends DataPrepStep {
         }
     }
 
-    @Then("^I check that \"(.*)\" temporary file contains the same lines than \"(.*)\" file$")
-    public void thenICheckThatTheSparkFileIsTheExpectedOne(String temporaryFilename, String expectedFilename)
+    @Then("^I check that \"(.*)\" temporary file contains the same lines as \"(.*)\" file$")
+    public void thenICheckThatFilesContainSameLines(String temporaryFilename, String expectedFilename)
             throws IOException {
         LOG.debug("I check that {} temporary file contains the same lines as {} file", temporaryFilename,
                 expectedFilename);
@@ -75,7 +75,7 @@ public class FileStep extends DataPrepStep {
         try (InputStream tempFileStream = Files.newInputStream(tempFile);
                 InputStream expectedFileStream = DataPrepStep.class.getResourceAsStream(expectedFilename)) {
 
-            assertTrue(SparkComparator.doesFilesContainSameLines(tempFileStream, expectedFileStream));
+            assertTrue(SparkComparator.doesFilesContainSameLines(expectedFileStream, tempFileStream));
         }
     }
 }

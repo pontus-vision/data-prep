@@ -31,48 +31,46 @@ public class SparkComparator {
     private static final Logger LOGGER = LoggerFactory.getLogger(SparkComparator.class);
 
     /**
-     * Compare to file in order to check if they contains the same lines (but maybe not in the same order).
-     * 
-     * @param actual the actual file
+     * Compare two files in order to check if they contain the same lines (but maybe not in the same order).
+     *
      * @param expected the file expected to match the actual one
+     * @param actual the actual file
      * @return <code>true</code> if both files contains the same lines, <code>false</code> else.
      * @throws IOException in case of reading file problem.
      */
-    public static boolean doesFilesContainSameLines(@NotNull InputStream actual, @NotNull InputStream expected)
+    public static boolean doesFilesContainSameLines(@NotNull InputStream expected, @NotNull InputStream actual)
             throws IOException {
         LineIterator actualLI = IOUtils.lineIterator(actual, StandardCharsets.UTF_8);
         LineIterator expectedLI = IOUtils.lineIterator(expected, StandardCharsets.UTF_8);
-        Map<String, Integer> inActual = new HashMap<>();
-        Map<String, Integer> inExpected = new HashMap<>();
-        String actualLine;
-        String expectedLine;
+        Map<String, Integer> unmatchedLinesFromActualFile = new HashMap<>();
+        Map<String, Integer> unmatchedLinesFromExpectedFile = new HashMap<>();
 
         while (actualLI.hasNext() || expectedLI.hasNext()) {
-            actualLine = actualLI.hasNext() ? actualLI.nextLine() : null;
-            expectedLine = expectedLI.hasNext() ? expectedLI.nextLine() : null;
+            String actualLine = actualLI.hasNext() ? actualLI.nextLine() : null;
+            String expectedLine = expectedLI.hasNext() ? expectedLI.nextLine() : null;
             if (actualLine != null && expectedLine != null) {
                 if (!actualLine.equals(expectedLine)) {
-                    if (!removeOrDecrement(inExpected, actualLine)) {
-                        putOrIncrement(inActual, actualLine);
+                    if (!removeOrDecrement(unmatchedLinesFromExpectedFile, actualLine)) {
+                        putOrIncrement(unmatchedLinesFromActualFile, actualLine);
                     }
-                    if (!removeOrDecrement(inActual, expectedLine)) {
-                        putOrIncrement(inExpected, expectedLine);
+                    if (!removeOrDecrement(unmatchedLinesFromActualFile, expectedLine)) {
+                        putOrIncrement(unmatchedLinesFromExpectedFile, expectedLine);
                     }
                 }
             } else if (actualLine != null) {
-                putOrIncrement(inActual, actualLine);
+                putOrIncrement(unmatchedLinesFromActualFile, actualLine);
             } else {
-                putOrIncrement(inExpected, expectedLine);
+                putOrIncrement(unmatchedLinesFromExpectedFile, expectedLine);
             }
         }
-        if (inActual.isEmpty() && inExpected.isEmpty()) {
+        if (unmatchedLinesFromActualFile.isEmpty() && unmatchedLinesFromExpectedFile.isEmpty()) {
             return true;
         }
-        if (!inActual.isEmpty()) {
-            LOGGER.warn("Lines present only in actual file :\n" + getKeys(inActual));
+        if (!unmatchedLinesFromActualFile.isEmpty()) {
+            LOGGER.warn("Lines present only in actual file :\n" + getKeys(unmatchedLinesFromActualFile));
         }
-        if (!inExpected.isEmpty()) {
-            LOGGER.warn("Lines present only in expected file :\n" + getKeys(inExpected));
+        if (!unmatchedLinesFromExpectedFile.isEmpty()) {
+            LOGGER.warn("Lines present only in expected file :\n" + getKeys(unmatchedLinesFromExpectedFile));
         }
         return false;
     }
