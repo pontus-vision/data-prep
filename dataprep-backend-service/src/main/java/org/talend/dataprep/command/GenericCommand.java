@@ -159,7 +159,7 @@ public class GenericCommand<T> extends HystrixCommand<T> {
     protected String preparationServiceUrl;
 
     /** IAM proxy service URL. */
-    @Value("${iamproxy.service.url}")
+    @Value("${iamproxy.service.url:}")
     protected String iamProxyUrl;
 
     @Autowired
