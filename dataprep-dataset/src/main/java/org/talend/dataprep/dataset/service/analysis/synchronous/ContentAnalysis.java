@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +75,12 @@ public class ContentAnalysis implements SynchronousDataSetAnalyzer {
                 updateLimit(metadata);
 
                 metadata.getLifecycle().contentIndexed(true);
-                repository.save(metadata);
+
+                DataSetMetadata savedDataSetMetadata = repository.get(dataSetId);
+                // in order to check that the dataset was not deleted during analysis
+                if (savedDataSetMetadata != null) {
+                    repository.save(metadata);
+                }
                 LOG.info("Indexed content of data set #{}.", dataSetId);
             } else {
                 LOG.info("Data set #{} no longer exists.", dataSetId); //$NON-NLS-1$

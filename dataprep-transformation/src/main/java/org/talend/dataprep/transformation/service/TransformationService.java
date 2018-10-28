@@ -48,7 +48,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 
 import org.apache.commons.io.output.NullOutputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -574,7 +574,9 @@ public class TransformationService extends BaseTransformationService {
             RowMetadata metadataAfter = metadataBase.clone();
 
             applyActionsOnMetadata(metadataBase, previewParameters.getBaseActions());
+            metadataBase.clearDiffStatus();
             applyActionsOnMetadata(metadataAfter, previewParameters.getNewActions());
+            metadataAfter.clearDiffStatus();
 
             metadataAfter.diff(metadataBase);
 

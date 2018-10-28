@@ -11,6 +11,15 @@
 
  ============================================================================*/
 
+/* eslint-disable */
+
+// https://github.com/jquery/jquery/issues/2432#issuecomment-403761229
+jQuery.ajaxPrefilter(function (s) {
+	if (s.crossDomain) {
+		s.contents.script = false;
+	}
+});
+
 // animate.css https://github.com/daneden/animate.css
 import 'animate.css';
 
@@ -60,6 +69,8 @@ import 'store';
 // Moment https://github.com/moment/moment/
 import 'moment';
 import 'moment/locale/fr';
+import 'moment/locale/ja';
+import 'moment/locale/zh-cn';
 import 'moment-jdateformatparser';
 
 // https://github.com/danialfarid/ng-file-upload
@@ -81,5 +92,10 @@ import 'react';
 import 'react-dom';
 import 'ngreact';
 
+// focus-visible
+import 'focus-visible';
+
 // slickgrid-column-data-autosize https://github.com/naresh-n/slickgrid-column-data-autosize
 import './lib/slick.autocolumnsize';
+
+/* eslint-enable */

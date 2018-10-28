@@ -13,14 +13,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.talend.dataprep.qa.config.DataPrepStep;
+import org.talend.dataprep.qa.dto.ContentMetadata;
+import org.talend.dataprep.qa.dto.Statistics;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
@@ -31,8 +34,6 @@ import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import org.talend.dataprep.qa.dto.ContentMetadata;
-import org.talend.dataprep.qa.dto.Statistics;
 
 /**
  * Step dealing with dataset.
@@ -41,16 +42,16 @@ public class DatasetStep extends DataPrepStep {
 
     private static final String NB_ROW = "nbRow";
 
+    /**
+     * This class' logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetStep.class);
+
     @Value("${metadata.timeout.sec}")
     private int metadataTimeout;
 
     @Value("${metadata.wait.time.sec}")
     private int metadataTimeToWait;
-
-    /**
-     * This class' logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetStep.class);
 
     @Given("^I upload the dataset \"(.*)\" with name \"(.*)\"$") //
     public void givenIUploadTheDataSet(String fileName, String name) throws IOException {
@@ -72,6 +73,12 @@ public class DatasetStep extends DataPrepStep {
         assertEquals(0, countFilteredDatasetList(datasetMetas, params.get(DATASET_NAME_KEY), params.get(NB_ROW)));
     }
 
+    @Given("^It doesn't exist any dataset with the following name \"(.*)\"$") //
+    public void notExistDataset(String name) throws IOException {
+        List<ContentMetadata> datasetMetas = listDatasetMeta();
+        assertEquals(0, countFilteredDatasetList(datasetMetas, name));
+    }
+
     /**
      * Count how many {@link ContentMetadata} corresponding to the specified name & row number exists in the given
      * {@link List}.
@@ -86,6 +93,21 @@ public class DatasetStep extends DataPrepStep {
                 .stream() //
                 .filter(d -> (suffixName(datasetName).equals(d.name)) //
                         && nbRows.equals(d.records)) //
+                .count();
+    }
+
+    /**
+     * Count how many {@link ContentMetadata} corresponding to the specified name exists in the given
+     * {@link List}.
+     *
+     * @param datasetMetas the {@link List} of {@link ContentMetadata} to filter.
+     * @param datasetName the searched dataset name.
+     * @return the number of corresponding {@link ContentMetadata}.
+     */
+    private long countFilteredDatasetList(List<ContentMetadata> datasetMetas, String datasetName) {
+        return datasetMetas //
+                .stream() //
+                .filter(d -> (suffixName(datasetName).equals(d.name))) //
                 .count();
     }
 
@@ -111,6 +133,25 @@ public class DatasetStep extends DataPrepStep {
         String datasetId = context.getDatasetId(suffixedDatasetName);
         Response response = api.updateDataset(fileName, suffixedDatasetName, datasetId);
         response.then().statusCode(OK.value());
+    }
+
+    @When("^I delete the dataset called \"(.*)\"$") //
+    public void iDeleteTheDataset(String datasetName) {
+        String suffixedDatasetName = suffixName(datasetName);
+        String datasetId = context.getDatasetId(suffixedDatasetName);
+        api.deleteDataset(datasetId).then().statusCode(OK.value());
+        context.removeDatasetRef(suffixedDatasetName);
+    }
+
+    @When("^I load the existing dataset called \"(.*)\"$")
+    public void registerExistingDataset(String datasetName) throws IOException {
+        final List<ContentMetadata> datasetMetas = listDatasetMeta()
+                .stream() //
+                .filter(meta -> meta.name.equals(datasetName)) //
+                .collect(Collectors.toList());
+        assertEquals("More (or less) than one dataset with " + datasetName + " name.", 1, datasetMetas.size());
+        ContentMetadata datasetMeta = datasetMetas.get(0);
+        context.storeExistingDatasetRef(datasetMeta.id, datasetMeta.name);
     }
 
     private void createDataSet(String fileName, String suffixedName) throws IOException {
@@ -155,7 +196,7 @@ public class DatasetStep extends DataPrepStep {
         JsonNode response = null;
         boolean stop = false;
         int nbLoop = 0;
-        while (!stop) {
+        while (!stop) { // TODO use awaitability library
             nbLoop++;
             if (nbLoop > 10) {
                 fail("Dataset creation is so slow");

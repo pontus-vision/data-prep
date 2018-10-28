@@ -1,6 +1,6 @@
 package org.talend.dataprep.dataset.adapter;
 
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.talend.dataprep.command.GenericCommand.DATASET_GROUP;
 
@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
@@ -36,6 +35,7 @@ import org.talend.dataprep.api.dataset.statistics.Statistics;
 import org.talend.dataprep.api.filter.FilterService;
 import org.talend.dataprep.conversions.BeanConversionService;
 import org.talend.dataprep.conversions.inject.OwnerInjection;
+import org.talend.dataprep.dataset.DatasetConfiguration;
 import org.talend.dataprep.dataset.adapter.commands.DataSetGetMetadataLegacy;
 import org.talend.dataprep.dataset.event.DatasetUpdatedEvent;
 import org.talend.dataprep.dataset.store.content.DataSetContentLimit;
@@ -87,22 +87,8 @@ public class DatasetClient {
             .softValues() //
             .build();
 
-    private Function<String, AnalysisResult> datasetAnalysisSupplier;
-
     @Autowired
     private ApplicationContext context;
-
-    @Value("${dataset.service.provider:legacy}")
-    private String catalogMode;
-
-    @PostConstruct
-    private void initializeAnalysisSupplier() {
-        if ("legacy".equals(catalogMode)) {
-            datasetAnalysisSupplier = this::getAnalyseDatasetFromLegacy;
-        } else {
-            datasetAnalysisSupplier = this::analyseDataset;
-        }
-    }
 
     // ------- Composite adapters -------
 
@@ -113,7 +99,7 @@ public class DatasetClient {
      * </p>
      *
      * @param certification filter with a specific certification state
-     * @param favorite      filter with favorite only
+     * @param favorite filter with favorite only
      * @return DataSetMetadata without rowMetadata
      */
     public Stream<DatasetDTO> listDataSetMetadata(Dataset.CertificationState certification, Boolean favorite) {
@@ -152,7 +138,7 @@ public class DatasetClient {
     /**
      * Get a dataSet by id.
      *
-     * @param id          the dataset to fetch
+     * @param id the dataset to fetch
      * @param fullContent we need the full dataset or a sample (see sample limit in datset: 10k rows)
      */
     public DataSet getDataSet(String id, boolean fullContent) {
@@ -162,8 +148,8 @@ public class DatasetClient {
     /**
      * Get a dataSet by id.
      *
-     * @param id                    the dataset to fetch
-     * @param fullContent           we need the full dataset or a sample (see sample limit in datset: 10k rows)
+     * @param id the dataset to fetch
+     * @param fullContent we need the full dataset or a sample (see sample limit in datset: 10k rows)
      * @param withRowValidityMarker perform a quality analysis on the dataset records
      */
     public DataSet getDataSet(String id, boolean fullContent, boolean withRowValidityMarker) {
@@ -174,10 +160,10 @@ public class DatasetClient {
      * Get a dataSet by id.
      * Convert metadata and records from {@link Dataset} to {@link DataSet}
      *
-     * @param id                    the dataset to fetch
-     * @param fullContent           we need the full dataset or a sample (see sample limit in datset: 10k rows)
+     * @param id the dataset to fetch
+     * @param fullContent we need the full dataset or a sample (see sample limit in datset: 10k rows)
      * @param withRowValidityMarker perform a quality analysis on the dataset records
-     * @param filter                TQL filter for content
+     * @param filter TQL filter for content
      */
     public DataSet getDataSet(String id, boolean fullContent, boolean withRowValidityMarker, String filter) {
         DataSet dataset = new DataSet();
@@ -284,7 +270,12 @@ public class DatasetClient {
                 .stream()
                 .map(ColumnMetadata::getStatistics)
                 .anyMatch(this::isComputedStatistics)) {
-            AnalysisResult analysisResult = datasetAnalysisSupplier.apply(dataset.getId());
+            AnalysisResult analysisResult;
+            if (context.getBean(DatasetConfiguration.class).isLegacy()) {
+                analysisResult = getAnalyseDatasetFromLegacy(dataset.getId());
+            } else {
+                analysisResult = analyseDataset(dataset.getId());
+            }
             metadata.setRowMetadata(new RowMetadata(analysisResult.rowMetadata));
             metadata.getContent().setNbRecords(analysisResult.rowcount);
         }

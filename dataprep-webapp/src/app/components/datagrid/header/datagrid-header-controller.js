@@ -26,7 +26,7 @@ import {
  * @requires data-prep.services.playground.service:PlaygroundService
  * @requires data-prep.services.filter.service:FilterService
  */
-export default function DatagridHeaderCtrl($scope, state,
+export default function DatagridHeaderCtrl($q, $scope, state,
                                            TransformationService, ConverterService,
                                            PlaygroundService, FilterService,
                                            ColumnTypesService, FilterManagerService) {
@@ -86,10 +86,16 @@ export default function DatagridHeaderCtrl($scope, state,
 					vm.initTransformationsInProgress = false;
 				});
 		}
-		ColumnTypesService.refreshSemanticDomains(vm.column.id);
-		ColumnTypesService.refreshTypes();
+		vm.fetchMatchingSemanticTypes();
 	};
 
+	vm.fetchMatchingSemanticTypes = () => {
+		vm.typeLoading = true;
+		$q.all([ColumnTypesService.refreshSemanticDomains(vm.column.id), ColumnTypesService.refreshTypes()])
+			.finally(() => {
+				vm.typeLoading = false;
+			});
+	};
 	/**
 	 * @ngdoc method
 	 * @name updateColumnName

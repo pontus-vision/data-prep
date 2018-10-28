@@ -116,11 +116,13 @@ export default class DatasetImportCtrl {
 	 */
 	_getDatastoreFormActions(properties) {
 		if (!this.datastoreFormActions) {
-			this.datastoreFormActions = [{
-				style: `info ${properties && !properties.tdp_isTestConnectionEnabled && 'sr-only'}`,
-				type: 'submit',
-				label: this.$translate.instant('DATASTORE_TEST_CONNECTION'),
-			}];
+			this.datastoreFormActions = [
+				{
+					style: `info ${properties && !properties.tdp_isTestConnectionEnabled && 'sr-only'}`,
+					type: 'submit',
+					label: this.$translate.instant('DATASTORE_TEST_CONNECTION'),
+				},
+			];
 		}
 	}
 
@@ -133,12 +135,6 @@ export default class DatasetImportCtrl {
 	_getDatasetFormActions() {
 		if (!this.datasetFormActions) {
 			this.datasetFormActions = [
-				{
-					style: 'default',
-					type: 'button',
-					onClick: this._reset,
-					label: this.$translate.instant('CANCEL'),
-				},
 				{
 					style: 'success',
 					type: 'submit',
@@ -177,7 +173,9 @@ export default class DatasetImportCtrl {
 	 * @param changes Form changes
 	 */
 	onDatastoreFormSubmit(event, changes) {
-		const { formData, definitionName = (this.locationType || this.item.location.componentType || LIVE_LOCATION_TYPE) } = changes;
+		// Get item type from its mime type
+		const itemType = this.item && this.item.type && this.item.type.split('.').reverse()[0];
+		const { formData, definitionName = (this.locationType || itemType || LIVE_LOCATION_TYPE) } = changes;
 		if (this.submitLock) {
 			const formsData = {
 				dataStoreProperties: formData,

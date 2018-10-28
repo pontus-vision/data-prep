@@ -12,6 +12,7 @@ import http from '../http';
 import PreparationService from '../../../services/preparation.service';
 import PreparationCopyMoveModal from '../../../components/PreparationCopyMoveModal';
 
+
 describe('preparation', () => {
 	describe('cancelRename', () => {
 		it('should update preparations in the cmf store', () => {
@@ -143,7 +144,7 @@ describe('preparation', () => {
 			expect(effect.fn).toEqual(http.put);
 			expect(effect.args[0]).toEqual('/api/preparations/id0');
 			expect(effect.args[1]).toEqual({ name: 'newPrep0' });
-			expect(gen.next().value).toEqual(call(effects.fetch));
+			expect(gen.next().value).toEqual(call(effects.refreshCurrentFolder));
 			expect(gen.next().done).toBeTruthy();
 		});
 	});
@@ -317,10 +318,16 @@ describe('preparation', () => {
 			const payload = { folderId: 'folderId' };
 			const gen = effects.refresh(payload);
 			expect(gen.next(payload).value).toEqual(
-				all([
-					call(effects.fetch, payload),
-					call(effects.fetchFolder, payload),
-				])
+				all([call(effects.fetch, payload), call(effects.fetchFolder, payload)]),
+			);
+		});
+
+		it('should refresh the current folder', () => {
+			const gen = effects.refreshCurrentFolder();
+			expect(gen.next().value.SELECT).toBeDefined();
+			const currentFolderId = '123456789';
+			expect(gen.next(currentFolderId).value).toEqual(
+				call(effects.refresh, { folderId: currentFolderId }),
 			);
 		});
 	});

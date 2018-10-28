@@ -12,6 +12,7 @@
 
 package org.talend.dataprep.command;
 
+import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -39,6 +40,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.context.WebApplicationContext;
 import org.talend.ServiceBaseTest;
 import org.talend.dataprep.BaseErrorCodes;
+import org.talend.dataprep.analytics.Analytics;
 import org.talend.dataprep.api.user.UserGroup;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
@@ -306,7 +308,7 @@ public class GenericCommandTest extends ServiceBaseTest {
 
         @Override
         public Set<UserGroup> getGroups() {
-            return Collections.emptySet();
+            return emptySet();
         }
 
         @Override
@@ -322,6 +324,16 @@ public class GenericCommandTest extends ServiceBaseTest {
         @Override
         public Locale getLocale() {
             return Locale.getDefault();
+        }
+
+        @Override
+        public Analytics getAnalytics() {
+            return null;
+        }
+
+        @Override
+        public Set<String> getApplications() {
+            return emptySet();
         }
 
         @Override

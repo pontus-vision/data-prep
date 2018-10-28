@@ -1,13 +1,12 @@
 import { all, call, put, select } from 'redux-saga/effects';
 import { actions } from '@talend/react-cmf';
 import { Map } from 'immutable';
-
 import i18next from '../../../i18n';
-
 import http from './http';
 import creators from '../../actions';
 import PreparationService from '../../services/preparation.service';
 import PreparationCopyMoveModal from '../../components/PreparationCopyMoveModal';
+
 
 export function* cancelRename(payload) {
 	const preparations = yield select(state => state.cmf.collections.get('preparations'));
@@ -20,7 +19,7 @@ export function* cancelRename(payload) {
 
 export function* fetch(payload) {
 	const defaultFolderId = 'Lw==';
-	const folderId = payload.folderId || defaultFolderId;
+	const folderId = (payload && payload.folderId) || defaultFolderId;
 	yield put(actions.collections.addOrReplace('currentFolderId', folderId));
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	const { data } = yield call(http.get, `${uris.get('apiFolders')}/${folderId}/preparations`);
@@ -61,12 +60,8 @@ export function* copy({ id, folderId, destination, title }) {
 		yield call(closeCopyMoveModal);
 		yield put(
 			creators.notification.success(null, {
-				title: i18next.t('tdp-app:PREPARATION_COPY_NOTIFICATION_TITLE', {
-					defaultValue: 'Preparation copied',
-				}),
-				message: i18next.t('tdp-app:PREPARATION_COPY_NOTIFICATION_MESSAGE', {
-					defaultValue: 'The preparation has been copied.',
-				}),
+				title: i18next.t('tdp-app:PREPARATION_COPY_NOTIFICATION_TITLE'),
+				message: i18next.t('tdp-app:PREPARATION_COPY_NOTIFICATION_MESSAGE'),
 			}),
 		);
 	}
@@ -93,12 +88,8 @@ export function* move({ id, folderId, destination, title }) {
 		yield call(closeCopyMoveModal);
 		yield put(
 			creators.notification.success(null, {
-				title: i18next.t('tdp-app:PREPARATION_MOVE_NOTIFICATION_TITLE', {
-					defaultValue: 'Preparation moved',
-				}),
-				message: i18next.t('tdp-app:PREPARATION_MOVE_NOTIFICATION_MESSAGE', {
-					defaultValue: 'The preparation has been moved.',
-				}),
+				title: i18next.t('tdp-app:PREPARATION_MOVE_NOTIFICATION_TITLE'),
+				message: i18next.t('tdp-app:PREPARATION_MOVE_NOTIFICATION_MESSAGE'),
 			}),
 		);
 	}
@@ -124,10 +115,15 @@ export function* refresh(payload) {
 	]);
 }
 
+export function* refreshCurrentFolder() {
+	const currentFolderId = yield select(state => state.cmf.collections.get('currentFolderId'));
+	yield call(refresh, { folderId: currentFolderId });
+}
+
 export function* rename(payload) {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	yield call(http.put, `${uris.get('apiPreparations')}/${payload.id}`, { name: payload.name });
-	yield call(fetch);
+	yield call(refreshCurrentFolder);
 }
 
 export function* setTitleEditionMode(payload) {
@@ -172,7 +168,7 @@ export function* fetchFolder(payload) {
 	const uris = yield select(state => state.cmf.collections.getIn(['settings', 'uris']));
 	const { data } = yield call(
 		http.get,
-		`${uris.get('apiFolders')}/${payload.folderId || defaultFolderId}`,
+		`${uris.get('apiFolders')}/${(payload && payload.folderId) || defaultFolderId}`,
 	);
 	yield put(
 		actions.components.mergeState(

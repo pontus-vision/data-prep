@@ -15,10 +15,11 @@
 
 <div class="playground-container" tabindex="0">
     <pure-app-loader ng-if="playgroundCtrl.state.playground.isLoading"></pure-app-loader>
-
     <playground-header ng-if="!playgroundCtrl.state.playground.isLoading"
                        preview="playgroundCtrl.previewInProgress()"
+                       preview-loading="playgroundCtrl.state.playground.isPreviewLoading"
                        lookup-visible="playgroundCtrl.state.playground.lookup.visibility"
+                       lookup-loading="playgroundCtrl.state.playground.lookup.loading"
                        parameters-visible="playgroundCtrl.state.playground.parameters.visible"
                        feedback-visible="!playgroundCtrl.state.ee"
                        preparation-picker="playgroundCtrl.$stateParams.datasetid"
@@ -95,8 +96,7 @@
         class="preparation-modal preparation-save-discard-modal"
         fullscreen="false"
         ng-if="playgroundCtrl.state.playground.isNameValidationVisible"
-        state="playgroundCtrl.state.playground.isNameValidationVisible"
-        close-button="true">
+        state="playgroundCtrl.state.playground.isNameValidationVisible">
     <div class="modal-title" translate-once="SAVE_CHANGE"></div>
     <br/>
 
@@ -128,7 +128,7 @@
         <div class="modal-buttons">
             <button ng-click="playgroundCtrl.discardSaveOnClose()"
                     type="button"
-                    class="btn modal-secondary-button btn-link"
+                    class="btn talend-modal-close btn-default btn-inverse modal-secondary-button"
                     translate-once="NO_THANKS">
             </button>
 
