@@ -13,7 +13,7 @@
 
 import DataViewMock from '../../../../mocks/DataView.mock';
 
-fdescribe('Grid state service', () => {
+describe('Grid state service', () => {
     'use strict';
 
     const data = {
@@ -212,6 +212,16 @@ fdescribe('Grid state service', () => {
 
                 expect(gridState.selectedColumns[0]).not.toBe(oldMetadata);
                 expect(gridState.selectedColumns[0]).toBe(data.metadata.columns[1]);
+            }));
+
+
+            it('should select the first left column if the selected one is deleted', inject((gridState, GridStateService) => {
+                gridState.columns = data.metadata.columns;
+                gridState.selectedColumns = [{ id: '0002' }];
+
+                GridStateService.setData(newData);
+
+                expect(gridState.selectedColumns[0]).toEqual(data.metadata.columns[1]);
             }));
 
             it('should update column metadata with the 1st column when actual selected column is not in the new columns', inject((gridState, GridStateService) => {
