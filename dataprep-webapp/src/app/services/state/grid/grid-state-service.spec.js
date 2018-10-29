@@ -13,7 +13,7 @@
 
 import DataViewMock from '../../../../mocks/DataView.mock';
 
-describe('Grid state service', () => {
+fdescribe('Grid state service', () => {
     'use strict';
 
     const data = {
@@ -22,6 +22,33 @@ describe('Grid state service', () => {
                 { id: '0000', type: 'integer' },
                 { id: '0001', type: 'string' },
                 { id: '0002', type: 'decimal' },
+                { id: '0003', type: 'date' },
+            ],
+            records: 12,
+            sampleNbRows: 12,
+        },
+        records: [
+            { tdpId: 0, firstname: 'Tata' },
+            { tdpId: 1, firstname: 'Tetggggge' },
+            { tdpId: 2, firstname: 'Titi' },
+            { tdpId: 3, firstname: 'Toto' },
+            { tdpId: 4, name: 'AMC Gremlin' },
+            { tdpId: 5, firstname: 'Tyty' },
+            { tdpId: 6, firstname: 'Papa' },
+            { tdpId: 7, firstname: 'Pepe' },
+            { tdpId: 8, firstname: 'Pipi' },
+            { tdpId: 9, firstname: 'Popo' },
+            { tdpId: 10, firstname: 'Pupu' },
+            { tdpId: 11, firstname: 'Pypy' },
+        ],
+    };
+
+
+    const newData = {
+        metadata: {
+            columns: [
+                { id: '0000', type: 'integer' },
+                { id: '0001', type: 'string' },
                 { id: '0003', type: 'date' },
             ],
             records: 12,
@@ -177,14 +204,12 @@ describe('Grid state service', () => {
             }));
 
             it('should update column metadata with the new metadata corresponding to the selected id', inject((gridState, GridStateService) => {
-                //given
                 const oldMetadata = { id: '0001' };
+                gridState.columns = data.metadata.columns;
                 gridState.selectedColumns = [oldMetadata];
 
-                //when
                 GridStateService.setData(data);
 
-                //then
                 expect(gridState.selectedColumns[0]).not.toBe(oldMetadata);
                 expect(gridState.selectedColumns[0]).toBe(data.metadata.columns[1]);
             }));
