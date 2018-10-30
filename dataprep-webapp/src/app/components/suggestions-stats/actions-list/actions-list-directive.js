@@ -43,6 +43,7 @@ export default function ActionsList() {
 			shouldRenderCategory: '=',
 			shouldRenderAction: '=',
 			scrollToBottom: '=',
+			scrollToTop: '=',
 			scope: '@',
 		},
 		link: {

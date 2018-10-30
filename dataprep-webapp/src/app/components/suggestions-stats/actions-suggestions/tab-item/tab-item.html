@@ -14,7 +14,8 @@
                   scope="{{tabItemCtrl.scope}}"
                   should-render-category="tabItemCtrl.shouldRenderCategory"
                   should-render-action="tabItemCtrl.shouldRenderAction"
-                  scroll-to-bottom="tabItemCtrl.scrollToBottom"></actions-list>
+                  scroll-to-bottom="tabItemCtrl.scrollToBottom"
+                  scroll-to-top="tabItemCtrl.scrollToTop"></actions-list>
     <div ng-if="tabItemCtrl.getSuggestionsState().filteredTransformations.length === 0 && tabItemCtrl.getSuggestionsState().searchActionString"
          class="empty-message action-message">
         <span translate-once="NO_ACTION_AVAILABLE"></span>

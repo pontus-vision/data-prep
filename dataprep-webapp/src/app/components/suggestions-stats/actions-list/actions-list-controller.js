@@ -19,8 +19,14 @@
  * @requires data-prep.services.playground.service:PlaygroundService
  * @requires data-prep.services.early-preview.service:EarlyPreviewService
  */
-export default function ActionsListCtrl($timeout, state, TransformationService,
-                                        PlaygroundService, EarlyPreviewService, StateService) {
+export default function ActionsListCtrl(
+	$timeout,
+	state,
+	TransformationService,
+	PlaygroundService,
+	EarlyPreviewService,
+	StateService,
+) {
 	'ngInject';
 
 	const vm = this;
@@ -144,6 +150,7 @@ export default function ActionsListCtrl($timeout, state, TransformationService,
 	 */
 	vm.transform = function transform(action) {
 		return function (params) {
+			console.log('[NC] transform');
 			EarlyPreviewService.cancelEarlyPreview();
 
 			if (!vm.state.playground.transformationInProgress) {
@@ -153,9 +160,14 @@ export default function ActionsListCtrl($timeout, state, TransformationService,
 						vm.showDynamicModal = false;
 					})
 					.finally(() => {
-						$timeout(() => {
-							StateService.setTransformationInProgress(false);
-						}, 500, false);
+						$timeout(
+							() => {
+								StateService.setTransformationInProgress(false);
+								vm.scrollToTop();
+							},
+							500,
+							false,
+						);
 					});
 			}
 		};
@@ -166,7 +178,10 @@ export default function ActionsListCtrl($timeout, state, TransformationService,
 			const categoryName = action.alternateCategory || action.category;
 			const actionName = action.name;
 			if (categoryName && actionName) {
-				return `preparation.${vm.scope === 'dataset' ? 'table.' : ''}${categoryName.replace(/\s/g, '_')}.${actionName}`;
+				return `preparation.${vm.scope === 'dataset' ? 'table.' : ''}${categoryName.replace(
+					/\s/g,
+					'_',
+				)}.${actionName}`;
 			}
 		}
 		return '';

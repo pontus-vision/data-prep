@@ -629,6 +629,9 @@ describe('Transformation Service', () => {
                     allCategories: adaptedCategories,
                     searchActionString: '',
                 };
+
+                expect(StateService.setTransformations)
+                    .toHaveBeenCalledWith(scope, []);
                 expect(TransformationUtilsService.adaptCategories)
                     .toHaveBeenCalledWith(suggestionsFromCache, transformationsFromCache.allCategories);
                 expect(StateService.setTransformations)
@@ -665,6 +668,21 @@ describe('Transformation Service', () => {
                 // then
                 expect(StateService.setTransformationsLoading).toHaveBeenCalledWith(false);
             }));
+        });
+
+    describe('resetScope', () => {
+        it('should reset actions for given scope',
+            inject(($rootScope, StateService, TransformationService) => {
+                const scope = 'column';
+
+                spyOn(StateService, 'setTransformations').and.returnValue();
+
+                TransformationService.resetScope(scope);
+                $rootScope.$digest();
+
+                expect(StateService.setTransformations).toHaveBeenCalledWith(scope, []);
+            })
+        );
     });
 
     describe('filter', () => {

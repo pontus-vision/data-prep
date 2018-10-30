@@ -46,6 +46,15 @@ export default function TabItem($timeout) {
 					}, 500);
 				}, 300, false);
 			};
+
+			ctrl.scrollToTop = function scrollToTop() {
+				$timeout(function () {
+					const tabContainer = iElement.find('.action-suggestion-tab-items').eq(0);
+					tabContainer.animate({
+						scrollTop: 0,
+					}, 500);
+				}, 300, false);
+			};
 		},
 	};
 }

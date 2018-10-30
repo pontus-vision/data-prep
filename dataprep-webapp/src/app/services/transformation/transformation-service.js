@@ -145,7 +145,10 @@ export default class TransformationService {
 		if (this.state.playground.isReadOnly) {
 			return this.$q.when([]);
 		}
+
 		this.StateService.setTransformationsLoading(true);
+		console.log('[NC] reset');
+		this.resetScope(scope);
 
 		return this.fetchSuggestionsAndTransformations(scope, entity)
 			.then(([allSuggestions, { allCategories, allTransformations }]) => {
@@ -163,6 +166,10 @@ export default class TransformationService {
 			.finally(() => {
 				this.StateService.setTransformationsLoading(false);
 			});
+	}
+
+	resetScope(scope) {
+		this.StateService.setTransformations(scope, []);
 	}
 
 	/**
