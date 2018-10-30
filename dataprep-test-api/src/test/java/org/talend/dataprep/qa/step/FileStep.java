@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.dataprep.qa.config.DataPrepStep;
 import org.talend.dataprep.qa.util.ExcelComparator;
-import org.talend.dataprep.qa.util.SparkComparator;
+import org.talend.dataprep.qa.util.FileComparator;
 
 import cucumber.api.java.en.Then;
 
@@ -75,7 +75,7 @@ public class FileStep extends DataPrepStep {
         try (InputStream tempFileStream = Files.newInputStream(tempFile);
                 InputStream expectedFileStream = DataPrepStep.class.getResourceAsStream(expectedFilename)) {
 
-            assertTrue(SparkComparator.doesFilesContainSameLines(expectedFileStream, tempFileStream));
+            assertTrue(FileComparator.doesFilesContainSameLines(expectedFileStream, tempFileStream));
         }
     }
 }

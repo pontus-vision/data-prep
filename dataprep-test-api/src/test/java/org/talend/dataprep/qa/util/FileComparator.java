@@ -26,9 +26,9 @@ import org.apache.commons.io.LineIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SparkComparator {
+public class FileComparator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SparkComparator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileComparator.class);
 
     /**
      * Compare two files in order to check if they contain the same lines (but maybe not in the same order).
@@ -75,7 +75,7 @@ public class SparkComparator {
         return false;
     }
 
-    public static String getKeys(@NotNull Map<String, Integer> map) {
+    private static String getKeys(@NotNull Map<String, Integer> map) {
         StringBuilder str = new StringBuilder();
         map.keySet().forEach(k -> {
             str
@@ -89,7 +89,7 @@ public class SparkComparator {
 
     /**
      * Decrement a value associated with the given key in the given {@link Map}, remove the key if value reach 0.
-     * 
+     *
      * @param map the {@link Map} containing key and value to decrement.
      * @param key the key associated with the value to decrement.
      * @return true if decremented, false if the key doesn't exists in map.
@@ -112,7 +112,7 @@ public class SparkComparator {
     /**
      * Increment a value associated with a the given key in the given {@link Map}, if the key doesn't exist it's added
      * with 1 as value.
-     * 
+     *
      * @param map the {@link Map} where the value is incremented or the key added.
      * @param key the key to increment or to add.
      */

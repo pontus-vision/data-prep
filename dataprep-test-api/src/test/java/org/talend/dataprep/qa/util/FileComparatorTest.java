@@ -12,7 +12,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SparkComparatorTest {
+public class FileComparatorTest {
 
     private static final String TEST_KEY = "testKey";
 
@@ -31,7 +31,7 @@ public class SparkComparatorTest {
 
     @Test
     public void putOrIncrementTestNewKey() {
-        SparkComparator.putOrIncrement(map, TEST_KEY);
+        FileComparator.putOrIncrement(map, TEST_KEY);
         assertTrue(map.containsKey(TEST_KEY));
         assertTrue(map.get(TEST_KEY).equals(1));
     }
@@ -39,21 +39,21 @@ public class SparkComparatorTest {
     @Test
     public void putOrIncrementTestExistingKey() {
         map.put(TEST_KEY, 5);
-        SparkComparator.putOrIncrement(map, TEST_KEY);
+        FileComparator.putOrIncrement(map, TEST_KEY);
         assertTrue(map.containsKey(TEST_KEY));
         assertEquals(6, (int) map.get(TEST_KEY));
     }
 
     @Test
     public void removeOrDecrementTestNewKey() {
-        boolean result = SparkComparator.removeOrDecrement(map, TEST_KEY);
+        boolean result = FileComparator.removeOrDecrement(map, TEST_KEY);
         assertFalse(result);
     }
 
     @Test
     public void removeOrDecrementTestExistingKeyDecrement() {
         map.put(TEST_KEY, 5);
-        boolean result = SparkComparator.removeOrDecrement(map, TEST_KEY);
+        boolean result = FileComparator.removeOrDecrement(map, TEST_KEY);
         assertEquals(4, (int) map.get(TEST_KEY));
         assertTrue(result);
     }
@@ -61,43 +61,43 @@ public class SparkComparatorTest {
     @Test
     public void removeOrDecrementTestExistingKeyDeletion() {
         map.put(TEST_KEY, 1);
-        boolean result = SparkComparator.removeOrDecrement(map, TEST_KEY);
+        boolean result = FileComparator.removeOrDecrement(map, TEST_KEY);
         assertFalse(map.containsKey(TEST_KEY));
         assertTrue(result);
     }
 
     @Test
     public void doesFilesContainSameLinesTestSameFile() throws IOException {
-        try (InputStream inputStream1 = SparkComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE); //
-                InputStream inputStream2 = SparkComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE);) {
-            boolean result = SparkComparator.doesFilesContainSameLines(inputStream2, inputStream1);
+        try (InputStream inputStream1 = FileComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE); //
+                InputStream inputStream2 = FileComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE)) {
+            boolean result = FileComparator.doesFilesContainSameLines(inputStream2, inputStream1);
             assertTrue(result);
         }
     }
 
     @Test
     public void doesFilesContainSameLinesTestMixFileOrder1() throws IOException {
-        try (InputStream inputStream1 = SparkComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE); //
-                InputStream inputStream2 = SparkComparatorTest.class.getResourceAsStream(FILE_10L3C_MIX);) {
-            boolean result = SparkComparator.doesFilesContainSameLines(inputStream2, inputStream1);
+        try (InputStream inputStream1 = FileComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE); //
+                InputStream inputStream2 = FileComparatorTest.class.getResourceAsStream(FILE_10L3C_MIX)) {
+            boolean result = FileComparator.doesFilesContainSameLines(inputStream2, inputStream1);
             assertTrue(result);
         }
     }
 
     @Test
     public void doesFilesContainSameLinesTestMixFileOrder2() throws IOException {
-        try (InputStream inputStream1 = SparkComparatorTest.class.getResourceAsStream(FILE_10L3C_MIX); //
-                InputStream inputStream2 = SparkComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE);) {
-            boolean result = SparkComparator.doesFilesContainSameLines(inputStream2, inputStream1);
+        try (InputStream inputStream1 = FileComparatorTest.class.getResourceAsStream(FILE_10L3C_MIX); //
+                InputStream inputStream2 = FileComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE)) {
+            boolean result = FileComparator.doesFilesContainSameLines(inputStream2, inputStream1);
             assertTrue(result);
         }
     }
 
     @Test
     public void doesFilesContainSameLinesTestMissingLineFile() throws IOException {
-        try (InputStream inputStream1 = SparkComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE); //
-                InputStream inputStream2 = SparkComparatorTest.class.getResourceAsStream(FILE_4L3C);) {
-            boolean result = SparkComparator.doesFilesContainSameLines(inputStream2, inputStream1);
+        try (InputStream inputStream1 = FileComparatorTest.class.getResourceAsStream(FILE_10L3C_BASE); //
+                InputStream inputStream2 = FileComparatorTest.class.getResourceAsStream(FILE_4L3C)) {
+            boolean result = FileComparator.doesFilesContainSameLines(inputStream2, inputStream1);
             assertFalse(result);
         }
     }
