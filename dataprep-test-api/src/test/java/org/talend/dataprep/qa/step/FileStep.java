@@ -52,7 +52,6 @@ public class FileStep extends DataPrepStep {
                 InputStream expectedFileStream = DataPrepStep.class.getResourceAsStream(expectedFilename)) {
 
             if (FileSystems.getDefault().getPathMatcher("glob:*.xlsx").matches(tempFile.getFileName())) {
-
                 if (!ExcelComparator.compareTwoFile(new XSSFWorkbook(tempFileStream),
                         new XSSFWorkbook(expectedFileStream))) {
                     fail("Temporary file " + temporaryFilename + " isn't the same as the expected file "
