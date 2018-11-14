@@ -1,4 +1,4 @@
-@EnvOS @EnvOnPremise @EnvCloud
+@EnvOS @EnvOnPremise @EnvCloud @ProdLevel2
 Feature: Disable, enable, reorder, delete steps
 
   @CleanAfter

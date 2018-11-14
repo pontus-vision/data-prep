@@ -1,4 +1,4 @@
-@EnvOS @EnvOnPremise @EnvCloud @Action
+@EnvOS @EnvOnPremise @EnvCloud @Action @ProdLevel2
 Feature: Perform scenarios with SplitAction related action
 
   Scenario: TDP-2673 TDP-4926 TDP-5057 related bug fix

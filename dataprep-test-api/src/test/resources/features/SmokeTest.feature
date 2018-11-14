@@ -1,4 +1,4 @@
-@EnvOS @EnvOnPremise @EnvCloud
+@EnvOS @EnvOnPremise @EnvCloud @ProdLevel1
 Feature: Perform an OS Smoke Test
 
   Scenario: Upload a dataset 10L3C_dataset on OS side from csv
