@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.util.EntityUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -69,7 +68,7 @@ public final class Defaults {
      * @param <T> The expected type for the command's return.
      * @return <code>null</code> whatever request or response contains.
      */
-    public static <T> BiFunction<HttpUriRequest, HttpResponse, T> asNull() {
+    public static <T> BiFunction<HttpRequest, HttpResponse, T> asNull() {
         return (request, response) -> {
             EntityUtils.consumeQuietly(response.getEntity());
             return null;
@@ -79,7 +78,7 @@ public final class Defaults {
     /**
      * @return A 'to string' of the response's body.
      */
-    public static BiFunction<HttpUriRequest, HttpResponse, String> asString() {
+    public static BiFunction<HttpRequest, HttpResponse, String> asString() {
         return (request, response) -> {
             try (InputStream content = response.getEntity().getContent()) {
                 return IOUtils.toString(content, UTF_8);
@@ -94,7 +93,7 @@ public final class Defaults {
     /**
      * @return An empty string whatever request or response contains.
      */
-    public static BiFunction<HttpUriRequest, HttpResponse, String> emptyString() {
+    public static BiFunction<HttpRequest, HttpResponse, String> emptyString() {
         return (request, response) -> {
             EntityUtils.consumeQuietly(response.getEntity());
             return StringUtils.EMPTY;
@@ -104,7 +103,7 @@ public final class Defaults {
     /**
      * @return An empty {@link InputStream stream} whatever request or response contains.
      */
-    public static BiFunction<HttpUriRequest, HttpResponse, InputStream> emptyStream() {
+    public static BiFunction<HttpRequest, HttpResponse, InputStream> emptyStream() {
         return (request, response) -> {
             EntityUtils.consumeQuietly(response.getEntity());
             return new ByteArrayInputStream(new byte[0]);
@@ -115,12 +114,13 @@ public final class Defaults {
      * @return A stream to the underlying service's response (and release HTTP connection once returned stream is fully
      * consumed).
      */
-    public static BiFunction<HttpUriRequest, HttpResponse, InputStream> pipeStream() {
+    public static BiFunction<HttpRequest, HttpResponse, InputStream> pipeStream() {
         return (request, response) -> {
             try {
                 return new ReleasableInputStream(response.getEntity().getContent(),
                         () -> EntityUtils.consumeQuietly(response.getEntity()));
             } catch (IOException e) {
+                EntityUtils.consumeQuietly(response.getEntity());
                 throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
             }
         };
@@ -134,7 +134,7 @@ public final class Defaults {
      * @param <T> The result type
      * @return The response converted as <code>T</code>.
      */
-    public static <T> BiFunction<HttpUriRequest, HttpResponse, T> convertResponse(ObjectMapper mapper, Class<T> clazz) {
+    public static <T> BiFunction<HttpRequest, HttpResponse, T> convertResponse(ObjectMapper mapper, Class<T> clazz) {
         return (request, response) -> {
             try (final InputStream content = response.getEntity().getContent()) {
                 final String contentAsString = IOUtils.toString(content, UTF_8);
@@ -159,7 +159,7 @@ public final class Defaults {
      * @param <T> The result type
      * @return The response converted as <code>T</code>.
      */
-    public static <T> BiFunction<HttpUriRequest, HttpResponse, T> convertResponse(ObjectMapper mapper,
+    public static <T> BiFunction<HttpRequest, HttpResponse, T> convertResponse(ObjectMapper mapper,
             TypeReference<T> typeReference) {
         return convertResponse(mapper, typeReference, e -> {
             throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
@@ -175,7 +175,7 @@ public final class Defaults {
      * @param <T> The result type
      * @return The response converted as <code>T</code>.
      */
-    public static <T> BiFunction<HttpUriRequest, HttpResponse, T> convertResponse(ObjectMapper mapper,
+    public static <T> BiFunction<HttpRequest, HttpResponse, T> convertResponse(ObjectMapper mapper,
             TypeReference<T> typeReference, Function<Exception, T> errorHandler) {
         return (request, response) -> {
             try (InputStream content = response.getEntity().getContent()) {
@@ -194,7 +194,7 @@ public final class Defaults {
      * @param mapper The mapper to use for creating the JSON tree.
      * @return The response converted as a {@link JsonNode tree}.
      */
-    public static BiFunction<HttpUriRequest, HttpResponse, JsonNode> toJson(ObjectMapper mapper) {
+    public static BiFunction<HttpRequest, HttpResponse, JsonNode> toJson(ObjectMapper mapper) {
         return (request, response) -> {
             try (InputStream content = response.getEntity().getContent()) {
                 JsonNode jsonNode = mapper.readTree(content);
@@ -210,7 +210,7 @@ public final class Defaults {
         };
     }
 
-    public static <T, S> BiFunction<HttpUriRequest, HttpResponse, S> iterate(Class<T> clazz, ObjectMapper mapper,
+    public static <T, S> BiFunction<HttpRequest, HttpResponse, S> iterate(Class<T> clazz, ObjectMapper mapper,
             Function<Iterator<T>, S> convert) {
         return (request, response) -> {
             try (InputStream content = response.getEntity().getContent()) {
