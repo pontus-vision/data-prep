@@ -215,17 +215,15 @@ public class DataprepHttpClient {
         return builder.toString();
     }
 
-    private Span addTrackingHeaders(HttpRequest request,
-            HttpCallConfiguration.RequestZipkinConfiguration requestZipkinConfiguration) {
+    private Span addTrackingHeaders(HttpRequest request, HttpCallConfiguration.RequestZipkinConfiguration requestZipkinConfiguration) {
         String spanNameResult = requestZipkinConfiguration.getSpanName();
         final Span requestSpan = tracer.createSpan(spanNameResult, tracer.getCurrentSpan());
 
-        for (Map.Entry<String, String> tagEntry : requestZipkinConfiguration.getTags().entrySet()) {
+        for (Map.Entry<String, String> tagEntry: requestZipkinConfiguration.getTags().entrySet()) {
             requestSpan.tag(tagEntry.getKey(), tagEntry.getValue());
         }
 
-        final SpanInjector<HttpRequest> injector = new HttpRequestBaseSpanInjector(
-                requestZipkinConfiguration.getTags().get(Span.SPAN_LOCAL_COMPONENT_TAG_NAME));
+        final SpanInjector<HttpRequest> injector = new HttpRequestBaseSpanInjector(requestZipkinConfiguration.getTags().get(Span.SPAN_LOCAL_COMPONENT_TAG_NAME));
         injector.inject(requestSpan, request);
         return requestSpan;
     }
@@ -260,7 +258,7 @@ public class DataprepHttpClient {
 
         private HttpRequestBaseSpanInjector(String localComponentTagName) {
             this.localComponentTagName = localComponentTagName;
-        }
+      }
 
         @Override
         public void inject(Span span, HttpRequest httpRequestBase) {
