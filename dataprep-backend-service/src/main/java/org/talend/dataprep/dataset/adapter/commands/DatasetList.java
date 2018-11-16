@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -35,7 +35,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 
 /**
  * List the datasets of the user.
- * 
+ *
  * @see Dataset
  */
 @Component("DataSetList#2")
@@ -73,7 +73,7 @@ public class DatasetList extends GenericCommand<Stream<Dataset>> {
         }
     }
 
-    private Stream<Dataset> readResponse(HttpRequestBase request, HttpResponse response) {
+    private Stream<Dataset> readResponse(HttpUriRequest request, HttpResponse response) {
         Dataset[] dataSets = Defaults.convertResponse(objectMapper, Dataset[].class).apply(request, response);
         return Stream.of(dataSets);
     }

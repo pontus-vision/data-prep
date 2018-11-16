@@ -28,6 +28,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Test;
@@ -206,7 +207,7 @@ public class DefaultsTest {
     @Test
     public void shouldParseJsonArray() throws Exception {
         // Given
-        final BiFunction<HttpRequestBase, HttpResponse, Set<String>> extractStatuses =
+        final BiFunction<HttpUriRequest, HttpResponse, Set<String>> extractStatuses =
                 toJson(new ObjectMapper()).andThen(jsonNode -> {
                     final Iterator<JsonNode> elements = jsonNode.elements();
                     Set<String> statuses = new HashSet<>();

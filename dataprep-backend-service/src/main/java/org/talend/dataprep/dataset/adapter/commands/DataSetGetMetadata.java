@@ -12,7 +12,6 @@
 
 package org.talend.dataprep.dataset.adapter.commands;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.annotation.PostConstruct;
@@ -29,6 +28,7 @@ import org.talend.dataprep.exception.error.APIErrorCodes;
 
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 import static org.talend.dataprep.command.Defaults.asNull;
+import static org.talend.dataprep.command.Defaults.convertResponse;
 import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EXCEPTION;
 
 /**
@@ -62,17 +62,7 @@ public class DataSetGetMetadata extends GenericCommand<Dataset> {
             throw new TDPException(UNEXPECTED_EXCEPTION, e);
         }
         execute(() -> new HttpGet(build));
-
-        on(HttpStatus.OK).then((req, res) -> {
-            try {
-                return objectMapper.readValue(res.getEntity().getContent(), Dataset.class);
-            } catch (IOException e) {
-                throw new TDPException(UNEXPECTED_EXCEPTION, e);
-            } finally {
-                req.releaseConnection();
-            }
-        });
-
+        on(HttpStatus.OK).then(convertResponse(objectMapper, Dataset.class));
     }
 
 }

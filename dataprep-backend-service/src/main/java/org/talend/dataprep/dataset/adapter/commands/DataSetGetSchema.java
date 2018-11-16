@@ -19,8 +19,10 @@ import java.net.URISyntaxException;
 import javax.annotation.PostConstruct;
 
 import org.apache.avro.Schema;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.util.EntityUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -36,7 +38,7 @@ import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EX
 
 /**
  * Get the dataSet schema.
- * 
+ *
  * @see Schema
  */
 @Component
@@ -73,12 +75,13 @@ public class DataSetGetSchema extends GenericCommand<Schema> {
         });
 
         on(HttpStatus.OK).then((req, res) -> {
-            try (InputStream inputStream = res.getEntity().getContent()) {
+            HttpEntity entity = res.getEntity();
+            try (InputStream inputStream = entity.getContent()) {
                 return new Schema.Parser().parse(inputStream);
             } catch (IOException e) {
                 throw new TDPException(UNEXPECTED_EXCEPTION, e);
             } finally {
-                req.releaseConnection();
+                EntityUtils.consumeQuietly(entity);
             }
         });
     }

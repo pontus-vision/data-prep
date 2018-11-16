@@ -61,11 +61,8 @@ public class PreviewDiff extends PreviewAbstract {
         this.previewStepActions = previewStepActions;
     }
 
-    /**
-     * @see PreviewAbstract#run()
-     */
     @Override
-    protected InputStream run() throws Exception {
+    protected InputStream run() {
 
         // get preparation details
         final String dataSetId = preparation.getDataSetId();

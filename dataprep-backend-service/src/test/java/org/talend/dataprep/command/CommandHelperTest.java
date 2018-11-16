@@ -111,7 +111,7 @@ public class CommandHelperTest {
         }
 
         @Override
-        protected InputStream run() throws Exception {
+        protected InputStream run() {
             return new ByteArrayInputStream("test".getBytes());
         }
 

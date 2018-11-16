@@ -56,7 +56,7 @@ public class PreviewAdd extends PreviewAbstract {
      * @see PreviewAbstract#run()
      */
     @Override
-    protected InputStream run() throws Exception {
+    protected InputStream run() {
         final Map<String, Action> originalActionsByStep = new LinkedHashMap<>();
         String dataSetId = addParameters.getDatasetId();
 

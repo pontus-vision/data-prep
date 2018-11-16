@@ -37,24 +37,14 @@ public class PreviewUpdate extends PreviewAbstract {
     /** The all the preview parameters. */
     private final PreviewUpdateParameters parameters;
 
-    /**
-     * Default constructor.
-     * @param parameters
-     * @param preparation
-     * @param actions
-     */
     // private constructor used to ensure the IoC
     private PreviewUpdate(final PreviewUpdateParameters parameters, PreparationDTO preparation, List<Action> actions) {
         super(preparation, actions);
         this.parameters = parameters;
     }
 
-    /**
-     * @see PreviewAbstract#run()
-     */
     @Override
-    protected InputStream run() throws Exception {
-
+    protected InputStream run() {
         final String dataSetId = preparation.getDataSetId();
 
         //Get steps from first transformation

@@ -13,6 +13,7 @@
 
 package org.talend.dataprep.api.service.command.preparation;
 
+import static org.talend.dataprep.api.service.command.preparation.ActionSerializer.serializeActions;
 import static org.talend.dataprep.command.Defaults.pipeStream;
 
 import java.io.InputStream;
@@ -30,6 +31,7 @@ import org.talend.dataprep.api.preparation.Action;
 import org.talend.dataprep.api.preparation.PreparationDTO;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.exception.error.CommonErrorCodes;
 import org.talend.dataprep.exception.error.TransformationErrorCodes;
 import org.talend.dataprep.transformation.preview.api.PreviewParameters;
 
@@ -60,7 +62,7 @@ public abstract class PreviewAbstract extends GenericCommand<InputStream> {
     }
 
     @Override
-    protected InputStream run() throws Exception {
+    protected InputStream run() {
         if (parameters == null) {
             throw new IllegalStateException("Missing preview context.");
         }
@@ -96,14 +98,16 @@ public abstract class PreviewAbstract extends GenericCommand<InputStream> {
      * @throws JsonProcessingException if an error occurs.
      */
     protected void setContext(Collection<Action> baseActions, Collection<Action> newActions, String datasetId,
-            String preparationId, List<Integer> tdpIds, ExportParameters.SourceType sourceType)
-            throws JsonProcessingException {
-
-        this.parameters = new PreviewParameters( //
-                serializeActions(baseActions), //
-                serializeActions(newActions), //
-                datasetId, //
-                preparationId, serializeIds(tdpIds), sourceType);
+            String preparationId, List<Integer> tdpIds, ExportParameters.SourceType sourceType) {
+        try {
+            this.parameters = new PreviewParameters( //
+                    serializeActions(objectMapper, baseActions), //
+                    serializeActions(objectMapper, newActions), //
+                    datasetId, //
+                    preparationId, serializeIds(tdpIds), sourceType);
+        } catch (JsonProcessingException e) {
+            throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
+        }
     }
 
     /**

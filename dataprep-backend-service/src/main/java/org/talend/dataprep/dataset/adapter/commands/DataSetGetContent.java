@@ -21,10 +21,14 @@ import javax.annotation.PostConstruct;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.util.EntityUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -42,7 +46,7 @@ import static org.talend.dataprep.util.avro.AvroUtils.readBinaryStream;
 
 /**
  * Command to get the stream of AVRO records of the dataset.
- * 
+ *
  * @see GenericRecord
  */
 @Component
@@ -88,13 +92,16 @@ public class DataSetGetContent extends GenericCommand<Stream<GenericRecord>> {
         });
     }
 
-    private Stream<GenericRecord> readResult(HttpRequestBase httpRequestBase, HttpResponse httpResponse) {
+    private Stream<GenericRecord> readResult(HttpRequest request, HttpResponse response) {
+        HttpEntity entity = response.getEntity();
         try {
-            InputStream content = httpResponse.getEntity().getContent();
+            InputStream content = entity.getContent();
             return readBinaryStream(content, contentSchema).asStream();
         } catch (IOException e) {
             throw new TalendRuntimeException(org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EXCEPTION,
                     e);
+        } finally {
+            EntityUtils.consumeQuietly(entity);
         }
     }
 

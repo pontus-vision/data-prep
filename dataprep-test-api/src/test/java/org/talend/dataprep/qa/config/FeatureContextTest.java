@@ -9,7 +9,7 @@ import static org.talend.dataprep.qa.config.FeatureContext.suffixFolderName;
 import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
 import static org.talend.dataprep.qa.config.UnitTestsUtil.injectFieldInClass;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -39,13 +39,11 @@ public class VersionCommand extends GenericCommand<Version> {
     private VersionCommand(String serviceUrl, String entryPoint) {
         super(VERSION_GROUP);
 
-        execute(() -> {
-            String url = serviceUrl + entryPoint;
-            return new HttpGet(url);
-        });
-        onError(e -> new TDPException(CommonErrorCodes.UNABLE_TO_GET_SERVICE_VERSION, e,
-                ExceptionContext.build().put("version", serviceUrl)));
-        on(HttpStatus.NO_CONTENT).then(asNull());
+        configuration //
+                .execute(() -> new HttpGet(serviceUrl + entryPoint)) //
+                .onErrorThrow(e -> new TDPException(CommonErrorCodes.UNABLE_TO_GET_SERVICE_VERSION, e,
+                        ExceptionContext.build().put("version", serviceUrl))) //
+                .on(HttpStatus.NO_CONTENT).then(asNull());
     }
 
     @PostConstruct

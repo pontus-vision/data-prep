@@ -81,16 +81,7 @@ public class DataSetGetMetadataLegacy extends GenericCommand<DataSetMetadata> {
         }
         execute(() -> new HttpGet(build));
 
-        on(HttpStatus.OK).then((req, res) -> {
-            try {
-                final DataSet dataSet = objectMapper.readerFor(DataSet.class).readValue(res.getEntity().getContent());
-                return dataSet.getMetadata();
-            } catch (IOException e) {
-                throw new TDPException(UNEXPECTED_EXCEPTION, e);
-            } finally {
-                req.releaseConnection();
-            }
-        });
+        on(HttpStatus.OK).then((req, res) -> Defaults.convertResponse(objectMapper, DataSet.class).apply(req, res).getMetadata());
     }
 
     private void configureSampleDataset(String dataSetId) {
