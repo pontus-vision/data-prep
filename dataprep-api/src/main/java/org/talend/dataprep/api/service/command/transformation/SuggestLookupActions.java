@@ -13,6 +13,7 @@
 
 package org.talend.dataprep.api.service.command.transformation;
 
+import static org.apache.http.util.EntityUtils.consumeQuietly;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
 
@@ -22,9 +23,11 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.netflix.hystrix.HystrixCommand;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -36,9 +39,6 @@ import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 import org.talend.dataprep.transformation.actions.datablending.Lookup;
 import org.talend.dataprep.transformation.pipeline.ActionRegistry;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.netflix.hystrix.HystrixCommand;
 
 /**
  * Suggestion Lookup actions in addition to dataset actions.
@@ -72,7 +72,7 @@ public class SuggestLookupActions extends ChainedCommand<List<ActionForm>, DataS
     /**
      * @return the function that aggregates the SuggestColumnActions with the lookups.
      */
-    private BiFunction<HttpRequestBase, HttpResponse, List<ActionForm>> process() {
+    private BiFunction<HttpUriRequest, HttpResponse, List<ActionForm>> process() {
         return (request, response) -> {
 
             try {
@@ -87,7 +87,7 @@ public class SuggestLookupActions extends ChainedCommand<List<ActionForm>, DataS
             } catch (IOException e) {
                 throw new TDPException(APIErrorCodes.UNABLE_TO_RETRIEVE_SUGGESTED_ACTIONS, e);
             } finally {
-                request.releaseConnection();
+                consumeQuietly(response.getEntity());
             }
 
         };

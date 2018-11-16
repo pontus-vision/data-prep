@@ -6,7 +6,6 @@ import static org.springframework.cloud.sleuth.Span.SPAN_NAME_NAME;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -216,15 +215,17 @@ public class DataprepHttpClient {
         return builder.toString();
     }
 
-    private Span addTrackingHeaders(HttpRequest request, HttpCallConfiguration.RequestZipkinConfiguration requestZipkinConfiguration) {
+    private Span addTrackingHeaders(HttpRequest request,
+            HttpCallConfiguration.RequestZipkinConfiguration requestZipkinConfiguration) {
         String spanNameResult = requestZipkinConfiguration.getSpanName();
         final Span requestSpan = tracer.createSpan(spanNameResult, tracer.getCurrentSpan());
 
-        for (Map.Entry<String, String> tagEntry: requestZipkinConfiguration.getTags().entrySet()) {
+        for (Map.Entry<String, String> tagEntry : requestZipkinConfiguration.getTags().entrySet()) {
             requestSpan.tag(tagEntry.getKey(), tagEntry.getValue());
         }
 
-        final SpanInjector<HttpRequest> injector = new HttpRequestBaseSpanInjector(requestZipkinConfiguration.getTags().get(Span.SPAN_LOCAL_COMPONENT_TAG_NAME));
+        final SpanInjector<HttpRequest> injector = new HttpRequestBaseSpanInjector(
+                requestZipkinConfiguration.getTags().get(Span.SPAN_LOCAL_COMPONENT_TAG_NAME));
         injector.inject(requestSpan, request);
         return requestSpan;
     }
@@ -234,8 +235,9 @@ public class DataprepHttpClient {
     }
 
     private void addAuthorizationHeaders(HttpRequest request) {
-        if (StringUtils.isNotBlank(getAuthenticationToken())) {
-            request.addHeader(HttpHeaders.AUTHORIZATION, getAuthenticationToken());
+        String authenticationToken = context.getBean(Security.class).getAuthenticationToken();
+        if (StringUtils.isNotBlank(authenticationToken) && request.getHeaders(HttpHeaders.AUTHORIZATION).length == 0) {
+            request.addHeader(HttpHeaders.AUTHORIZATION, authenticationToken);
         } else {
             // Intentionally left as debug to prevent log flood in open source edition.
             LOGGER.debug("No current authentication token for {}.", this.getClass());
@@ -249,11 +251,6 @@ public class DataprepHttpClient {
         }
     }
 
-    /** Override this method to change security token source. Executed in post construct with all fields initialized. */
-    public String getAuthenticationToken() {
-        return context.getBean(Security.class).getAuthenticationToken();
-    }
-
     /**
      * A {@link SpanInjector} implementation dedicated to inject tracing headers for {@link HttpRequestBase} objects.
      */
@@ -263,7 +260,7 @@ public class DataprepHttpClient {
 
         private HttpRequestBaseSpanInjector(String localComponentTagName) {
             this.localComponentTagName = localComponentTagName;
-      }
+        }
 
         @Override
         public void inject(Span span, HttpRequest httpRequestBase) {

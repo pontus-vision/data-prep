@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.util.EntityUtils;
@@ -117,7 +118,8 @@ public final class Defaults {
     public static BiFunction<HttpUriRequest, HttpResponse, InputStream> pipeStream() {
         return (request, response) -> {
             try {
-                return new ReleasableInputStream(response.getEntity().getContent(), () -> EntityUtils.consumeQuietly(response.getEntity()));
+                return new ReleasableInputStream(response.getEntity().getContent(),
+                        () -> EntityUtils.consumeQuietly(response.getEntity()));
             } catch (IOException e) {
                 throw new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, e);
             }
@@ -132,8 +134,7 @@ public final class Defaults {
      * @param <T> The result type
      * @return The response converted as <code>T</code>.
      */
-    public static <T> BiFunction<HttpUriRequest, HttpResponse, T> convertResponse(ObjectMapper mapper,
-            Class<T> clazz) {
+    public static <T> BiFunction<HttpUriRequest, HttpResponse, T> convertResponse(ObjectMapper mapper, Class<T> clazz) {
         return (request, response) -> {
             try (final InputStream content = response.getEntity().getContent()) {
                 final String contentAsString = IOUtils.toString(content, UTF_8);

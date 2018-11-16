@@ -30,27 +30,32 @@ import org.springframework.http.HttpStatus;
 
 public class HttpCallConfiguration<T> {
 
-    private static final HttpStatus[] INFO_STATUS = Stream.of(HttpStatus.values()) //
+    private static final HttpStatus[] INFO_STATUS = Stream
+            .of(HttpStatus.values()) //
             .filter(HttpStatus::is1xxInformational) //
             .collect(Collectors.toList()) //
             .toArray(new HttpStatus[0]);
 
-    private static final HttpStatus[] SUCCESS_STATUS = Stream.of(HttpStatus.values()) //
+    private static final HttpStatus[] SUCCESS_STATUS = Stream
+            .of(HttpStatus.values()) //
             .filter(HttpStatus::is2xxSuccessful) //
             .collect(Collectors.toList()) //
             .toArray(new HttpStatus[0]);
 
-    private static final HttpStatus[] REDIRECT_STATUS = Stream.of(HttpStatus.values()) //
+    private static final HttpStatus[] REDIRECT_STATUS = Stream
+            .of(HttpStatus.values()) //
             .filter(HttpStatus::is3xxRedirection) //
             .collect(Collectors.toList()) //
             .toArray(new HttpStatus[0]);
 
-    private static final HttpStatus[] USER_ERROR_STATUS = Stream.of(HttpStatus.values()) //
+    private static final HttpStatus[] USER_ERROR_STATUS = Stream
+            .of(HttpStatus.values()) //
             .filter(HttpStatus::is4xxClientError) //
             .collect(Collectors.toList()) //
             .toArray(new HttpStatus[0]);
 
-    private static final HttpStatus[] SERVER_ERROR_STATUS = Stream.of(HttpStatus.values()) //
+    private static final HttpStatus[] SERVER_ERROR_STATUS = Stream
+            .of(HttpStatus.values()) //
             .filter(HttpStatus::is5xxServerError) //
             .collect(Collectors.toList()) //
             .toArray(new HttpStatus[0]);
@@ -124,11 +129,18 @@ public class HttpCallConfiguration<T> {
     /**
      * @param headers
      * @return the configuration object for fluent configuration
-     * @deprecated Headers should not be set by user.
      */
-    @Deprecated
     public HttpCallConfiguration<T> withHeaders(final Map<String, String> headers) {
         this.headers.putAll(headers);
+        return this;
+    }
+
+    /**
+     * @param headers
+     * @return the configuration object for fluent configuration
+     */
+    public HttpCallConfiguration<T> withHeader(final String key, String value) {
+        this.headers.put(key, value);
         return this;
     }
 
@@ -138,7 +150,8 @@ public class HttpCallConfiguration<T> {
      * @param requestZipkinConfiguration
      * @return the configuration object for fluent configuration
      */
-    public HttpCallConfiguration<T> withRequestZipkinConfiguration(RequestZipkinConfiguration requestZipkinConfiguration) {
+    public HttpCallConfiguration<T>
+            withRequestZipkinConfiguration(RequestZipkinConfiguration requestZipkinConfiguration) {
         this.requestZipkinConfiguration = requestZipkinConfiguration;
         return this;
     }
