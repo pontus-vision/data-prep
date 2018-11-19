@@ -12,23 +12,8 @@
 
 package org.talend.dataprep.command;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
-import org.talend.dataprep.exception.TDPException;
-import org.talend.dataprep.exception.error.CommonErrorCodes;
-import org.talend.dataprep.io.ReleasableInputStream;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.talend.daikon.exception.ExceptionContext.build;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,8 +23,22 @@ import java.util.Iterator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.talend.daikon.exception.ExceptionContext.build;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
+import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.exception.error.CommonErrorCodes;
+import org.talend.dataprep.io.ReleasableInputStream;
 
 /**
  * A helper class for common behavior definition.
