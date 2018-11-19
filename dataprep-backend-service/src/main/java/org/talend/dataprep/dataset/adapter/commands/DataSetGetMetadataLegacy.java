@@ -12,6 +12,15 @@
 
 package org.talend.dataprep.dataset.adapter.commands;
 
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.command.Defaults.asNull;
+import static org.talend.dataprep.command.Defaults.convertResponse;
+import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EXCEPTION;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import javax.annotation.PostConstruct;
+
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,16 +34,6 @@ import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.dataset.store.content.DataSetContentLimit;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
-
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
-import static org.talend.dataprep.command.Defaults.asNull;
-import static org.talend.dataprep.command.Defaults.convertResponse;
-import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EXCEPTION;
 
 /**
  * Get a dataset by id using the legacy dataprep dataset API.
@@ -81,7 +80,8 @@ public class DataSetGetMetadataLegacy extends GenericCommand<DataSetMetadata> {
         }
         execute(() -> new HttpGet(build));
 
-        on(HttpStatus.OK).then((req, res) -> Defaults.convertResponse(objectMapper, DataSet.class).apply(req, res).getMetadata());
+        on(HttpStatus.OK).then(
+                (req, res) -> Defaults.convertResponse(objectMapper, DataSet.class).apply(req, res).getMetadata());
     }
 
     private void configureSampleDataset(String dataSetId) {
