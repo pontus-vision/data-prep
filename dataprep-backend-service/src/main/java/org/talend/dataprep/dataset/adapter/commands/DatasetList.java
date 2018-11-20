@@ -13,13 +13,15 @@
 
 package org.talend.dataprep.dataset.adapter.commands;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+
 import java.net.URI;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -30,8 +32,6 @@ import org.talend.dataprep.dataset.adapter.Dataset;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
-
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 /**
  * List the datasets of the user.
@@ -73,7 +73,7 @@ public class DatasetList extends GenericCommand<Stream<Dataset>> {
         }
     }
 
-    private Stream<Dataset> readResponse(HttpUriRequest request, HttpResponse response) {
+    private Stream<Dataset> readResponse(HttpRequest request, HttpResponse response) {
         Dataset[] dataSets = Defaults.convertResponse(objectMapper, Dataset[].class).apply(request, response);
         return Stream.of(dataSets);
     }

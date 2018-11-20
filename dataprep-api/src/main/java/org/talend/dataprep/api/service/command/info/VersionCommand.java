@@ -17,6 +17,7 @@ import static org.talend.dataprep.command.Defaults.asNull;
 
 import javax.annotation.PostConstruct;
 
+import com.netflix.hystrix.HystrixCommandGroupKey;
 import org.apache.http.client.methods.HttpGet;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -28,27 +29,29 @@ import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 import org.talend.dataprep.info.Version;
 
-import com.netflix.hystrix.HystrixCommandGroupKey;
-
 @Component
 @Scope("prototype")
 public class VersionCommand extends GenericCommand<Version> {
 
     public static final HystrixCommandGroupKey VERSION_GROUP = HystrixCommandGroupKey.Factory.asKey("version");
 
+    private String serviceUrl;
+
+    private String entryPoint;
+
     private VersionCommand(String serviceUrl, String entryPoint) {
         super(VERSION_GROUP);
-
-        configuration //
-                .execute(() -> new HttpGet(serviceUrl + entryPoint)) //
-                .onErrorThrow(e -> new TDPException(CommonErrorCodes.UNABLE_TO_GET_SERVICE_VERSION, e,
-                        ExceptionContext.build().put("version", serviceUrl))) //
-                .on(HttpStatus.NO_CONTENT).then(asNull());
+        this.serviceUrl = serviceUrl;
+        this.entryPoint = entryPoint;
     }
 
     @PostConstruct
     public void init() {
-        on(HttpStatus.OK).then(Defaults.convertResponse(objectMapper, Version.class));
+        execute(new HttpGet(serviceUrl + entryPoint)) //
+                .onErrorThrow(e -> new TDPException(CommonErrorCodes.UNABLE_TO_GET_SERVICE_VERSION, e,
+                        ExceptionContext.build().put("version", serviceUrl))) //
+                .on(HttpStatus.NO_CONTENT).then(asNull()) //
+                .on(HttpStatus.OK).then(Defaults.convertResponse(objectMapper, Version.class));
     }
 
 }

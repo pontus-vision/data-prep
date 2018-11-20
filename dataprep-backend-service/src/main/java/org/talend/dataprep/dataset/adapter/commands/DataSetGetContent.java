@@ -12,6 +12,12 @@
 
 package org.talend.dataprep.dataset.adapter.commands;
 
+import static org.apache.http.HttpHeaders.ACCEPT;
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
+import static org.talend.daikon.exception.ExceptionContext.build;
+import static org.talend.dataprep.exception.error.APIErrorCodes.UNABLE_TO_RETRIEVE_DATASET_CONTENT;
+import static org.talend.dataprep.util.avro.AvroUtils.readBinaryStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -25,8 +31,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.context.annotation.Scope;
@@ -37,12 +41,6 @@ import org.talend.daikon.exception.error.CommonErrorCodes;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.util.avro.AvroUtils;
-
-import static org.apache.http.HttpHeaders.ACCEPT;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
-import static org.talend.daikon.exception.ExceptionContext.build;
-import static org.talend.dataprep.exception.error.APIErrorCodes.UNABLE_TO_RETRIEVE_DATASET_CONTENT;
-import static org.talend.dataprep.util.avro.AvroUtils.readBinaryStream;
 
 /**
  * Command to get the stream of AVRO records of the dataset.
@@ -96,12 +94,12 @@ public class DataSetGetContent extends GenericCommand<Stream<GenericRecord>> {
         HttpEntity entity = response.getEntity();
         try {
             InputStream content = entity.getContent();
-            return readBinaryStream(content, contentSchema).asStream();
+            return readBinaryStream(content, contentSchema)
+                    .asStream()
+                    .onClose(() -> EntityUtils.consumeQuietly(entity));
         } catch (IOException e) {
             throw new TalendRuntimeException(org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EXCEPTION,
                     e);
-        } finally {
-            EntityUtils.consumeQuietly(entity);
         }
     }
 

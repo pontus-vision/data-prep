@@ -19,18 +19,18 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.HystrixCommandGroupKey;
 import org.apache.http.Header;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.talend.dataprep.command.HttpCallConfiguration.BehaviorBuilder;
 import org.talend.dataprep.exception.TDPException;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.hystrix.HystrixCommand;
-import com.netflix.hystrix.HystrixCommandGroupKey;
 
 /**
  * Base Hystrix command request for all DataPrep commands.
@@ -175,9 +175,22 @@ public class GenericCommand<T> extends HystrixCommand<T> {
      * Declares which {@link HttpRequestBase http request} to execute in command.
      *
      * @param call The {@link Supplier} to provide the {@link HttpRequestBase} to execute.
+     * @deprecated it is better to use {@link #execute(HttpUriRequest)} to avoid lazy request creation.
      */
-    protected void execute(Supplier<HttpRequestBase> call) {
+    @Deprecated
+    protected HttpCallConfiguration<T> execute(Supplier<? extends HttpUriRequest> call) {
         configuration.execute(call);
+        return configuration;
+    }
+
+    /**
+     * Declares which {@link HttpRequestBase http request} to execute in command.
+     *
+     * @param call The {@link Supplier} to provide the {@link HttpRequestBase} to execute.
+     */
+    protected HttpCallConfiguration<T> execute(HttpUriRequest call) {
+        configuration.execute(call);
+        return configuration;
     }
 
     /**
@@ -227,7 +240,7 @@ public class GenericCommand<T> extends HystrixCommand<T> {
      * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
      * @see BehaviorBuilder#then(BiFunction)
      */
-    protected BehaviorBuilder onUserErrors() {
+    protected BehaviorBuilder<T> onUserErrors() {
         return configuration.onUserErrors();
     }
 
@@ -237,7 +250,7 @@ public class GenericCommand<T> extends HystrixCommand<T> {
      * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
      * @see BehaviorBuilder#then(BiFunction)
      */
-    protected BehaviorBuilder onServerErrors() {
+    protected BehaviorBuilder<T> onServerErrors() {
         return configuration.onServerErrors();
     }
 

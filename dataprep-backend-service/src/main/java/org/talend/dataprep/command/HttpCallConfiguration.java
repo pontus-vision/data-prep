@@ -22,8 +22,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.http.HttpStatus;
@@ -64,9 +64,10 @@ public class HttpCallConfiguration<T> {
         return new HttpCallConfiguration<>();
     }
 
-    private Supplier<HttpRequestBase> httpRequestBase;
+    private Supplier<? extends HttpUriRequest> httpRequestBase;
 
-    private Map<HttpStatus, BiFunction<HttpUriRequest, HttpResponse, T>> behavior = new EnumMap<>(HttpStatus.class);
+    private Map<HttpStatus, BiFunction<? super HttpRequest, ? super HttpResponse, ? extends T>> behavior =
+            new EnumMap<>(HttpStatus.class);
 
     private Function<Exception, T> onError = e -> {
         throw Defaults.passthrough().apply(e);
@@ -80,25 +81,25 @@ public class HttpCallConfiguration<T> {
     private RequestZipkinConfiguration requestZipkinConfiguration;
 
     /**
-     * Supply a {@link HttpRequestBase} through a java 8 {@link Supplier}. The request creation will be done when the task is executed.
+     * Supply a {@link org.apache.http.HttpRequest} through a java 8 {@link Supplier}. The request creation will be done when the task is executed.
      *
      * @deprecated This allow initialization of supplier in constructors, before Spring autowiring. It is not the preferred way
-     * with Hystrix use through AOP. Please use {@link #execute(HttpRequestBase)}.
+     * with Hystrix use through AOP. Please use {@link #execute(HttpUriRequest)}.
      */
     // Using supplier allow the creation of the HTTP request AFTER the object containing its code has been initialized with Spring context.
     // Still it is not how it should be done and the other execute method should be privileged.
     // even if it has to be called in a @Postconstruct method
     @Deprecated
-    public HttpCallConfiguration<T> execute(Supplier<HttpRequestBase> httpRequestBaseSupplier) {
-        httpRequestBase = httpRequestBaseSupplier;
+    public HttpCallConfiguration<T> execute(Supplier<? extends HttpUriRequest> httpRequestSupplier) {
+        httpRequestBase = httpRequestSupplier;
         return this;
     }
 
     /**
      * Set the request to be executed.
      */
-    public HttpCallConfiguration<T> execute(HttpRequestBase httpRequestBase) {
-        this.httpRequestBase = () -> httpRequestBase;
+    public HttpCallConfiguration<T> execute(HttpUriRequest httpRequest) {
+        this.httpRequestBase = () -> httpRequest;
         return this;
     }
 
@@ -132,15 +133,6 @@ public class HttpCallConfiguration<T> {
      */
     public HttpCallConfiguration<T> withHeaders(final Map<String, String> headers) {
         this.headers.putAll(headers);
-        return this;
-    }
-
-    /**
-     * @param headers
-     * @return the configuration object for fluent configuration
-     */
-    public HttpCallConfiguration<T> withHeader(final String key, String value) {
-        this.headers.put(key, value);
         return this;
     }
 
@@ -181,7 +173,7 @@ public class HttpCallConfiguration<T> {
      * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
      * @see BehaviorBuilder#then(BiFunction)
      */
-    protected BehaviorBuilder onInfo() {
+    protected BehaviorBuilder<T> onInfo() {
         return on(INFO_STATUS);
     }
 
@@ -191,7 +183,7 @@ public class HttpCallConfiguration<T> {
      * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
      * @see BehaviorBuilder#then(BiFunction)
      */
-    protected BehaviorBuilder onSuccess() {
+    protected BehaviorBuilder<T> onSuccess() {
         return on(SUCCESS_STATUS);
     }
 
@@ -201,7 +193,7 @@ public class HttpCallConfiguration<T> {
      * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
      * @see BehaviorBuilder#then(BiFunction)
      */
-    protected BehaviorBuilder onRedirect() {
+    protected BehaviorBuilder<T> onRedirect() {
         return on(REDIRECT_STATUS);
     }
 
@@ -211,7 +203,7 @@ public class HttpCallConfiguration<T> {
      * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
      * @see BehaviorBuilder#then(BiFunction)
      */
-    protected BehaviorBuilder onUserErrors() {
+    protected BehaviorBuilder<T> onUserErrors() {
         return on(USER_ERROR_STATUS);
     }
 
@@ -221,11 +213,11 @@ public class HttpCallConfiguration<T> {
      * @return A {@link BehaviorBuilder builder} to continue behavior declaration for the HTTP status(es).
      * @see BehaviorBuilder#then(BiFunction)
      */
-    protected BehaviorBuilder onServerErrors() {
+    protected BehaviorBuilder<T> onServerErrors() {
         return on(SERVER_ERROR_STATUS);
     }
 
-    public HttpRequestBase getHttpRequestBase() {
+    public HttpUriRequest getHttpRequest() {
         return httpRequestBase.get();
     }
 
@@ -241,7 +233,7 @@ public class HttpCallConfiguration<T> {
     /**
      * The Map of all behaviors. Never null.
      */
-    public Map<HttpStatus, BiFunction<HttpUriRequest, HttpResponse, T>> getBehavior() {
+    public Map<HttpStatus, BiFunction<? super HttpRequest, ? super HttpResponse, ? extends T>> getBehavior() {
         return behavior;
     }
 
@@ -250,7 +242,7 @@ public class HttpCallConfiguration<T> {
      *
      * @see #getBehavior()
      */
-    public BiFunction<HttpUriRequest, HttpResponse, T> getBehaviorForStatus(HttpStatus status) {
+    public BiFunction<? super HttpRequest, ? super HttpResponse, ? extends T> getBehaviorForStatus(HttpStatus status) {
         return behavior.get(status);
     }
 
@@ -279,7 +271,8 @@ public class HttpCallConfiguration<T> {
          * @param action A {@link BiFunction function} to be executed for given HTTP status(es).
          * @see Defaults
          */
-        public HttpCallConfiguration<T> then(BiFunction<HttpUriRequest, HttpResponse, T> action) {
+        public HttpCallConfiguration<T>
+                then(BiFunction<? super HttpRequest, ? super HttpResponse, ? extends T> action) {
             for (HttpStatus currentStatus : status) {
                 configuration.behavior.put(currentStatus, action);
             }

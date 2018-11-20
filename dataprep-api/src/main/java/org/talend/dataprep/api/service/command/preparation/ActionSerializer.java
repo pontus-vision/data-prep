@@ -17,7 +17,8 @@ final class ActionSerializer {
      * @param stepActions - map of couple (stepId, action)
      * @return the serialized actions
      */
-    static String serializeActions(ObjectMapper mapper, final Collection<Action> stepActions) throws JsonProcessingException {
+    static String serializeActions(ObjectMapper mapper, final Collection<Action> stepActions)
+            throws JsonProcessingException {
         return mapper
                 .writer() //
                 .withRootName("actions") //

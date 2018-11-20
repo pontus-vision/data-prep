@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.hystrix.HystrixCommand;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -72,7 +72,7 @@ public class SuggestLookupActions extends ChainedCommand<List<ActionForm>, DataS
     /**
      * @return the function that aggregates the SuggestColumnActions with the lookups.
      */
-    private BiFunction<HttpUriRequest, HttpResponse, List<ActionForm>> process() {
+    private BiFunction<HttpRequest, HttpResponse, List<ActionForm>> process() {
         return (request, response) -> {
 
             try {

@@ -3,6 +3,7 @@ package org.talend.dataprep.command;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.cloud.sleuth.Span.SPAN_NAME_NAME;
+import static org.springframework.http.HttpHeaders.SET_COOKIE;
 
 import java.io.IOException;
 import java.util.Map;
@@ -69,7 +70,7 @@ public class DataprepHttpClient {
      * @return A instance of <code>T</code>.
      */
     public <T> HttpCallResult<T> execute(HttpCallConfiguration<T> configuration) {
-        final HttpUriRequest request = configuration.getHttpRequestBase();
+        final HttpUriRequest request = configuration.getHttpRequest();
         addCommandHeaders(configuration, request); // insert all the provided headers in the request
         addAuthorizationHeaders(request); // update request header with security token
         addLocaleHeaders(request); // Forward locale to target
@@ -78,7 +79,7 @@ public class DataprepHttpClient {
         try {
             final HttpResponse response;
             try {
-                LOGGER.trace("Requesting {} {}", request.getMethod(), request.getURI());
+                LOGGER.trace("Requesting {}", request.getRequestLine());
                 response = client.execute(request);
             } catch (Exception e) {
                 return handleUnexpectedError(configuration, e);
@@ -87,14 +88,14 @@ public class DataprepHttpClient {
 
             HttpStatus status = HttpStatus.valueOf(response.getStatusLine().getStatusCode());
 
-            Header cookies = response.getFirstHeader("Set-Cookie");
+            Header cookies = response.getFirstHeader(SET_COOKIE);
             if (cookies != null) {
                 LOGGER.warn(
-                        "request {} {}: Cookie detected in responseHeaders (check security.oauth2.resource.uri settings)",
-                        request.getMethod(), request.getURI());
+                        "request {}: Cookie detected in responseHeaders (check security.oauth2.resource.uri settings)",
+                        request.getRequestLine());
             }
 
-            BiFunction<HttpUriRequest, HttpResponse, T> handler = //
+            BiFunction<? super HttpRequest, ? super HttpResponse, ? extends T> handler = //
                     getResponseHandlingFunction(configuration, request, response, status);
 
             // application of handler must be able to throw exception on purpose without being bothered by onError wrapping
@@ -114,14 +115,15 @@ public class DataprepHttpClient {
         }
     }
 
-    private <T> BiFunction<HttpUriRequest, HttpResponse, T> getResponseHandlingFunction(
-            HttpCallConfiguration<T> configuration, HttpUriRequest request, HttpResponse response, HttpStatus status) {
+    private <T> BiFunction<? super HttpRequest, ? super HttpResponse, ? extends T> getResponseHandlingFunction(
+            HttpCallConfiguration<T> configuration, HttpRequest request, HttpResponse response, HttpStatus status) {
         // do we have a behavior for this status code (even an error) ?
-        BiFunction<HttpUriRequest, HttpResponse, T> function = configuration.getBehaviorForStatus(status);
+        BiFunction<? super HttpRequest, ? super HttpResponse, ? extends T> function =
+                configuration.getBehaviorForStatus(status);
         if (function == null) {
             // handle response's HTTP status
             if (status.is4xxClientError() || status.is5xxServerError()) {
-                LOGGER.trace("request {} {} : response on error {}", request.getMethod(), request.getURI(),
+                LOGGER.trace("request {} {} : response on error {}", request.getRequestLine(),
                         response.getStatusLine());
                 // Http status >= 400 so apply onError behavior
 
@@ -137,7 +139,7 @@ public class DataprepHttpClient {
     /**
      * @return A {@link BiFunction} to handle missing behavior definition for HTTP response's code.
      */
-    private static <T> BiFunction<HttpUriRequest, HttpResponse, T> missingBehavior() {
+    private static <T> BiFunction<HttpRequest, HttpResponse, T> missingBehavior() {
         return (req, res) -> {
             LOGGER.error("Unable to process message for request {} (response code: {}).", req,
                     res.getStatusLine().getStatusCode());
@@ -145,12 +147,11 @@ public class DataprepHttpClient {
         };
     }
 
-    private <T> BiFunction<HttpUriRequest, HttpResponse, T>
-            handleRemoteServerHttpError(Function<Exception, T> onError) {
+    private <T> BiFunction<HttpRequest, HttpResponse, T> handleRemoteServerHttpError(Function<Exception, T> onError) {
         return (httpRequestBase, httpResponse) -> handleRemoteServerHttpError(onError, httpRequestBase, httpResponse);
     }
 
-    private <T> T handleRemoteServerHttpError(Function<Exception, T> onError, HttpUriRequest request,
+    private <T> T handleRemoteServerHttpError(Function<Exception, T> onError, HttpRequest request,
             HttpResponse response) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("request on error {} -> {}", request.toString(), response.getStatusLine());
@@ -189,11 +190,13 @@ public class DataprepHttpClient {
         return onError.apply(exception);
     }
 
-    private static String buildRequestReport(HttpUriRequest req, HttpResponse res) {
+    private static String buildRequestReport(HttpRequest req, HttpResponse res) {
         StringBuilder builder = new StringBuilder("{request:{\n");
-        builder.append("uri:").append(req.getURI()).append(",\n");
+        if (req instanceof HttpUriRequest) {
+            builder.append("method:").append(((HttpUriRequest) req).getMethod()).append(",\n");
+            builder.append("uri:").append(((HttpUriRequest) req).getURI()).append(",\n");
+        }
         builder.append("request:").append(req.getRequestLine()).append(",\n");
-        builder.append("method:").append(req.getMethod()).append(",\n");
         if (req instanceof HttpEntityEnclosingRequestBase) {
             try {
                 builder

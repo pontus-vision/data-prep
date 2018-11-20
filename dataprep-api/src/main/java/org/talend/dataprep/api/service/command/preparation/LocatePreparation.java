@@ -13,18 +13,14 @@
 
 package org.talend.dataprep.api.service.command.preparation;
 
-import static org.apache.http.util.EntityUtils.consumeQuietly;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.command.Defaults.convertResponse;
 import static org.talend.dataprep.exception.error.CommonErrorCodes.UNEXPECTED_EXCEPTION;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.function.BiFunction;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -37,7 +33,7 @@ import org.talend.dataprep.exception.TDPException;
  * Command used to locate a preparation (find out what folder it is stored in).
  */
 @Component
-@Scope("prototype")
+@Scope(SCOPE_PROTOTYPE)
 public class LocatePreparation extends GenericCommand<Folder> {
 
     /**
@@ -49,7 +45,7 @@ public class LocatePreparation extends GenericCommand<Folder> {
     private LocatePreparation(String id) {
         super(PREPARATION_GROUP);
         execute(() -> onExecute(id));
-        on(HttpStatus.OK).then(toFolder());
+        on(HttpStatus.OK).then(convertResponse(objectMapper, Folder.class));
     }
 
     private HttpRequestBase onExecute(String id) {
@@ -59,22 +55,6 @@ public class LocatePreparation extends GenericCommand<Folder> {
         } catch (URISyntaxException e) {
             throw new TDPException(UNEXPECTED_EXCEPTION, e);
         }
-    }
-
-    /**
-     * Take care of mapping the response input stream to the expected result.
-     * @return the parsed folder.
-     */
-    private BiFunction<HttpUriRequest, HttpResponse, Folder> toFolder() {
-        return (req, resp) -> {
-            try (InputStream input = resp.getEntity().getContent()) {
-                return objectMapper.readValue(input, Folder.class);
-            } catch (IOException e) {
-                throw new TDPException(UNEXPECTED_EXCEPTION, e);
-            } finally {
-                consumeQuietly(resp.getEntity());
-            }
-        };
     }
 
 }

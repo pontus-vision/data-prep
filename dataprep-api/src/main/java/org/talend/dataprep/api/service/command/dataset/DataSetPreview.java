@@ -13,10 +13,18 @@
 
 package org.talend.dataprep.api.service.command.dataset;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.talend.dataprep.command.Defaults.emptyStream;
+import static org.talend.dataprep.command.Defaults.pipeStream;
+
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.util.function.BiFunction;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
@@ -26,14 +34,6 @@ import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
-
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.util.function.BiFunction;
-
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
-import static org.talend.dataprep.command.Defaults.emptyStream;
-import static org.talend.dataprep.command.Defaults.pipeStream;
 
 @Component
 @Scope(SCOPE_PROTOTYPE)
@@ -47,7 +47,7 @@ public class DataSetPreview extends GenericCommand<InputStream> {
         on(HttpStatus.ACCEPTED, HttpStatus.NO_CONTENT).then(emptyStream());
         on(HttpStatus.OK).then(pipeStream());
         // Move permanently/temporarily behaviors
-        BiFunction<HttpRequestBase, HttpResponse, InputStream> move = (req, res) -> {
+        BiFunction<HttpRequest, HttpResponse, InputStream> move = (req, res) -> {
             Exception cause = new Exception(res.getStatusLine().getStatusCode() + ":" //
                     + res.getStatusLine().getReasonPhrase());
             throw new TDPException(APIErrorCodes.DATASET_REDIRECT, cause,
@@ -56,7 +56,7 @@ public class DataSetPreview extends GenericCommand<InputStream> {
         on(HttpStatus.MOVED_PERMANENTLY, HttpStatus.FOUND).then(move);
     }
 
-    private HttpRequestBase onExecute(String dataSetId, boolean metadata, String sheetName) {
+    private HttpGet onExecute(String dataSetId, boolean metadata, String sheetName) {
         try {
 
             URIBuilder uriBuilder = new URIBuilder(datasetServiceUrl + "/datasets/" + dataSetId + "/preview/");

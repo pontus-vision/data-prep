@@ -12,7 +12,9 @@
 
 package org.talend.dataprep.command;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.talend.dataprep.command.Defaults.toJson;
 
 import java.io.IOException;
@@ -23,20 +25,18 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.function.BiFunction;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Test;
 import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DefaultsTest {
 
@@ -207,7 +207,7 @@ public class DefaultsTest {
     @Test
     public void shouldParseJsonArray() throws Exception {
         // Given
-        final BiFunction<HttpUriRequest, HttpResponse, Set<String>> extractStatuses =
+        final BiFunction<HttpRequest, HttpResponse, Set<String>> extractStatuses =
                 toJson(new ObjectMapper()).andThen(jsonNode -> {
                     final Iterator<JsonNode> elements = jsonNode.elements();
                     Set<String> statuses = new HashSet<>();
