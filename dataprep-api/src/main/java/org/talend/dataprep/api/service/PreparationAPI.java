@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +46,6 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.dataprep.api.PreparationAddAction;
 import org.talend.dataprep.api.dataset.DataSetMetadata;
-import org.talend.dataprep.api.dataset.RowMetadata;
 import org.talend.dataprep.api.export.ExportParameters;
 import org.talend.dataprep.api.preparation.Action;
 import org.talend.dataprep.api.preparation.AppendStep;
@@ -154,12 +152,14 @@ public class PreparationAPI extends APIService {
 
         try {
             final DataSetMetadata dataSetMetadata = datasetClient.getDataSetMetadata(preparation.getDataSetId());
+
             if (StringUtils.isEmpty(preparation.getName())) {
                 preparation.setName((dataSetMetadata.getName() != null ? dataSetMetadata.getName() + " " : "")
                         + message("preparation.create.suffix"));
             }
-            final RowMetadata rowMetadata = dataSetMetadata.getRowMetadata();
-            preparation.setRowMetadata(rowMetadata);
+
+            preparation.setRowMetadata(dataSetMetadata.getRowMetadata());
+            preparation.setDataSetName(dataSetMetadata.getName());
         } catch (TDPException e) {
             throw new TDPException(DataSetErrorCodes.DATASET_DOES_NOT_EXIST,
                     ExceptionContext.withBuilder().put("id", preparation.getDataSetId()).build());
