@@ -54,14 +54,6 @@ public class PreparationStep extends DataPrepStep {
 
     private static final String EMPTY_CELL = "empty";
 
-    private static final String TDP_INVALID_MARKER = "__tdpInvalid";
-
-    private static final String VALID_CELL = "valid";
-
-    private static final String INVALID_CELL = "invalid";
-
-    private static final String EMPTY_CELL = "empty";
-
     /**
      * This class' logger.
      */
