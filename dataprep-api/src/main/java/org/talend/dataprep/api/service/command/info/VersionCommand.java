@@ -33,7 +33,7 @@ import org.talend.dataprep.info.Version;
 @Scope("prototype")
 public class VersionCommand extends GenericCommand<Version> {
 
-    public static final HystrixCommandGroupKey VERSION_GROUP = HystrixCommandGroupKey.Factory.asKey("version");
+    private static final HystrixCommandGroupKey VERSION_GROUP = HystrixCommandGroupKey.Factory.asKey("version");
 
     private String serviceUrl;
 
@@ -50,8 +50,10 @@ public class VersionCommand extends GenericCommand<Version> {
         execute(new HttpGet(serviceUrl + entryPoint)) //
                 .onErrorThrow(e -> new TDPException(CommonErrorCodes.UNABLE_TO_GET_SERVICE_VERSION, e,
                         ExceptionContext.build().put("version", serviceUrl))) //
-                .on(HttpStatus.NO_CONTENT).then(asNull()) //
-                .on(HttpStatus.OK).then(Defaults.convertResponse(objectMapper, Version.class));
+                .on(HttpStatus.NO_CONTENT)
+                .then(asNull()) //
+                .on(HttpStatus.OK)
+                .then(Defaults.convertResponse(objectMapper, Version.class));
     }
 
 }
