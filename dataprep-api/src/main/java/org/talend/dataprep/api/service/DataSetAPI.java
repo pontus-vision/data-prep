@@ -74,6 +74,7 @@ import org.talend.dataprep.security.PublicAPI;
 import org.talend.dataprep.util.SortAndOrderHelper;
 import org.talend.dataprep.util.SortAndOrderHelper.Order;
 import org.talend.dataprep.util.SortAndOrderHelper.Sort;
+import org.talend.dataprep.util.StringsHelper;
 
 import com.netflix.hystrix.HystrixCommand;
 
@@ -104,7 +105,7 @@ public class DataSetAPI extends APIService {
     public Callable<String> create(
             @ApiParam(
                     value = "User readable name of the data set (e.g. 'Finance Report 2015', 'Test Data Set').") @RequestParam(
-                            defaultValue = "", required = false) String name,
+                            defaultValue = "", required = false) final String name,
             @ApiParam(value = "An optional tag to be added in data set metadata once created.") @RequestParam(
                     defaultValue = "", required = false) String tag,
             @ApiParam(value = "Size of the data set, in bytes.") @RequestParam(defaultValue = "0") long size,
@@ -113,9 +114,10 @@ public class DataSetAPI extends APIService {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Creating dataset (pool: {} )...", getConnectionStats());
             }
+
             try {
-                HystrixCommand<String> creation =
-                        getCommand(CreateDataSet.class, name, tag, contentType, size, dataSetContent);
+                HystrixCommand<String> creation = getCommand(CreateDataSet.class, StringsHelper.normalizeString(name),
+                        tag, contentType, size, dataSetContent);
                 return creation.execute();
             } finally {
                 LOG.debug("Dataset creation done.");
@@ -458,18 +460,18 @@ public class DataSetAPI extends APIService {
     @ApiOperation(value = "Get suggested actions for a whole data set.",
             notes = "Returns the suggested actions for the given dataset in decreasing order of likeness.")
     @Timed
-    public List<ActionForm> suggestDatasetActions(@PathVariable(value = "id") @ApiParam(name = "id",
+    @Deprecated
+    public Stream<ActionForm> suggestDatasetActions(@PathVariable(value = "id") @ApiParam(name = "id",
             value = "Data set id to get suggestions from.") String dataSetId) {
-        HystrixCommand<List<ActionForm>> getLookupActions = getCommand(SuggestLookupActions.class,
-                new HystrixCommand<DataSetMetadata>(GenericCommand.DATASET_GROUP) {
+        return getDatasetsLookupActions();
+    }
 
-                    @Override
-                    protected DataSetMetadata run() {
-                        return getMetadata(dataSetId);
-                    }
-                });
-
-        return getLookupActions.execute();
+    @RequestMapping(value = "/api/datasets/actions/lookup", method = GET, produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Get lookup actions for all data sets.",
+            notes = "Returns the lookup actions for the datasets.")
+    @Timed
+    public Stream<ActionForm> getDatasetsLookupActions() {
+        return getCommand(SuggestLookupActions.class).execute();
     }
 
     @RequestMapping(value = "/api/datasets/favorite/{id}", method = POST, produces = TEXT_PLAIN_VALUE)

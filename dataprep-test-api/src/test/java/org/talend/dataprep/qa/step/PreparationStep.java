@@ -10,7 +10,6 @@ import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,9 +46,13 @@ public class PreparationStep extends DataPrepStep {
 
     private static final String NB_STEPS = "nbSteps";
 
-    private static final String HEAD_ID = "HEAD";
+    private static final String TDP_INVALID_MARKER = "__tdpInvalid";
 
-    private static final String VERSION_HEAD = "head";
+    private static final String VALID_CELL = "valid";
+
+    private static final String INVALID_CELL = "invalid";
+
+    private static final String EMPTY_CELL = "empty";
 
     private static final String TDP_INVALID_MARKER = "__tdpInvalid";
 
@@ -203,7 +206,7 @@ public class PreparationStep extends DataPrepStep {
 
     @And("^I check that the preparation \"(.*)\" exists$")
     public void checkPrepExists(String prepFullName) throws IOException {
-        Assert.assertTrue(doesPrepExistsInFolder(prepFullName));
+        Assert.assertTrue("The preparation does not exists in the Folder", doesPrepExistsInFolder(prepFullName));
     }
 
     @Then("^I check that I can load \"(.*)\" times the preparation with name \"(.*)\"$")

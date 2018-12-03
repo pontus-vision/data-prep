@@ -71,6 +71,7 @@ public final class Defaults {
     public static <T> BiFunction<HttpRequest, HttpResponse, T> asNull() {
         return (request, response) -> {
             EntityUtils.consumeQuietly(response.getEntity());
+            request.releaseConnection();
             return null;
         };
     }
