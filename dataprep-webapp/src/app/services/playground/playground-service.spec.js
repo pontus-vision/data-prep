@@ -323,6 +323,11 @@ describe('Playground Service', () => {
 					state.playground.isReadOnly = true;
 					expect(PlaygroundService.getDatasetParametersAction()).toEqual([]);
 				}));
+
+				it('should not return dataset parameters with provider set to catalog', inject((SettingsService, PlaygroundService) => {
+					spyOn(SettingsService, 'isCatalog').and.returnValue(true);
+					expect(PlaygroundService.getDatasetParametersAction()).toEqual([]);
+				}));
 			});
 
 			describe('getLookupAction', () => {
