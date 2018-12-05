@@ -381,18 +381,14 @@
     "SidePanel#default": {
       "actionIds": ["menu:preparations", "menu:datasets", "menu:datastores"]
     },
-    "FolderCreatorModal#default": {
-
-    },
+    "FolderCreatorModal#default": {},
     "HomeListView#datastores": {
       "hasTheme": true
     },
     "DatasetHomeListView#default": {
       "list": {
         "actions": {
-          "items": [
-            "preparation:create"
-          ]
+          "items": ["preparation:create"]
         }
       },
       "hasTheme": true
@@ -415,6 +411,7 @@
           "columns": [
             {
               "key": "name",
+              "sortFunction": "preparations:sort",
               "label": {
                 "i18n": {
                   "key": "tdp-cmf:NAME",
@@ -426,6 +423,7 @@
             },
             {
               "key": "author",
+              "sortFunction": "preparations:sort",
               "label": {
                 "i18n": {
                   "key": "tdp-cmf:AUTHOR",
@@ -436,7 +434,40 @@
               }
             },
             {
+              "key": "created",
+              "sortFunction": "preparations:sort",
+              "label": {
+                "i18n": {
+                  "key": "tdp-cmf:CREATED",
+                  "options": {
+                    "defaultValue": "Created"
+                  }
+                }
+              },
+              "type": "datetime",
+              "data": {
+                "mode": "ago"
+              }
+            },
+            {
+              "key": "modified",
+              "sortFunction": "preparations:sort",
+              "label": {
+                "i18n": {
+                  "key": "tdp-cmf:MODIFIED",
+                  "options": {
+                    "defaultValue": "Modified"
+                  }
+                }
+              },
+              "type": "datetime",
+              "data": {
+                "mode": "ago"
+              }
+            },
+            {
               "key": "datasetName",
+              "sortFunction": "preparations:sort",
               "label": {
                 "i18n": {
                   "key": "tdp-cmf:DATASET",
@@ -448,6 +479,7 @@
             },
             {
               "key": "nbSteps",
+              "sortFunction": "preparations:sort",
               "label": {
                 "i18n": {
                   "key": "tdp-cmf:STEPS",
@@ -465,6 +497,9 @@
           }
         },
         "toolbar": {
+          "display": {
+            "displayModes": ["large", "table"]
+          },
           "filter": {
             "placeholder": {
               "i18n": {
@@ -474,14 +509,81 @@
                 }
               }
             }
+          },
+          "sort": {
+            "options": [
+              {
+                "id": "name",
+                "name": {
+                  "i18n": {
+                    "key": "tdp-cmf:NAME",
+                    "options": {
+                      "defaultValue": "Name"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "author",
+                "name": {
+                  "i18n": {
+                    "key": "tdp-cmf:AUTHOR",
+                    "options": {
+                      "defaultValue": "Author"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "created",
+                "name": {
+                  "i18n": {
+                    "key": "tdp-cmf:CREATED",
+                    "options": {
+                      "defaultValue": "Created"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "modified",
+                "name": {
+                  "i18n": {
+                    "key": "tdp-cmf:MODIFIED",
+                    "options": {
+                      "defaultValue": "Modified"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "datasetName",
+                "name": {
+                  "i18n": {
+                    "key": "tdp-cmf:DATASET",
+                    "options": {
+                      "defaultValue": "Dataset"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "nbSteps",
+                "name": {
+                  "i18n": {
+                    "key": "tdp-cmf:STEPS",
+                    "options": {
+                      "defaultValue": "Steps"
+                    }
+                  }
+                }
+              }
+            ]
           }
         },
         "actions": {
           "title": "preparation:open",
-          "left": [
-            "preparation:add:open",
-            "folder:add:open"
-          ],
+          "left": ["preparation:add:open", "folder:add:open"],
           "items": [
             "preparation:rename",
             "folder:remove:open",
