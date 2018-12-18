@@ -1,11 +1,7 @@
 package org.talend.dataprep.qa.step.export;
 
 import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
-import static org.talend.dataprep.qa.util.export.ExportSampleParamCSV.DATASET_ID;
-import static org.talend.dataprep.qa.util.export.ExportSampleParamCSV.EXPORT_TYPE;
-import static org.talend.dataprep.qa.util.export.ExportSampleParamCSV.FILENAME;
-import static org.talend.dataprep.qa.util.export.ExportSampleParamCSV.FILTER;
-import static org.talend.dataprep.qa.util.export.ExportSampleParamCSV.PREPARATION_ID;
+import static org.talend.dataprep.qa.util.export.ExportSampleParamCSV.*;
 import static org.talend.dataprep.qa.util.export.MandatoryParameters.DATASET_NAME;
 
 import java.io.File;
@@ -14,7 +10,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,22 +35,22 @@ public abstract class AbstractExportSampleStep extends DataPrepStep implements E
     private ExportUtil exportUtil;
 
     @Override
-    public void exportSample(@NotNull Map<String, String> params) throws IOException {
+    public void exportSample(Map<String, String> params) throws IOException {
         // File exported
         String filename = params.get(FILENAME.getName());
 
         Map<String, String> exportParams = extractParameters(params);
 
-        final InputStream csv = api.executeExport(exportParams).asInputStream();
-
-        // store the body content in a temporary File
-        File tempFile = api.storeInputStreamAsTempFile(filename, csv);
-        context.storeTempFile(filename, tempFile);
-        LOGGER.debug("Sample exported to {}", tempFile.getPath());
+        try (InputStream csv = api.executeExport(exportParams).asInputStream()) {
+            // store the body content in a temporary File
+            File tempFile = api.storeInputStreamAsTempFile(filename, csv);
+            context.storeTempFile(filename, tempFile);
+            LOGGER.debug("Sample exported to {}", tempFile.getPath());
+        }
     }
 
     @Override
-    public Map<String, String> extractParameters(@NotNull Map<String, String> params) throws JsonProcessingException {
+    public Map<String, String> extractParameters(Map<String, String> params) throws JsonProcessingException {
         Map<String, String> ret = new HashMap<>();
 
         // Preparation

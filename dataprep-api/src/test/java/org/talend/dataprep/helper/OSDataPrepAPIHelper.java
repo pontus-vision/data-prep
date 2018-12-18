@@ -427,6 +427,9 @@ public class OSDataPrepAPIHelper {
      * @throws IOException in case of IO exception.
      */
     public File storeInputStreamAsTempFile(String tempFilename, InputStream input) throws IOException {
+        if (input == null) {
+            return null;
+        }
         Path path = Files.createTempFile(FilenameUtils.getBaseName(tempFilename),
                 "." + FilenameUtils.getExtension(tempFilename));
         path.toFile().createNewFile();
