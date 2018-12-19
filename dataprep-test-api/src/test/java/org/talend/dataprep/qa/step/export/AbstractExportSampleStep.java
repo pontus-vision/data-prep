@@ -1,5 +1,6 @@
 package org.talend.dataprep.qa.step.export;
 
+import static org.springframework.http.HttpStatus.OK;
 import static org.talend.dataprep.qa.config.FeatureContext.suffixName;
 import static org.talend.dataprep.qa.util.export.ExportSampleParamCSV.*;
 import static org.talend.dataprep.qa.util.export.MandatoryParameters.DATASET_NAME;
@@ -20,6 +21,7 @@ import org.talend.dataprep.qa.util.export.ExportUtil;
 import org.talend.dataprep.qa.util.export.MandatoryParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jayway.restassured.response.Response;
 
 /**
  * CSV Exporter.
@@ -40,8 +42,10 @@ public abstract class AbstractExportSampleStep extends DataPrepStep implements E
         String filename = params.get(FILENAME.getName());
 
         Map<String, String> exportParams = extractParameters(params);
+        Response response = api.executeExport(exportParams);
+        response.then().statusCode(OK.value());
 
-        try (InputStream csv = api.executeExport(exportParams).asInputStream()) {
+        try (InputStream csv = response.asInputStream()) {
             // store the body content in a temporary File
             File tempFile = api.storeInputStreamAsTempFile(filename, csv);
             context.storeTempFile(filename, tempFile);
