@@ -210,9 +210,10 @@ public class TransformationService extends BaseTransformationService {
             resultUrlGenerator = PreparationGetContentUrlGenerator.class, //
             executionIdGeneratorClass = ExportParametersExecutionIdGenerator.class //
     )
-    public StreamingResponseBody execute(@ApiParam(
-            value = "Preparation id to apply.") @RequestBody @Valid @AsyncParameter @AsyncExecutionId final ExportParameters parameters)
-            throws IOException {
+    public StreamingResponseBody
+            execute(@ApiParam(
+                    value = "Preparation id to apply.") @RequestBody @Valid @AsyncParameter @AsyncExecutionId final ExportParameters parameters)
+                    throws IOException {
 
         // Async behavior
         final ConditionalTest conditionalTest = applicationContext.getBean(GetPrepContentAsyncCondition.class);
@@ -274,9 +275,8 @@ public class TransformationService extends BaseTransformationService {
                 }
             }
         } else {
-            LOG
-                    .debug("No step in preparation '{}', falls back to get dataset metadata (id: {})", preparationId,
-                            preparation.getDataSetId());
+            LOG.debug("No step in preparation '{}', falls back to get dataset metadata (id: {})", preparationId,
+                    preparation.getDataSetId());
             return datasetClient.getDataSetMetadata(preparation.getDataSetId());
         }
         return null;
@@ -431,22 +431,20 @@ public class TransformationService extends BaseTransformationService {
     }
 
     private void executeDiffOnSample(final PreviewParameters previewParameters, final OutputStream output) {
-        final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator
-                .generateMetadataKey( //
-                        previewParameters.getPreparationId(), //
-                        Step.ROOT_STEP.id(), //
-                        previewParameters.getSourceType() //
-                );
+        final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator.generateMetadataKey( //
+                previewParameters.getPreparationId(), //
+                Step.ROOT_STEP.id(), //
+                previewParameters.getSourceType() //
+        );
 
-        final ContentCacheKey contentKey = cacheKeyGenerator
-                .generateContentKey( //
-                        previewParameters.getDataSetId(), //
-                        previewParameters.getPreparationId(), //
-                        Step.ROOT_STEP.id(), //
-                        JSON, //
-                        previewParameters.getSourceType(), //
-                        "" // no filters for preview
-                );
+        final ContentCacheKey contentKey = cacheKeyGenerator.generateContentKey( //
+                previewParameters.getDataSetId(), //
+                previewParameters.getPreparationId(), //
+                Step.ROOT_STEP.id(), //
+                JSON, //
+                previewParameters.getSourceType(), //
+                "" // no filters for preview
+        );
 
         try (final InputStream metadata = contentCache.get(metadataKey); //
                 final InputStream content = contentCache.get(contentKey); //
@@ -500,22 +498,20 @@ public class TransformationService extends BaseTransformationService {
 
     private boolean shouldApplyDiffToSampleSource(final PreviewParameters previewParameters) {
         if (previewParameters.getSourceType() != HEAD && previewParameters.getPreparationId() != null) {
-            final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator
-                    .generateMetadataKey( //
-                            previewParameters.getPreparationId(), //
-                            Step.ROOT_STEP.id(), //
-                            previewParameters.getSourceType() //
-                    );
+            final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator.generateMetadataKey( //
+                    previewParameters.getPreparationId(), //
+                    Step.ROOT_STEP.id(), //
+                    previewParameters.getSourceType() //
+            );
 
-            final ContentCacheKey contentKey = cacheKeyGenerator
-                    .generateContentKey( //
-                            previewParameters.getDataSetId(), //
-                            previewParameters.getPreparationId(), //
-                            Step.ROOT_STEP.id(), //
-                            JSON, //
-                            previewParameters.getSourceType(), //
-                            "" // no filter for preview parameters
-                    );
+            final ContentCacheKey contentKey = cacheKeyGenerator.generateContentKey( //
+                    previewParameters.getDataSetId(), //
+                    previewParameters.getPreparationId(), //
+                    Step.ROOT_STEP.id(), //
+                    JSON, //
+                    previewParameters.getSourceType(), //
+                    "" // no filter for preview parameters
+            );
 
             return contentCache.has(metadataKey) && contentCache.has(contentKey);
         }
@@ -832,9 +828,8 @@ public class TransformationService extends BaseTransformationService {
             @ApiParam(value = "The column id") @PathVariable String columnId,
             @ApiParam(value = "The preparation version") @RequestParam(defaultValue = "head") String stepId) {
 
-        LOG
-                .debug("listing preparation semantic categories for preparation #{} column #{}@{}", preparationId,
-                        columnId, stepId);
+        LOG.debug("listing preparation semantic categories for preparation #{} column #{}@{}", preparationId, columnId,
+                stepId);
 
         // get the preparation
         final PreparationDTO preparation = getPreparation(preparationId);
