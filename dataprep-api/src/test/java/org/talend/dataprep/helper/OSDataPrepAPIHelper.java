@@ -82,6 +82,8 @@ public class OSDataPrepAPIHelper {
 
     private static final String PATH = "path";
 
+    private static final int MAX_ASYNC_CALL = 1000;
+
     private VerboseMode restAssuredDebug = NONE;
 
     @Value("${backend.api.url:http://localhost:8888}")
@@ -92,8 +94,9 @@ public class OSDataPrepAPIHelper {
 
     @PostConstruct
     public void initExecutionContext() {
-        LOGGER.info("Start Integration Test on '{}'",
-                executionContext == ITExecutionContext.CLOUD ? "Cloud" : "On Premise");
+        LOGGER
+                .info("Start Integration Test on '{}'",
+                        executionContext == ITExecutionContext.CLOUD ? "Cloud" : "On Premise");
     }
 
     /**
@@ -220,8 +223,8 @@ public class OSDataPrepAPIHelper {
     public Response uploadTextDataset(String filename, String datasetName) throws java.io.IOException {
         return given() //
                 .header(new Header(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8")) //
-                .body(IOUtils.toString(OSDataPrepAPIHelper.class.getResourceAsStream(filename),
-                        Charset.defaultCharset())) //
+                .body(IOUtils
+                        .toString(OSDataPrepAPIHelper.class.getResourceAsStream(filename), Charset.defaultCharset())) //
                 .queryParam(NAME, datasetName) //
                 .when() //
                 .post("/api/datasets");
@@ -254,8 +257,8 @@ public class OSDataPrepAPIHelper {
     public Response updateDataset(String filename, String datasetName, String datasetId) throws IOException {
         return given() //
                 .header(new Header(HttpHeaders.CONTENT_TYPE, HTTP.PLAIN_TEXT_TYPE)) //
-                .body(IOUtils.toString(OSDataPrepAPIHelper.class.getResourceAsStream(filename),
-                        Charset.defaultCharset())) //
+                .body(IOUtils
+                        .toString(OSDataPrepAPIHelper.class.getResourceAsStream(filename), Charset.defaultCharset())) //
                 .when() //
                 .queryParam(NAME, datasetName) //
                 .put("/api/datasets/{datasetId}", datasetId);
@@ -434,8 +437,9 @@ public class OSDataPrepAPIHelper {
         if (input == null) {
             return null;
         }
-        Path path = Files.createTempFile(FilenameUtils.getBaseName(tempFilename),
-                "." + FilenameUtils.getExtension(tempFilename));
+        Path path = Files
+                .createTempFile(FilenameUtils.getBaseName(tempFilename),
+                        "." + FilenameUtils.getExtension(tempFilename));
         path.toFile().createNewFile();
         Files.copy(input, path, StandardCopyOption.REPLACE_EXISTING);
         File tempFile = path.toFile();
@@ -616,12 +620,12 @@ public class OSDataPrepAPIHelper {
 
         AsyncExecutionMessage asyncExecutionMessage = null;
 
-        while (isAsyncMethodRunning && nbLoop < 1000) {
+        while (isAsyncMethodRunning && nbLoop < MAX_ASYNC_CALL) {
 
             String statusAsyncMethod = given()
                     .when() //
                     .expect()
-                    .statusCode(200)
+                    .statusCode(HttpStatus.OK.value())
                     .log()
                     .ifError() //
                     .get(asyncMethodStatusUrl)
@@ -644,6 +648,15 @@ public class OSDataPrepAPIHelper {
                 Assert.fail();
             }
             nbLoop++;
+        }
+
+        if (nbLoop != MAX_ASYNC_CALL) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (InterruptedException e) {
+                LOGGER.error("Cannot Sleep", e);
+                Assert.fail();
+            }
         }
 
         return asyncExecutionMessage;
