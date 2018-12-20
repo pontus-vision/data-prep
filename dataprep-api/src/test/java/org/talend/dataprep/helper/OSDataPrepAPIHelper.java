@@ -376,6 +376,8 @@ public class OSDataPrepAPIHelper {
                 .queryParameters(parameters) //
                 .get("/api/export");
 
+        LOGGER.info("HTTP first call response status code : " + response.getStatusCode());
+
         if (HttpStatus.ACCEPTED.value() == response.getStatusCode()) {
             // first time we have a 202 with a Location to see asynchronous method status
             final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
@@ -387,6 +389,8 @@ public class OSDataPrepAPIHelper {
                     .when() //
                     .queryParameters(parameters) //
                     .get("/api/export");
+
+            LOGGER.info("HTTP second call response status code : " + response.getStatusCode());
         }
         return response;
     }
@@ -633,7 +637,7 @@ public class OSDataPrepAPIHelper {
                 Assert.fail("AsyncExecution failed");
             }
             try {
-                TimeUnit.MILLISECONDS.sleep(1000);
+                TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 LOGGER.error("Cannot Sleep", e);
                 Assert.fail();
