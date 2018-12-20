@@ -630,6 +630,7 @@ public class OSDataPrepAPIHelper {
             asyncExecutionMessage = mapper.readerFor(AsyncExecutionMessage.class).readValue(statusAsyncMethod);
 
             AsyncExecution.Status asyncStatus = asyncExecutionMessage.getStatus();
+            LOGGER.info("Async status : " + asyncStatus.name());
             isAsyncMethodRunning = asyncStatus == RUNNING || asyncStatus == NEW;
 
             if (asyncStatus == FAILED) {
