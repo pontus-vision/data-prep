@@ -17,9 +17,7 @@ import static java.util.Collections.singletonList;
 import static org.springframework.context.i18n.LocaleContextHolder.getLocale;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 import static org.talend.daikon.exception.ExceptionContext.build;
 import static org.talend.dataprep.api.dataset.ColumnMetadata.Builder.column;
 import static org.talend.dataprep.api.export.ExportParameters.SourceType.HEAD;
@@ -29,13 +27,7 @@ import static org.talend.dataprep.transformation.actions.category.ScopeCategory.
 import static org.talend.dataprep.transformation.actions.category.ScopeCategory.LINE;
 import static org.talend.dataprep.transformation.format.JsonFormat.JSON;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -56,13 +48,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.talend.daikon.exception.ExceptionContext;
 import org.talend.dataprep.api.action.ActionDefinition;
@@ -139,6 +125,8 @@ import io.swagger.annotations.ApiParam;
 @RestController
 @Api(value = "transformations", basePath = "/transform", description = "Transformations on data")
 public class TransformationService extends BaseTransformationService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformationService.class);
 
     /**
      * This class' logger.
@@ -222,22 +210,21 @@ public class TransformationService extends BaseTransformationService {
             resultUrlGenerator = PreparationGetContentUrlGenerator.class, //
             executionIdGeneratorClass = ExportParametersExecutionIdGenerator.class //
     )
-    public StreamingResponseBody
-            execute(@ApiParam(
-                    value = "Preparation id to apply.") @RequestBody @Valid @AsyncParameter @AsyncExecutionId final ExportParameters parameters)
-                    throws IOException {
+    public StreamingResponseBody execute(@ApiParam(
+            value = "Preparation id to apply.") @RequestBody @Valid @AsyncParameter @AsyncExecutionId final ExportParameters parameters)
+            throws IOException {
 
         // Async behavior
         final ConditionalTest conditionalTest = applicationContext.getBean(GetPrepContentAsyncCondition.class);
         if (conditionalTest.apply(parameters)) {
             // write to cache
-            LOGGER.info("#YAC# Write to cache.")
+            LOGGER.info("#YAC# Write to cache.");
             executeSampleExportStrategy(parameters).writeTo(new NullOutputStream());
             return outputStream -> {
             };
         } else {
             // sync behavior
-            LOGGER.info("#YAC# Read from cache.")
+            LOGGER.info("#YAC# Read from cache.");
             return executeSampleExportStrategy(parameters);
         }
     }
@@ -287,8 +274,9 @@ public class TransformationService extends BaseTransformationService {
                 }
             }
         } else {
-            LOG.debug("No step in preparation '{}', falls back to get dataset metadata (id: {})", preparationId,
-                    preparation.getDataSetId());
+            LOG
+                    .debug("No step in preparation '{}', falls back to get dataset metadata (id: {})", preparationId,
+                            preparation.getDataSetId());
             return datasetClient.getDataSetMetadata(preparation.getDataSetId());
         }
         return null;
@@ -443,20 +431,22 @@ public class TransformationService extends BaseTransformationService {
     }
 
     private void executeDiffOnSample(final PreviewParameters previewParameters, final OutputStream output) {
-        final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator.generateMetadataKey( //
-                previewParameters.getPreparationId(), //
-                Step.ROOT_STEP.id(), //
-                previewParameters.getSourceType() //
-        );
+        final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator
+                .generateMetadataKey( //
+                        previewParameters.getPreparationId(), //
+                        Step.ROOT_STEP.id(), //
+                        previewParameters.getSourceType() //
+                );
 
-        final ContentCacheKey contentKey = cacheKeyGenerator.generateContentKey( //
-                previewParameters.getDataSetId(), //
-                previewParameters.getPreparationId(), //
-                Step.ROOT_STEP.id(), //
-                JSON, //
-                previewParameters.getSourceType(), //
-                "" // no filters for preview
-        );
+        final ContentCacheKey contentKey = cacheKeyGenerator
+                .generateContentKey( //
+                        previewParameters.getDataSetId(), //
+                        previewParameters.getPreparationId(), //
+                        Step.ROOT_STEP.id(), //
+                        JSON, //
+                        previewParameters.getSourceType(), //
+                        "" // no filters for preview
+                );
 
         try (final InputStream metadata = contentCache.get(metadataKey); //
                 final InputStream content = contentCache.get(contentKey); //
@@ -510,20 +500,22 @@ public class TransformationService extends BaseTransformationService {
 
     private boolean shouldApplyDiffToSampleSource(final PreviewParameters previewParameters) {
         if (previewParameters.getSourceType() != HEAD && previewParameters.getPreparationId() != null) {
-            final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator.generateMetadataKey( //
-                    previewParameters.getPreparationId(), //
-                    Step.ROOT_STEP.id(), //
-                    previewParameters.getSourceType() //
-            );
+            final TransformationMetadataCacheKey metadataKey = cacheKeyGenerator
+                    .generateMetadataKey( //
+                            previewParameters.getPreparationId(), //
+                            Step.ROOT_STEP.id(), //
+                            previewParameters.getSourceType() //
+                    );
 
-            final ContentCacheKey contentKey = cacheKeyGenerator.generateContentKey( //
-                    previewParameters.getDataSetId(), //
-                    previewParameters.getPreparationId(), //
-                    Step.ROOT_STEP.id(), //
-                    JSON, //
-                    previewParameters.getSourceType(), //
-                    "" // no filter for preview parameters
-            );
+            final ContentCacheKey contentKey = cacheKeyGenerator
+                    .generateContentKey( //
+                            previewParameters.getDataSetId(), //
+                            previewParameters.getPreparationId(), //
+                            Step.ROOT_STEP.id(), //
+                            JSON, //
+                            previewParameters.getSourceType(), //
+                            "" // no filter for preview parameters
+                    );
 
             return contentCache.has(metadataKey) && contentCache.has(contentKey);
         }
@@ -840,8 +832,9 @@ public class TransformationService extends BaseTransformationService {
             @ApiParam(value = "The column id") @PathVariable String columnId,
             @ApiParam(value = "The preparation version") @RequestParam(defaultValue = "head") String stepId) {
 
-        LOG.debug("listing preparation semantic categories for preparation #{} column #{}@{}", preparationId, columnId,
-                stepId);
+        LOG
+                .debug("listing preparation semantic categories for preparation #{} column #{}@{}", preparationId,
+                        columnId, stepId);
 
         // get the preparation
         final PreparationDTO preparation = getPreparation(preparationId);
