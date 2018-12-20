@@ -40,7 +40,7 @@ public class CacheCondition implements ConditionalTest {
         Validate.isInstanceOf(ContentCacheKey.class, args[0]);
 
         ContentCacheKey cacheKey = (ContentCacheKey) args[0];
-
+        LOGGER.info("#YAC# Content cache key : " + cacheKey.getKey());
         return contentCache.has(cacheKey);
     }
 

@@ -231,11 +231,13 @@ public class TransformationService extends BaseTransformationService {
         final ConditionalTest conditionalTest = applicationContext.getBean(GetPrepContentAsyncCondition.class);
         if (conditionalTest.apply(parameters)) {
             // write to cache
+            LOGGER.info("#YAC# Write to cache.")
             executeSampleExportStrategy(parameters).writeTo(new NullOutputStream());
             return outputStream -> {
             };
         } else {
             // sync behavior
+            LOGGER.info("#YAC# Read from cache.")
             return executeSampleExportStrategy(parameters);
         }
     }
