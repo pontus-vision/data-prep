@@ -372,28 +372,38 @@ public class OSDataPrepAPIHelper {
      * @return the response.
      */
     public Response executeExport(Map<String, String> parameters) throws IOException {
-        Response response = given() //
-                .contentType(JSON) //
-                .when() //
-                .queryParameters(parameters) //
-                .get("/api/export");
-
-        LOGGER.info("HTTP first call response status code : " + response.getStatusCode());
-
-        if (HttpStatus.ACCEPTED.value() == response.getStatusCode()) {
-            // first time we have a 202 with a Location to see asynchronous method status
-            final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
-
-            waitForAsyncMethodToFinish(asyncMethodStatusUrl);
+        boolean waitingForAsyncop = false;
+        int cycleCounter = 0;
+        Response response;
+        do {
+            LOGGER.info("Counter = " + cycleCounter);
 
             response = given() //
                     .contentType(JSON) //
                     .when() //
                     .queryParameters(parameters) //
                     .get("/api/export");
+            LOGGER.info("HTTP first call response status code : " + response.getStatusCode());
 
-            LOGGER.info("HTTP second call response status code : " + response.getStatusCode());
-        }
+            if (HttpStatus.ACCEPTED.value() == response.getStatusCode()) {
+                // first time we have a 202 with a Location to see asynchronous method status
+                final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
+
+                waitForAsyncMethodToFinish(asyncMethodStatusUrl);
+
+                response = given() //
+                        .contentType(JSON) //
+                        .when() //
+                        .queryParameters(parameters) //
+                        .get("/api/export");
+
+                LOGGER.info("HTTP second call response status code : " + response.getStatusCode());
+            }
+
+            waitingForAsyncop = HttpStatus.ACCEPTED.value() == response.getStatusCode();
+            cycleCounter++;
+        } while (waitingForAsyncop && cycleCounter < 4);
+
         return response;
     }
 
