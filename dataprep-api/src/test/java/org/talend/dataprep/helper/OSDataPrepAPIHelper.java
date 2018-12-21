@@ -14,6 +14,8 @@
 package org.talend.dataprep.helper;
 
 import static com.jayway.restassured.http.ContentType.JSON;
+import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.HttpStatus.OK;
 import static org.talend.dataprep.async.AsyncExecution.Status.*;
 import static org.talend.dataprep.helper.VerboseMode.NONE;
 
@@ -307,7 +309,7 @@ public class OSDataPrepAPIHelper {
                 .when() //
                 .get("/api/preparations/{preparationId}/content", preparationId);
 
-        if (HttpStatus.ACCEPTED.value() == response.getStatusCode()) {
+        if (ACCEPTED.value() == response.getStatusCode()) {
             // first time we have a 202 with a Location to see asynchronous method status
             final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
 
@@ -372,37 +374,70 @@ public class OSDataPrepAPIHelper {
      * @return the response.
      */
     public Response executeExport(Map<String, String> parameters) throws IOException {
-        boolean waitingForAsyncop = false;
-        int cycleCounter = 0;
-        Response response;
-        do {
-            LOGGER.info("Counter = " + cycleCounter);
-
+        Response response = given() //
+                .contentType(JSON) //
+                .when() //
+                .queryParameters(parameters) //
+                .head("/api/export");
+        switch (HttpStatus.valueOf(response.getStatusCode())) {
+        case ACCEPTED:
+            final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
+            AsyncExecutionMessage asyncExecutionMessage = waitForAsyncMethodToFinish(asyncMethodStatusUrl);
+            response = given() //
+                    .contentType(JSON) //
+                    .when() //
+                    .queryParameters(parameters) //
+                    .head(asyncExecutionMessage.getResult().getDownloadUrl());
+            response.then().statusCode(OK.value());
             response = given() //
                     .contentType(JSON) //
                     .when() //
                     .queryParameters(parameters) //
                     .get("/api/export");
-            LOGGER.info("HTTP first call response status code : " + response.getStatusCode());
+            break;
+        case OK:
+            response = given() //
+                    .contentType(JSON) //
+                    .when() //
+                    .queryParameters(parameters) //
+                    .get("/api/export");
+            break;
+        default:
+            LOGGER.error("ExecuteExport head call failed with status : " + response.getStatusCode());
+            Assert.fail("ExecuteExport head call failed");
+        }
 
-            if (HttpStatus.ACCEPTED.value() == response.getStatusCode()) {
-                // first time we have a 202 with a Location to see asynchronous method status
-                final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
-
-                waitForAsyncMethodToFinish(asyncMethodStatusUrl);
-
-                response = given() //
-                        .contentType(JSON) //
-                        .when() //
-                        .queryParameters(parameters) //
-                        .get("/api/export");
-
-                LOGGER.info("HTTP second call response status code : " + response.getStatusCode());
-            }
-
-            waitingForAsyncop = HttpStatus.ACCEPTED.value() == response.getStatusCode();
-            cycleCounter++;
-        } while (waitingForAsyncop && cycleCounter < 4);
+        //        boolean waitingForAsyncop = false;
+        //        int cycleCounter = 0;
+        //        Response response;
+        //        do {
+        //            LOGGER.info("Counter = " + cycleCounter);
+        //
+        //            response = given() //
+        //                    .contentType(JSON) //
+        //                    .when() //
+        //                    .queryParameters(parameters) //
+        //                    .get("/api/export");
+        //            LOGGER.info("HTTP first call response status code : " + response.getStatusCode());
+        //
+        //            if (ACCEPTED.value() == response.getStatusCode()) {
+        //                // first time we have a 202 with a Location to see asynchronous method status
+        //                final String asyncMethodStatusUrl = response.getHeader(HttpHeaders.LOCATION);
+        //
+        //                waitForAsyncMethodToFinish(asyncMethodStatusUrl);
+        //
+        //                response = given() //
+        //                        .contentType(JSON) //
+        //                        .when() //
+        //                        .queryParameters(parameters) //
+        //                        .get("/api/export");
+        //
+        //                LOGGER.info("HTTP second call response status code : " + response.getStatusCode());
+        //            }
+        //
+        //            waitingForAsyncop = ACCEPTED.value() == response.getStatusCode();
+        //            cycleCounter++;
+        //        } while (waitingForAsyncop && cycleCounter < 4);
 
         return response;
     }
@@ -633,7 +668,7 @@ public class OSDataPrepAPIHelper {
             String statusAsyncMethod = given()
                     .when() //
                     .expect()
-                    .statusCode(HttpStatus.OK.value())
+                    .statusCode(OK.value())
                     .log()
                     .ifError() //
                     .get(asyncMethodStatusUrl)
@@ -648,6 +683,10 @@ public class OSDataPrepAPIHelper {
             if (asyncStatus == FAILED) {
                 LOGGER.error("AsyncExecution failed");
                 Assert.fail("AsyncExecution failed");
+            }
+            if (asyncStatus == CANCELLED) {
+                LOGGER.error("AsyncExecution cancelled");
+                Assert.fail("AsyncExecution cancelled");
             }
             try {
                 TimeUnit.SECONDS.sleep(1);
