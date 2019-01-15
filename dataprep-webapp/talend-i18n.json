@@ -1,0 +1,18 @@
+{
+  "extract": {
+    "method": "files",
+    "files": [
+      "./src/app/next/locales/en/tdp-app.json",
+      "./src/app/next/locales/en/tdp-cmf.json",
+      "./src/i18n/en.json"
+    ],
+    "target": "./i18n"
+  },
+  "load": {
+    "project": "TDP-frontend-test",
+    "target": "./i18n-from-xtm"
+  },
+  "github": {
+    "url": "https://github.com/jsomsanith/locales.git"
+  },
+}
