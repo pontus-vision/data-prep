@@ -29,6 +29,8 @@ public class TdpExceptionDto {
 
     private Map<String, Object> context;
 
+    private boolean isStacktraceDisplayed = true;
+
     private TdpExceptionDto cause;
 
     public TdpExceptionDto() {
@@ -36,12 +38,18 @@ public class TdpExceptionDto {
 
     public TdpExceptionDto(String code, TdpExceptionDto cause, String defaultMessage, String message,
             String messageTitle, Map<String, Object> context) {
+        this(code, cause, defaultMessage, message, messageTitle, context, true);
+    }
+
+    public TdpExceptionDto(String code, TdpExceptionDto cause, String defaultMessage, String message,
+            String messageTitle, Map<String, Object> context, boolean isStacktraceDisplayed) {
         this.code = code;
         this.cause = cause;
         this.defaultMessage = defaultMessage;
         this.message = message;
         this.messageTitle = messageTitle;
         this.context = context;
+        this.isStacktraceDisplayed = isStacktraceDisplayed;
     }
 
     public String getCode() {
@@ -90,5 +98,13 @@ public class TdpExceptionDto {
 
     public void setCause(TdpExceptionDto cause) {
         this.cause = cause;
+    }
+
+    public boolean isStacktraceDisplayed() {
+        return isStacktraceDisplayed;
+    }
+
+    public void setStacktraceDisplayed(boolean stacktraceDisplayed) {
+        isStacktraceDisplayed = stacktraceDisplayed;
     }
 }

@@ -109,9 +109,6 @@ public class PreparationAPI extends APIService {
     private DataSetAPI dataSetAPI;
 
     @Autowired
-    private DatasetClient datasetClient;
-
-    @Autowired
     private ActionRegistry registry;
 
     @Autowired

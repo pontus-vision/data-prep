@@ -57,8 +57,10 @@ public class TDPExceptionController {
      */
     @ExceptionHandler({ TalendRuntimeException.class })
     public ResponseEntity<String> handleError(TalendRuntimeException e) throws JsonProcessingException {
-        if (e instanceof TDPException) {
-            LOGGER.error("An error occurred", e);
+        if (e instanceof TDPExceptionFlowControl) {
+            LOGGER.error("An error occurred. Error : {} | Context : {}", e, e.getContext());
+        } else if (e instanceof TDPException) {
+            LOGGER.error("An error occurred : " + e.getContext(), e);
         } else {
             LOGGER.debug("Returning an exception to HTTP client.", e);
         }
@@ -70,7 +72,8 @@ public class TDPExceptionController {
     }
 
     /**
-     * This method is invoked when Spring throw an MethodArgumentNotValidException. This happen because @RequestMapping annotated
+     * This method is invoked when Spring throw an MethodArgumentNotValidException. This happen because @RequestMapping
+     * annotated
      * methods may have @Valid annotated arguments and validation may fail.
      */
     @ExceptionHandler({ MethodArgumentNotValidException.class })

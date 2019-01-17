@@ -86,6 +86,7 @@ import org.talend.dataprep.conversions.BeanConversionService;
 import org.talend.dataprep.conversions.inject.OwnerInjection;
 import org.talend.dataprep.dataset.adapter.DatasetClient;
 import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.exception.TDPExceptionFlowControl;
 import org.talend.dataprep.exception.error.PreparationErrorCodes;
 import org.talend.dataprep.exception.json.JsonErrorCodeDescription;
 import org.talend.dataprep.folder.store.FolderRepository;
@@ -535,7 +536,7 @@ public class PreparationService {
                             .put(ID, folderEntry.getContentId()) //
                             .put(FOLDER_ID, folderId) //
                             .put(NAME, name);
-                    throw new TDPException(PREPARATION_NAME_ALREADY_USED, context);
+                    throw new TDPExceptionFlowControl(PREPARATION_NAME_ALREADY_USED, context);
                 }
             });
         }

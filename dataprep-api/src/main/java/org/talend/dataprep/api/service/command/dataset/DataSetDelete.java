@@ -12,10 +12,14 @@
 
 package org.talend.dataprep.api.service.command.dataset;
 
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
+import static org.talend.dataprep.command.Defaults.getResponseEntity;
+import static org.talend.dataprep.exception.error.APIErrorCodes.DATASET_STILL_IN_USE;
+
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -23,13 +27,8 @@ import org.talend.daikon.exception.ExceptionContext;
 import org.talend.dataprep.api.service.command.preparation.CheckDatasetUsage;
 import org.talend.dataprep.command.GenericCommand;
 import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.exception.TDPExceptionFlowControl;
 import org.talend.dataprep.exception.error.APIErrorCodes;
-
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
-import static org.talend.dataprep.command.Defaults.getResponseEntity;
-import static org.talend.dataprep.exception.error.APIErrorCodes.DATASET_STILL_IN_USE;
 
 /**
  * Delete the dataset if it's not used by any preparation.
@@ -37,11 +36,6 @@ import static org.talend.dataprep.exception.error.APIErrorCodes.DATASET_STILL_IN
 @Component
 @Scope(SCOPE_PROTOTYPE)
 public class DataSetDelete extends GenericCommand<ResponseEntity<String>> {
-
-    /**
-     * This class' logger.
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(DataSetDelete.class);
 
     /**
      * Default constructor.
@@ -62,9 +56,9 @@ public class DataSetDelete extends GenericCommand<ResponseEntity<String>> {
 
         // if the dataset is used by preparation(s), the deletion is forbidden
         if (isDatasetUsed) {
-            LOG.debug("DataSet {} is used by {} preparation(s) and cannot be deleted", dataSetId);
+            // Exception used for flow control : bad pattern
             final ExceptionContext context = ExceptionContext.build().put("dataSetId", dataSetId);
-            throw new TDPException(DATASET_STILL_IN_USE, context);
+            throw new TDPExceptionFlowControl(DATASET_STILL_IN_USE, context);
         }
         return new HttpDelete(datasetServiceUrl + "/datasets/" + dataSetId);
     }

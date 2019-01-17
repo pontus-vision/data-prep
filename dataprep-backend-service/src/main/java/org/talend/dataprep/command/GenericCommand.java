@@ -52,6 +52,7 @@ import org.talend.dataprep.api.preparation.Action;
 import org.talend.dataprep.conversions.BeanConversionService;
 import org.talend.dataprep.exception.ErrorCodeDto;
 import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.exception.TDPExceptionFlowControl;
 import org.talend.dataprep.exception.TdpExceptionDto;
 import org.talend.dataprep.exception.error.CommonErrorCodes;
 import org.talend.dataprep.security.Security;
@@ -537,7 +538,7 @@ public class GenericCommand<T> extends HystrixCommand<T> {
         @Override
         public T apply(HttpRequestBase req, HttpResponse res) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("request on error {} -> {}", req.toString(), res.getStatusLine());
+                LOGGER.trace("request on error {} -> {}", req, res.getStatusLine());
             }
             final int statusCode = res.getStatusLine().getStatusCode();
             String content = StringUtils.EMPTY;
@@ -550,19 +551,14 @@ public class GenericCommand<T> extends HystrixCommand<T> {
                     LOGGER.trace("Error received {}", content);
                 }
                 TdpExceptionDto exceptionDto = objectMapper.readValue(content, TdpExceptionDto.class);
-                TDPException cause;
-                try {
-                    cause = conversionService.convert(exceptionDto, TDPException.class);
-                } catch (RuntimeException e) {
-                    cause = new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, null, content,
-                            "Remote service returned an unhandled error and response could not be deserialized.",
-                            ExceptionContext.build());
+
+                if (exceptionDto.isStacktraceDisplayed()) {
+                    throw onError.apply(getTDPExceptionFromDTO(exceptionDto, content, statusCode, TDPException.class));
+                } else {
+                    throw onError.apply(
+                            getTDPExceptionFromDTO(exceptionDto, content, statusCode, TDPExceptionFlowControl.class));
                 }
-                ErrorCode code = cause.getCode();
-                if (code instanceof ErrorCodeDto) {
-                    ((ErrorCodeDto) code).setHttpStatus(statusCode);
-                }
-                throw onError.apply(cause);
+
             } catch (JsonProcessingException e) {
                 LOGGER.debug("Cannot parse response content as JSON with content '" + content + "'", e);
                 // Failed to parse JSON error, returns an unexpected code with returned HTTP code
@@ -592,7 +588,24 @@ public class GenericCommand<T> extends HystrixCommand<T> {
             }
         }
 
-        public String buildRequestReport(HttpRequestBase req, HttpResponse res) {
+        private TDPException getTDPExceptionFromDTO(TdpExceptionDto exceptionDto, String content, int statusCode,
+                Class<? extends TDPException> clazz) {
+            TDPException cause;
+            try {
+                cause = clazz.cast(conversionService.convert(exceptionDto, TDPException.class));
+            } catch (RuntimeException e) {
+                cause = new TDPException(CommonErrorCodes.UNEXPECTED_EXCEPTION, null, content,
+                        "Remote service returned an unhandled error and response could not be deserialized.",
+                        ExceptionContext.build());
+            }
+            ErrorCode code = cause.getCode();
+            if (code instanceof ErrorCodeDto) {
+                ((ErrorCodeDto) code).setHttpStatus(statusCode);
+            }
+            return cause;
+        }
+
+        private String buildRequestReport(HttpRequestBase req, HttpResponse res) {
             StringBuilder builder = new StringBuilder("{request:{\n");
             builder.append("uri:").append(req.getURI()).append(",\n");
             builder.append("request:").append(req.getRequestLine()).append(",\n");

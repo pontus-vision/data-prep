@@ -17,6 +17,7 @@ package org.talend.dataprep.dataset.adapter;
 
 import static java.lang.Boolean.TRUE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.talend.daikon.exception.ExceptionContext.build;
 import static org.talend.dataprep.dataset.adapter.Dataset.CertificationState.CERTIFIED;
 import static org.talend.dataprep.util.SortAndOrderHelper.Order;
@@ -37,7 +38,6 @@ import org.apache.avro.io.EncoderFactory;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,7 +77,7 @@ public class DataSetController {
                 new ConverterBasedPropertyEditor<>(Dataset.CertificationState::valueOf));
     }
 
-    @GetMapping
+    @RequestMapping(method = GET)
     public Stream<Dataset> getAllDatasets(@RequestParam(required = false) Dataset.CertificationState certification,
             @RequestParam(required = false) Boolean favorite) {
         boolean legacyCertified = CERTIFIED == certification;
@@ -96,7 +96,7 @@ public class DataSetController {
      * @param advanced   asks tcomp to add additionnal UISpec from the datastore
      * @return
      */
-    @GetMapping("/{datasetId}")
+    @RequestMapping(value = "/{datasetId}", method = GET)
     public Dataset getDataset(@PathVariable String datasetId, @RequestParam(required = false) boolean withUiSpec,
             @RequestParam(required = false) boolean advanced) {
         DataSet dataSet = dataSetService.getMetadata(datasetId);
@@ -109,7 +109,8 @@ public class DataSetController {
         return null;
     }
 
-    @GetMapping(value = "/{datasetId}/schema", produces = AvroUtils.AVRO_JSON_MIME_TYPES_UNOFFICIAL_VALID_VALUE)
+    @RequestMapping(value = "/{datasetId}/schema", produces = AvroUtils.AVRO_JSON_MIME_TYPES_UNOFFICIAL_VALID_VALUE,
+            method = GET)
     public String getDatasetSchema(@PathVariable String datasetId) {
         DataSet dataSet = dataSetService.getMetadata(datasetId);
 
@@ -121,7 +122,8 @@ public class DataSetController {
         return AvroUtils.toSchema(rowMetadata).toString();
     }
 
-    @GetMapping(value = "/{datasetId}/content", produces = AvroUtils.AVRO_BINARY_MIME_TYPES_UNOFFICIAL_VALID_VALUE)
+    @RequestMapping(value = "/{datasetId}/content", produces = AvroUtils.AVRO_BINARY_MIME_TYPES_UNOFFICIAL_VALID_VALUE,
+            method = GET)
     public Resource getDatasetContent(@PathVariable String datasetId, @RequestParam(defaultValue = "0") long offset,
             @RequestParam(defaultValue = "-1") long limit) {
         InputStream result;

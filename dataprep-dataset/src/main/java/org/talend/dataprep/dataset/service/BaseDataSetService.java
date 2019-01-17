@@ -33,6 +33,7 @@ import org.talend.dataprep.dataset.service.analysis.synchronous.SynchronousDataS
 import org.talend.dataprep.dataset.store.content.ContentStoreRouter;
 import org.talend.dataprep.dataset.store.metadata.DataSetMetadataRepository;
 import org.talend.dataprep.exception.TDPException;
+import org.talend.dataprep.exception.TDPExceptionFlowControl;
 import org.talend.dataprep.exception.error.DataSetErrorCodes;
 
 public abstract class BaseDataSetService {
@@ -90,40 +91,40 @@ public abstract class BaseDataSetService {
     /**
      * Make sure the given name is not used by another dataset. If yes, throws a TDPException.
      *
-     * @param name the name to check.
+     * @param datasetName the name to check.
      */
-    protected void checkIfNameIsAvailable(String name) {
-        if (dataSetMetadataRepository.exist("name = '" + name + "'")) {
+    protected void checkIfNameIsAvailable(String datasetName) {
+        if (dataSetMetadataRepository.exist("name = '" + datasetName + "'")) {
             final ExceptionContext context = ExceptionContext
                     .build() //
-                    .put("name", name);
-            throw new TDPException(DATASET_NAME_ALREADY_USED, context);
+                    .put("name", datasetName);
+            throw new TDPExceptionFlowControl(DATASET_NAME_ALREADY_USED, context);
         }
     }
 
     /**
      * Performs the analysis on the given dataset id.
-     *  @param id the dataset id.
+     *  @param datasetId the dataset id.
      * @param analysersToSkip the list of analysers to skip.
      */
-    protected final void analyzeDataSet(String id, List<Class<? extends DataSetAnalyzer>> analysersToSkip) {
+    protected final void analyzeDataSet(String datasetId, List<Class<? extends DataSetAnalyzer>> analysersToSkip) {
         // Calls all synchronous analysis first
         for (SynchronousDataSetAnalyzer synchronousDataSetAnalyzer : synchronousAnalyzers) {
             if (analysersToSkip.contains(synchronousDataSetAnalyzer.getClass())) {
                 continue;
             }
             LOG.info("Running {}", synchronousDataSetAnalyzer.getClass());
-            synchronousDataSetAnalyzer.analyze(id);
+            synchronousDataSetAnalyzer.analyze(datasetId);
             LOG.info("Done running {}", synchronousDataSetAnalyzer.getClass());
         }
 
         // important log here (TDP-4137)
-        final DataSetMetadata metadata = dataSetMetadataRepository.get(id);
+        final DataSetMetadata metadata = dataSetMetadataRepository.get(datasetId);
         if (metadata != null) {
             LOG.info("New DataSet #{}, name: {}, type: {}, from: {}", metadata.getId(), metadata.getName(),
                     metadata.getContent().getMediaType(), metadata.getLocation().getStoreName());
         } else {
-            LOG.error("Dataset #{} does not exist (but was expected to)", id);
+            LOG.error("Dataset #{} does not exist (but was expected to)", datasetId);
         }
     }
 

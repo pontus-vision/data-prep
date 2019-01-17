@@ -58,12 +58,14 @@ public class ExceptionsConfiguration {
                         for (Map.Entry<String, Object> contextEntry : internal.getContext().entries()) {
                             context.put(contextEntry.getKey(), contextEntry.getValue());
                         }
-
                         dto.setMessage(internal.getLocalizedMessage());
                         dto.setDefaultMessage(internal.getMessage());
                         dto.setCode(serializedCode);
                         dto.setCause(cause);
                         dto.setContext(context);
+                        if (internal instanceof TDPExceptionFlowControl) {
+                            dto.setStacktraceDisplayed(false);
+                        }
                         return dto;
                     })
                     .build());
@@ -86,6 +88,12 @@ public class ExceptionsConfiguration {
                                 .setGroup(groupCode)
                                 .setProduct(productCode)
                                 .setHttpStatus(null); // default that may be changed after
+
+                        if (!dto.isStacktraceDisplayed()) {
+                            return new TDPExceptionFlowControl(errorCodeDto, null, dto.getMessage(),
+                                    dto.getMessageTitle(),
+                                    ExceptionContext.build().from(dto.getContext()).put("cause", dto.getCause()));
+                        }
 
                         return new TDPException(errorCodeDto, null, dto.getMessage(), dto.getMessageTitle(),
                                 ExceptionContext.build().from(dto.getContext()).put("cause", dto.getCause()));
