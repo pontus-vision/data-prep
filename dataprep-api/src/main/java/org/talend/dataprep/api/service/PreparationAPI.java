@@ -91,6 +91,7 @@ import org.talend.dataprep.exception.TDPException;
 import org.talend.dataprep.exception.error.APIErrorCodes;
 import org.talend.dataprep.exception.error.DataSetErrorCodes;
 import org.talend.dataprep.http.HttpResponseContext;
+import org.talend.dataprep.metrics.LogTimed;
 import org.talend.dataprep.metrics.Timed;
 import org.talend.dataprep.security.PublicAPI;
 import org.talend.dataprep.transformation.actions.datablending.Lookup;
@@ -269,6 +270,7 @@ public class PreparationAPI extends APIService {
             produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get a preparation by id and details.", notes = "Returns the preparation details.")
     @Timed
+    @LogTimed(startMessage = "Starting Get prep by (id,details)", endMessage = "Ending Get prep by (id,details)")
     public PreparationDetailsDTO getPreparation(
             @PathVariable(value = "id") @ApiParam(name = "id", value = "Preparation id.") String preparationId, //
             @RequestParam(value = "stepId", defaultValue = "head") @ApiParam(name = "stepId",
@@ -703,7 +705,7 @@ public class PreparationAPI extends APIService {
                         hasNoDataset = dataSetAPI.getMetadata(dsId) == null;
                     } catch (TDPException e) {
                         // Dataset could not be retrieved => Main reason is not present
-                        LOG.debug("The data set could not be retrieved: " + e);
+                        LOG.debug("The data set could not be retrieved: {}", e);
                         hasNoDataset = true;
                     }
                     return hasNoDataset;
