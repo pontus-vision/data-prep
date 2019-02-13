@@ -67,7 +67,7 @@ public abstract class BasePreparationTest extends ServiceBaseTest {
     @Before
     public void setUp() {
         super.setUp();
-        home = folderRepository.getHome();
+        home = folderRepository.getOrCreateHome();
     }
 
     @After
@@ -140,7 +140,7 @@ public abstract class BasePreparationTest extends ServiceBaseTest {
                 .log()
                 .ifError()//
                 .when() //
-                .put("/folders")
+                .post("/folders/" + parentId + "/folders")
                 .then()
                 .assertThat()
                 .statusCode(200);
