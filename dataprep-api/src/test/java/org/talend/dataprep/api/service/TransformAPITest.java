@@ -540,6 +540,6 @@ public class TransformAPITest extends ApiServiceTestBase {
         List<ActionForm> actions = testClient.getActions();
 
         // then
-        assertEquals(83, actions.size());
+        assertTrue(84 < actions.size());
     }
 }

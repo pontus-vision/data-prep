@@ -142,7 +142,7 @@ public class SimpleSuggestionEngineTest {
 
         // when
         String[] newActionFormArray = suggestionEngine //
-                .score(actionRegistry.findAll(), columnMetadata) //
+                .score(actionRegistry.getAllInstances(), columnMetadata) //
                 .filter(i -> i.getScore() > 0) //
                 .limit(5) //
                 .map(a -> a.getAction().getName()) //
@@ -165,7 +165,7 @@ public class SimpleSuggestionEngineTest {
 
         // when
         String[] newActionFormArray = suggestionEngine //
-                .score(actionRegistry.findAll(), columnMetadata) //
+                .score(actionRegistry.getAllInstances(), columnMetadata) //
                 .filter(i -> i.getScore() > 0) //
                 .limit(5) //
                 .map(a -> a.getAction().getName()) //

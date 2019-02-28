@@ -673,7 +673,7 @@ public class TransformationService extends BaseTransformationService {
     @ResponseBody
     public Stream<ActionForm> columnActions(@RequestBody(required = false) ColumnMetadata column) {
         return actionRegistry
-                .findAll() //
+                .getAllInstances() //
                 .filter(action -> !"TEST".equals(action.getCategory(LocaleContextHolder.getLocale()))
                         && action.acceptScope(COLUMN)) //
                 .map(am -> column != null ? am.adapt(column) : am)
@@ -701,7 +701,7 @@ public class TransformationService extends BaseTransformationService {
 
         // look for all actions applicable to the column type
         return actionRegistry
-                .findAll() //
+                .getAllInstances() //
                 .filter(am -> am.acceptScope(COLUMN) && am.acceptField(column)) //
                 .map(am -> suggestionEngine.score(am, column)) //
                 .filter(s -> s.getScore() > 0) // Keep only strictly positive score (negative and 0 indicates not
@@ -723,7 +723,7 @@ public class TransformationService extends BaseTransformationService {
     @ResponseBody
     public Stream<ActionForm> lineActions() {
         return actionRegistry
-                .findAll() //
+                .getAllInstances() //
                 .filter(action -> action.acceptScope(LINE)) //
                 .map(action -> action.adapt(LINE))
                 .map(ad -> ad.getActionForm(getLocale()));
@@ -740,7 +740,7 @@ public class TransformationService extends BaseTransformationService {
     @ResponseBody
     public Stream<ActionForm> datasetActions() {
         return actionRegistry
-                .findAll() //
+                .getAllInstances() //
                 .filter(action -> action.acceptScope(ScopeCategory.DATASET)) //
                 .map(action -> action.adapt(ScopeCategory.DATASET))
                 .map(ad -> ad.getActionForm(getLocale()));
@@ -757,7 +757,7 @@ public class TransformationService extends BaseTransformationService {
     @ResponseBody
     public Stream<ActionForm> multiColumnsActions() {
         return actionRegistry
-                .findAll() //
+                .getAllInstances() //
                 .filter(action -> action.acceptScope(ScopeCategory.MULTI_COLUMNS)) //
                 .map(action -> action.adapt(ScopeCategory.MULTI_COLUMNS))
                 .map(ad -> ad.getActionForm(getLocale()));
