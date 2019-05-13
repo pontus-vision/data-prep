@@ -6,8 +6,9 @@ Feature: Make a aggregation
     Given I upload the dataset "/data/scores.csv" with name "scores_dataset"
     And I create a preparation with name "scores_preparation", based on "scores_dataset" dataset
     And I add a "uppercase" step on the preparation "scores_preparation" with parameters :
-      | column_name | Name |
-      | column_id   | 0000 |
+      | columnName | Name   |
+      | columnId   | 0000   |
+      | scope      | column |
 
     When I apply an aggregation preparation "scores_preparation" with parameters :
       | operator | AVERAGE |
