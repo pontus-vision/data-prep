@@ -15,9 +15,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.talend.dataprep</groupId>
+        <groupId>com.pontusvision</groupId>
         <artifactId>dataprep-backend</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>103.0.0</version>
         <relativePath>../dataprep-backend/pom.xml</relativePath>
     </parent>
 
@@ -26,7 +26,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.talend.dataprep</groupId>
+            <groupId>com.pontusvision</groupId>
             <artifactId>dataprep-backend-service</artifactId>
         </dependency>
         <dependency>

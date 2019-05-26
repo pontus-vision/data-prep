@@ -14,18 +14,20 @@
   ~ ============================================================================
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.talend.dataprep</groupId>
-        <artifactId>dataprep-dependencies</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
-        <relativePath/>
-    </parent>
+    <!--<parent>-->
+        <!--<groupId>org.talend.dataprep</groupId>-->
+        <!--<artifactId>dataprep-dependencies</artifactId>-->
+        <!--<version>1.1.0-SNAPSHOT</version>-->
+        <!--<relativePath/>-->
+    <!--</parent>-->
 
+    <groupId>com.pontusvision</groupId>
     <artifactId>dataprep-parent</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>103.0.0</version>
     <packaging>pom</packaging>
 
     <description>dataprep parent pom</description>
@@ -42,7 +44,861 @@
         <module>dataprep-webapp</module>
     </modules>
 
-    <scm>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <accessors-smart.version>1.1</accessors-smart.version>
+        <activation.version>1.1</activation.version>
+        <animal-sniffer-annotation.version>1.1</animal-sniffer-annotation.version>
+        <annotations.version>2.0.1</annotations.version>
+        <antlr4.version>4.5.3</antlr4.version>
+        <aopalliance.version>1.0</aopalliance.version>
+        <apache-el.version>8.0.33</apache-el.version>
+        <apache-mime4j.version>0.8.1</apache-mime4j.version>
+        <archaius-core.version>0.7.5</archaius-core.version>
+        <asm.version>5.0.4</asm.version>
+        <asm-commons.version>5.1</asm-commons.version>
+        <aspectjweaver.version>1.8.9</aspectjweaver.version>
+        <assertj.version>3.12.2</assertj.version>
+        <avro.version>1.8.1</avro.version>
+        <awaitility-proxy.version>3.1.6</awaitility-proxy.version>
+        <bcmail.version>1.54</bcmail.version>
+        <bolierpipe.version>1.1.0</bolierpipe.version>
+        <byte-buddy.version>1.6.14</byte-buddy.version>
+        <bzip2.version>0.9.1</bzip2.version>
+        <c3p0.version>0.9.1.1</c3p0.version>
+        <carrier.version>1.65</carrier.version>
+        <cdm.version>4.5.5</cdm.version>
+        <classmate.version>1.3.3</classmate.version>
+        <commons-beanutils.version>1.9.3</commons-beanutils.version>
+        <commons-codec.version>1.10</commons-codec.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
+        <commons-collections4.version>4.1</commons-collections4.version>
+        <commons-compress.version>1.14</commons-compress.version>
+        <commons-configuration.version>1.8</commons-configuration.version>
+        <commons-configuration2.version>2.0</commons-configuration2.version>
+        <commons-csv.version>1.0</commons-csv.version>
+        <commons-digester.version>2.1</commons-digester.version>
+        <commons-exec.version>1.3</commons-exec.version>
+        <commons-io.version>2.5</commons-io.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <commons-lang3.version>3.3.2</commons-lang3.version>
+        <commons-logging.version>1.2</commons-logging.version>
+        <commons-math3.version>3.5</commons-math3.version>
+        <commons-pool.version>1.6</commons-pool.version>
+        <commons-validator.version>1.5.1</commons-validator.version>
+        <commons-vfs2.version>2.0</commons-vfs2.version>
+        <content-service-common.version>0.23.1</content-service-common.version>
+        <curvesapi.version>1.04</curvesapi.version>
+        <cucumber.version>4.3.1</cucumber.version>
+        <cxf.version>3.0.12</cxf.version>
+        <daikon.version>0.23.1</daikon.version>
+        <dataquality.version>5.0.2</dataquality.version>
+        <ehcache.version>2.6.2</ehcache.version>
+        <enunciate.version>2.8.0</enunciate.version>
+        <feign.version>9.3.1</feign.version>
+        <fontbox.version>2.0.6</fontbox.version>
+        <geoapi.version>3.0.0</geoapi.version>
+        <geocoder.version>2.75</geocoder.version>
+        <grib.version>4.5.5</grib.version>
+        <gson.version>2.8.0</gson.version>
+        <guava.version>21.0</guava.version>
+        <hamcrest-json.version>0.2</hamcrest-json.version>
+        <hdrhistogram.version>2.1.9</hdrhistogram.version>
+        <hibernate.version>5.1.3.Final</hibernate.version>
+        <httpclient.version>4.5.3</httpclient.version>
+        <httpcore.version>4.4.6</httpcore.version>
+        <httpmime.version>4.5.3</httpmime.version>
+        <httpservices.version>4.5.5</httpservices.version>
+        <hystrix.version>1.5.6</hystrix.version>
+        <isoparser.version>1.1.18</isoparser.version>
+        <jackcess.version>2.1.8</jackcess.version>
+        <jackcess-encrypt.version>2.1.2</jackcess-encrypt.version>
+        <jackson.version>2.9.4</jackson.version>
+        <java-libpst.version>0.8.1</java-libpst.version>
+        <java-semver.version>0.9.0</java-semver.version>
+        <javax.inject.version>1</javax.inject.version>
+        <junit.version>4.12</junit.version>
+        <log4j.version>1.7.22</log4j.version>
+        <logback.version>1.1.11</logback.version>
+        <lucene.version>4.10.4</lucene.version>
+        <mailapi.version>1.4.3</mailapi.version>
+        <maven-scm.version>1.4</maven-scm.version>
+        <mockito-core.version>2.27.0</mockito-core.version>
+        <netflix.version>0.1.1</netflix.version>
+        <netty.version>4.0.27</netty.version>
+        <opencsv.version>2.3</opencsv.version>
+        <opennlp.version>1.6.0</opennlp.version>
+        <pdfbox.version>2.0.6</pdfbox.version>
+        <plexus.version>1.5.6</plexus.version>
+        <poi.version>3.15</poi.version>
+        <protobuf.version>2.5.0</protobuf.version>
+        <quartz.version>2.2.0</quartz.version>
+        <reactive-streams.version>1.0.0</reactive-streams.version>
+        <reactor-core.version>3.0.2</reactor-core.version>
+        <reflections.version>0.9.10</reflections.version>
+        <regexp.version>1.3</regexp.version>
+        <restassured.version>2.9.0</restassured.version>
+        <ribbon.version>2.2.0</ribbon.version>
+        <rome.version>1.5.1</rome.version>
+        <rxjava.version>1.1.9</rxjava.version>
+        <rxnetty.version>0.4.9</rxnetty.version>
+        <sentiment-analysis.version>0.1</sentiment-analysis.version>
+        <service-common.version>0.23.1</service-common.version>
+        <servo.version>0.10.1</servo.version>
+        <sis.version>0.6</sis.version>
+        <slf4j.version>1.7.22</slf4j.version>
+        <smtp.version>1.4.5</smtp.version>
+        <smiley-http-proxy-servlet.version>1.11</smiley-http-proxy-servlet.version>
+        <snakeyaml.version>1.17</snakeyaml.version>
+        <snappy.version>1.0.5</snappy.version>
+        <spring-aop.version>4.3.7.RELEASE</spring-aop.version>
+        <spring-beans.version>4.3.7.RELEASE</spring-beans.version>
+        <spring-boot.version>1.5.2.RELEASE</spring-boot.version>
+        <spring-cloud.version>1.1.7.RELEASE</spring-cloud.version>
+        <spring-cloud-starter.version>1.2.5.RELEASE</spring-cloud-starter.version>
+        <spring-context.version>4.3.7.RELEASE</spring-context.version>
+        <spring-expression.version>4.3.7.RELEASE</spring-expression.version>
+        <spring-plugin.version>1.2.0.RELEASE</spring-plugin.version>
+        <spring-core.version>4.3.7.RELEASE</spring-core.version>
+        <spring-web.version>4.3.7.RELEASE</spring-web.version>
+        <spring-security-core.version>4.2.2.RELEASE</spring-security-core.version>
+        <spring-security-rsa.version>1.0.3.RELEASE</spring-security-rsa.version>
+        <spring-data-commons.version>1.13.1.RELEASE</spring-data-commons.version>
+        <springfox-core.version>2.7.0</springfox-core.version>
+        <stax2-api.version>3.1.4</stax2-api.version>
+        <stax-api.version>1.0.1</stax-api.version>
+        <swagger.version>1.5.13</swagger.version>
+        <tagsoup.version>1.2.1</tagsoup.version>
+        <tde.version>1.0.0</tde.version>
+        <tikka.version>1.16</tikka.version>
+        <udunits.version>4.5.5</udunits.version>
+        <validation-api.version>1.1.0.Final</validation-api.version>
+        <vorbis.version>0.8</vorbis.version>
+        <jetty.version>9.4.2.v20170220</jetty.version>
+        <woodstox.version>4.4.1</woodstox.version>
+        <xerces.version>2.11.0</xerces.version>
+        <xlsx-streamer.version>1.0.0</xlsx-streamer.version>
+        <xml-apis.version>1.4.01</xml-apis.version>
+        <xml-beans.version>2.6.0</xml-beans.version>
+        <xml-schema-core.version>2.2.1</xml-schema-core.version>
+        <xmpcore.version>5.1.2</xmpcore.version>
+        <xz.version>1.6</xz.version>
+        <rel.version>103.0.0</rel.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>messages-model-spring-support</artifactId>
+                <version>${daikon.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>local-content-service</artifactId>
+                <version>${daikon.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>content-service-common</artifactId>
+                <classifier>lib</classifier>
+                <version>${daikon.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>messages-model</artifactId>
+                <version>${daikon.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-core</artifactId>
+                <version>${reactor-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring-context.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring-context.version}</version>
+
+            </dependency>
+
+            <dependency>
+                <groupId>info.cukes</groupId>
+                <artifactId>cucumber-java8</artifactId>
+                <version>${cucumber.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>info.cukes</groupId>
+                <artifactId>cucumber-junit</artifactId>
+                <version>${cucumber.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>info.cukes</groupId>
+                <artifactId>cucumber-spring</artifactId>
+                <version>${cucumber.version}</version>
+
+            </dependency>
+
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-zipkin</artifactId>
+                <version>${spring-cloud-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${spring-boot.version}</version>
+
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-tomcat</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jetty</artifactId>
+                <version>${spring-boot.version}</version>
+
+            </dependency>
+            <!--<dependency>-->
+            <!--<groupId>org.springframework.kafka</groupId>-->
+            <!--<artifactId>spring-kafka</artifactId>-->
+            <!--<version>${spring-boot.version}</version>-->
+
+            <!--<exclusions>-->
+            <!--<exclusion>-->
+            <!--<groupId>org.apache.kafka</groupId>-->
+            <!--<artifactId>kafka-clients</artifactId>-->
+            <!--</exclusion>-->
+            <!--</exclusions>-->
+            <!--</dependency>-->
+            <!--<dependency>-->
+            <!--<groupId>org.apache.kafka</groupId>-->
+            <!--<artifactId>kafka-clients</artifactId>-->
+            <!--</dependency>-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-aop</artifactId>
+                <version>${spring-boot.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring-boot.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-backend-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-upgrade-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-async-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.restassured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>${restassured.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>uk.co.datumedge</groupId>
+                <artifactId>hamcrest-json</artifactId>
+                <version>${hamcrest-json.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-core</artifactId>
+                <type>test-jar</type>
+
+                <version>${project.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-async-runtime</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-dataset</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-preparation</artifactId>
+                <version>${project.version}</version>
+
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-backend-service</artifactId>
+                <version>${project.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-dataset</artifactId>
+                <version>${project.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-backend-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>mailapi</artifactId>
+                <version>${mailapi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>smtp</artifactId>
+                <version>${smtp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mitre.dsmiley.httpproxy</groupId>
+                <artifactId>smiley-http-proxy-servlet</artifactId>
+                <version>${smiley-http-proxy-servlet.version}</version>
+            </dependency>
+            <!-- UNIT TEST DEPENDENCIES -->
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-async-runtime</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- UNIT TEST DEPENDENCIES -->
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility-proxy</artifactId>
+                <version>${awaitility-proxy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-dataset</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-preparation</artifactId>
+                <version>${project.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-transformation</artifactId>
+                <version>${project.version}</version>
+
+
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-sleuth</artifactId>
+                <version>${spring-cloud-starter.version}</version>
+
+            </dependency>
+
+            <dependency><!-- Need Spring Data common API (but not a whole Spring Data stack) -->
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-commons</artifactId>
+                <version>${spring-data-commons.version}</version>
+
+            </dependency>
+            <dependency><!-- Need Spring Security API (but not the whole Spring Security stack) -->
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>${spring-security-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jetty</artifactId>
+                <version>${spring-boot.version}</version>
+
+            </dependency>
+            <!-- TALEND DEPENDENCIES -->
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>content-service-common</artifactId>
+                <version>${daikon.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>local-content-service</artifactId>
+                <version>${daikon.version}</version>
+                <classifier>lib</classifier>
+
+            </dependency>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>daikon-spring-tenancy</artifactId>
+                <version>${daikon.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.dataquality</groupId>
+                <artifactId>dataquality-record-linkage</artifactId>
+                <version>${dataquality.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.talend.dataquality</groupId>
+                <artifactId>dataquality-semantic</artifactId>
+                <version>${dataquality.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>daikon</artifactId>
+                <version>${daikon.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.talend.dataquality</groupId>
+                <artifactId>dataquality-common</artifactId>
+                <version>${dataquality.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>daikon-tql-core</artifactId>
+                <version>${daikon.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>daikon-tql-bean</artifactId>
+                <version>${daikon.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-core-actions</artifactId>
+                <version>${project.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-avro-message</artifactId>
+                <version>${project.version}</version>
+
+            </dependency>
+            <!-- OTHER DEPENDENCIES -->
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-core</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.restassured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>${restassured.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.zafarkhaja</groupId>
+                <artifactId>java-semver</artifactId>
+                <version>${java-semver.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger2</artifactId>
+                <version>${springfox-core.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.netflix.hystrix</groupId>
+                <artifactId>hystrix-core</artifactId>
+                <version>${hystrix.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>net.sf.opencsv</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>${opencsv.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>${rxjava.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>${javax.inject.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jdk8</artifactId>
+                <version>${jackson.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${poi.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.monitorjbl</groupId>
+                <artifactId>xlsx-streamer</artifactId>
+                <version>${xlsx-streamer.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-configuration2</artifactId>
+                <version>${commons-configuration2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>${avro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parsers</artifactId>
+                <version>${tikka.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate.version}</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>${commons-math3.version}</version>
+            </dependency>
+
+
+
+
+
+
+
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-zipkin</artifactId>
+                <version>${spring-cloud-starter.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-backend-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- UNIT TEST DEPENDENCIES -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pontusvision</groupId>
+                <artifactId>dataprep-backend-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+
+        </dependencies>
+
+
+    </dependencyManagement>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+                <version>3.5.1</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.3.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-dependency-convergence</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <DependencyConvergence/>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>pv-gdpr:pontus-gdpr-graph</artifact>
+                                    <includes>
+                                        <include>org/**</include>
+                                        <include>org/apache/hadoop/conf/Configuratio*</include>
+                                        <include>org/apache/hadoop/conf/Configuration**</include>
+                                        <include>org/apache/hadoop/conf/Configuration</include>
+                                        <include>org/apache/hadoop/conf/Configuratio.class</include>
+                                        <include>org/apache/hadoop/conf/**</include>
+                                        <include>com/**</include>
+                                        <include>uk/**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.janusgraph:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <!--<exclude>org/slf4j/**</exclude>-->
+                                        <!--<exclude>ch/qos/**</exclude>-->
+                                        <!-- LPPM - WARNING: THE OLAP jobs NEED our own custom version of this class: -->
+                                        <exclude>org/apache/hadoop/conf/Configuration.class</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration*</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration**</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuratio*</exclude>
+
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <!--<exclude>org/slf4j/**</exclude>-->
+                                        <!--<exclude>ch/qos/**</exclude>-->
+
+
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.apache.hbase:hbase-shaded-client</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <!--<exclude>org/slf4j/**</exclude>-->
+                                        <!--<exclude>ch/qos/**</exclude>-->
+                                        <!-- LPPM - WARNING: THE OLAP jobs NEED our own custom version of this class: -->
+                                        <exclude>org/apache/hadoop/conf/Configuration.class</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration*</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration**</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuratio*</exclude>
+
+
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.apache.hbase:hbase-shaded-client</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <!--<exclude>org/slf4j/**</exclude>-->
+                                        <!--<exclude>ch/qos/**</exclude>-->
+                                        <!-- LPPM - WARNING: THE OLAP jobs NEED our own custom version of this class: -->
+                                        <exclude>org/apache/hadoop/conf/Configuration.class</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration*</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration**</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuratio*</exclude>
+
+
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.apache.hbase:hbase-shaded-server</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <!--<exclude>org/slf4j/**</exclude>-->
+                                        <!--<exclude>ch/qos/**</exclude>-->
+                                        <!-- LPPM - WARNING: THE OLAP jobs NEED our own custom version of this class: -->
+                                        <exclude>org/apache/hadoop/conf/Configuration.class</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration*</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuration**</exclude>
+                                        <exclude>org/apache/hadoop/conf/Configuratio*</exclude>
+
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>pv-gdpr:pontus-gdpr-graph</artifact>
+                                    <includes>
+                                        <include>org/**</include>
+                                        <include>org/apache/hadoop/conf/Configuratio*</include>
+                                        <include>org/apache/hadoop/conf/Configuration**</include>
+                                        <include>org/apache/hadoop/conf/Configuration</include>
+                                        <include>org/apache/hadoop/conf/Configuratio.class</include>
+                                        <include>org/apache/hadoop/conf/**</include>
+                                        <include>com/**</include>
+                                        <include>uk/**</include>
+                                    </includes>
+                                </filter>
+
+                            </filters>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>addSources</goal>
+                            <goal>generateStubs</goal>
+                            <goal>compile</goal>
+                            <goal>removeStubs</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sources>
+                        <source>
+                            <directory>${project.basedir}/src/main/java/com/pontusvision/gdpr</directory>
+                            <includes>
+                                <include>**/*.groovy</include>
+                            </includes>
+                        </source>
+                    </sources>
+                </configuration>
+            </plugin>
+
+
+        </plugins>
+
+    </build>
+    <!--scm>
         <connection>scm:git:https://github.com/Talend/data-prep.git</connection>
         <url>https://github.com/Talend/data-prep.git</url>
     </scm>
@@ -102,7 +958,8 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-    </repositories>
+    </repositories -->
+
     <pluginRepositories>
         <pluginRepository>
             <id>opensource-snapshots</id>

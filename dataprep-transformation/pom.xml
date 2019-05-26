@@ -16,9 +16,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.talend.dataprep</groupId>
+        <groupId>com.pontusvision</groupId>
         <artifactId>dataprep-backend-service-parent</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>103.0.0</version>
         <relativePath>../dataprep-backend-service-parent/pom.xml</relativePath>
     </parent>
 
@@ -34,23 +34,23 @@
     <dependencies>
         <!-- UNIT TEST DEPENDENCIES -->
         <dependency>
-            <groupId>org.talend.dataprep</groupId>
+            <groupId>com.pontusvision</groupId>
             <artifactId>dataprep-async-runtime</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.talend.dataprep</groupId>
+            <groupId>com.pontusvision</groupId>
             <artifactId>dataprep-dataset</artifactId>
             <classifier>lib</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.talend.dataprep</groupId>
+            <groupId>com.pontusvision</groupId>
             <artifactId>dataprep-preparation</artifactId>
             <classifier>lib</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.talend.dataprep</groupId>
+            <groupId>com.pontusvision</groupId>
             <artifactId>dataprep-core</artifactId>
         </dependency>
     </dependencies>

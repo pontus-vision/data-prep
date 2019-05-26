@@ -17,9 +17,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.talend.dataprep</groupId>
+        <groupId>com.pontusvision</groupId>
         <artifactId>dataprep-parent</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>103.0.0</version>
     </parent>
 
     <artifactId>dataprep-backend</artifactId>
@@ -30,7 +30,7 @@
     <modules>
         <module>../dataprep-backend-service</module>
         <module>../dataprep-backend-service-parent</module>
-        <module>../dataprep-avro-message</module>
+        <!--<module>../dataprep-avro-message</module>-->
         <module>../dataprep-async-api</module>
         <module>../dataprep-async-runtime</module>
         <module>../dataprep-dataset</module>
@@ -66,51 +66,51 @@
             <!-- DATAPREP -->
 
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-backend-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-async-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-async-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-transformation</artifactId>
                 <version>${project.version}</version>
                 <classifier>lib</classifier>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-preparation</artifactId>
                 <version>${project.version}</version>
                 <classifier>lib</classifier>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-dataset</artifactId>
                 <version>${project.version}</version>
                 <classifier>lib</classifier>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-api</artifactId>
                 <version>${project.version}</version>
                 <classifier>lib</classifier>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-upgrade-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-avro-message</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -118,42 +118,42 @@
             <!-- DATAPREP TEST -->
 
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-api</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-backend-service</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-upgrade-common</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-transformation</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-preparation</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.talend.dataprep</groupId>
+                <groupId>com.pontusvision</groupId>
                 <artifactId>dataprep-dataset</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
