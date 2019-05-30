@@ -30,6 +30,11 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>mailapi</artifactId>
         </dependency>
@@ -54,7 +59,7 @@
             <version>2.5.1</version>
 
         </dependency>
-        
+
         <!-- UNIT TEST DEPENDENCIES -->
         <dependency>
             <groupId>org.talend.dataprep</groupId>
