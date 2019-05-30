@@ -37,38 +37,48 @@
             <groupId>com.sun.mail</groupId>
             <artifactId>smtp</artifactId>
         </dependency>
-        <!-- UNIT TEST DEPENDENCIES -->
+
         <dependency>
             <groupId>org.talend.dataprep</groupId>
             <artifactId>dataprep-dataset</artifactId>
-            <!--<classifier>lib</classifier>-->
-            <!--<scope>test</scope>-->
             <version>2.5.1</version>
-
         </dependency>
         <dependency>
             <groupId>org.talend.dataprep</groupId>
             <artifactId>dataprep-preparation</artifactId>
-            <!--<classifier>lib</classifier>-->
-            <!--<scope>test</scope>-->
             <version>2.5.1</version>
-
         </dependency>
         <dependency>
             <groupId>org.talend.dataprep</groupId>
             <artifactId>dataprep-transformation</artifactId>
-            <!--<classifier>lib</classifier>-->
-            <!--<scope>test</scope>-->
             <version>2.5.1</version>
 
+        </dependency>
+        
+        <!-- UNIT TEST DEPENDENCIES -->
+        <dependency>
+            <groupId>org.talend.dataprep</groupId>
+            <artifactId>dataprep-dataset</artifactId>
+            <classifier>lib</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.dataprep</groupId>
+            <artifactId>dataprep-preparation</artifactId>
+            <classifier>lib</classifier>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.talend.dataprep</groupId>
             <artifactId>dataprep-transformation</artifactId>
-            <!--<type>test-jar</type>-->
-            <!--<scope>test</scope>-->
-            <version>2.5.1</version>
-
+            <classifier>lib</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.dataprep</groupId>
+            <artifactId>dataprep-transformation</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
