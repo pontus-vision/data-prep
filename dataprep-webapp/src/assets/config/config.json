@@ -1,7 +1,7 @@
 {
-	"serverUrl": "http://10.42.10.99:8888",
-	"serverSignUrl": "http://10.42.10.99:8888",
+	"serverUrl": "http://localhost:18443/pontus-extract-discovery-backend",
+	"serverSignUrl": "http://localhost:18443/pontus-extract-discovery-backend",
 	"serverKeepAliveUrl": "",
 	"enableDebug": false,
-	"copyRights": "© 2018 Talend. All Rights Reserved"
+	"copyRights": "© 2019 Pontus Vision. All Rights Reserved"
 }
