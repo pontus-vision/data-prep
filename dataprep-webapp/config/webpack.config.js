@@ -171,7 +171,7 @@ function addDevServerConfig(config) {
 		setup(app) {
 			app.get('/assets/config/config.json', function (req, res) {
 				const configFile = require('./../src/assets/config/config.json');
-				configFile.serverUrl = 'http://localhost:8888';
+				configFile.serverUrl = 'http://localhost:18443/pontus-extract-discovery-backend';
 				res.json(configFile);
 			});
 		},

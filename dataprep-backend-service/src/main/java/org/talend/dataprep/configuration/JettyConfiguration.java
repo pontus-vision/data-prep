@@ -29,7 +29,7 @@ public class JettyConfiguration {
 
     @Bean
     public JettyEmbeddedServletContainerFactory jettyEmbeddedServletContainerFactory(
-            @Value("${server.port:8080}") final String port, //
+            @Value("${server.port:8888}") final String port, //
             @Value("${jetty.threadPool.maxThreads:200}") final String maxThreads, //
             @Value("${jetty.threadPool.minThreads:8}") final String minThreads, //
             @Value("${jetty.threadPool.idleTimeout:-1}") final String idleTimeout) {
