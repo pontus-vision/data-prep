@@ -143,7 +143,6 @@ function addProdEnvPlugin(config) {
 		})
 	);
  
-        config.output = { publicPath: "/pontus-extract-discovery-gui/" };
 }
 
 function addCoverageConfig(config) {
