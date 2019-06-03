@@ -1,8 +1,10 @@
 {
   "name": "data-prep",
   "version": "2.5.1",
+  "homePage": "pontus-extract-discovery-gui/"
+
   "authors": [
-    "Talend SA"
+    "Pontus Vision (based on Talend)
   ],
   "license": "Apache-2.0",
   "description": "Talend Data Preparation",

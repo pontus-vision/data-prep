@@ -4,7 +4,7 @@ module.exports = {
     port: 3000,
 
     // index template conf
-    title: 'Data Preparation | Talend',
+    title: 'PontusVision | Extract - Discovery',
     rootElement: 'dataprep-app',
     rootModule: 'data-prep',
 };
