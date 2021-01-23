@@ -185,7 +185,7 @@
     "uglifyjs-webpack-plugin": "^1.1.1",
     "url-loader": "^0.6.2",
     "webpack": "^3.8.1",
-    "webpack-dev-server": "^2.9.3",
+    "webpack-dev-server": "^3.1.11",
     "worker-loader": "^0.7.1",
     "yargs": "^4.8.1"
   },
